@@ -10,7 +10,7 @@ export default function Index() {
         alignItems: "center",
       }}
     >
-      <ThemedText>Streakk</ThemedText>
+      <ThemedText>Settings Page</ThemedText>
     </ThemedView>
   );
 }

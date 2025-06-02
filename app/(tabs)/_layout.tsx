@@ -7,6 +7,7 @@ import TabBarBackground from "@/components/ui/TabBarBackground";
 import { Colors } from "@/constants/Colors";
 import { useColorScheme } from "@/hooks/useColorScheme";
 import Icon from "react-native-vector-icons/MaterialIcons";
+import { AntDesign } from "@expo/vector-icons";
 
 export default function TabLayout() {
   const colorScheme = useColorScheme();
@@ -30,7 +31,14 @@ export default function TabLayout() {
         name="streak"
         options={{
           title: "Streak",
-          tabBarIcon: ({ color }) => <Icon name="settings" size={30} color="#4F8EF7" />,
+          tabBarIcon: ({ color }) => <AntDesign name="user" size={30} color="#4F8EF7" />,
+        }}
+      />
+      <Tabs.Screen
+        name="settings"
+        options={{
+          title: "Settings",
+          tabBarIcon: ({ color }) => <AntDesign name="setting" size={30} color="#4F8EF7" />,
         }}
       />
     </Tabs>
