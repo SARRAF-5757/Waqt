@@ -8,39 +8,42 @@ import { Colors } from "@/constants/Colors";
 import { useColorScheme } from "@/hooks/useColorScheme";
 import Icon from "react-native-vector-icons/MaterialIcons";
 import { AntDesign } from "@expo/vector-icons";
+import { HabitProvider } from "@/contexts/HabitContext";
 
 export default function TabLayout() {
   const colorScheme = useColorScheme();
 
   return (
-    <Tabs
-      screenOptions={{
-        tabBarActiveTintColor: Colors[colorScheme ?? "light"].tint,
-        headerShown: false,
-        tabBarBackground: TabBarBackground,
-      }}
-    >
-      <Tabs.Screen
-        name="index"
-        options={{
-          title: "Home",
-          tabBarIcon: ({ color }) => <IconSymbol size={28} name="house.fill" color={color} />,
+    <HabitProvider>
+      <Tabs
+        screenOptions={{
+          tabBarActiveTintColor: Colors[colorScheme ?? "light"].tint,
+          headerShown: false,
+          tabBarBackground: TabBarBackground,
         }}
-      />
-      <Tabs.Screen
-        name="streak"
-        options={{
-          title: "Streak",
-          tabBarIcon: ({ color }) => <AntDesign name="user" size={30} color="#4F8EF7" />,
-        }}
-      />
-      <Tabs.Screen
-        name="settings"
-        options={{
-          title: "Settings",
-          tabBarIcon: ({ color }) => <AntDesign name="setting" size={30} color="#4F8EF7" />,
-        }}
-      />
-    </Tabs>
+      >
+        <Tabs.Screen
+          name="index"
+          options={{
+            title: "Home",
+            tabBarIcon: ({ color }) => <AntDesign name="home" size={30} color="#4F8EF7" />,
+          }}
+        />
+        <Tabs.Screen
+          name="streak"
+          options={{
+            title: "History",
+            tabBarIcon: ({ color }) => <AntDesign name="barschart" size={30} color="#4F8EF7" />,
+          }}
+        />
+        <Tabs.Screen
+          name="settings"
+          options={{
+            title: "Settings",
+            tabBarIcon: ({ color }) => <AntDesign name="setting" size={30} color="#4F8EF7" />,
+          }}
+        />
+      </Tabs>
+    </HabitProvider>
   );
 }
