@@ -52,22 +52,15 @@ export default function Index() {
               style={styles.touchableRow}
             >
               <ThemedView 
-                lightColor="#FFFFFF" 
-                darkColor="#1C1C1E" 
+                lightColor="#eeeeeeff" 
+                darkColor="#232323ff" 
                 style={styles.habitRow}
               >
                 <Checkbox
-                  color='#4F8EF7'
+                  color={themedColors.tint}
                   value={prayerStatuses[habit.id] || false}
                   onValueChange={() => handleTogglePrayer(habit.id)}
-                  style={[
-                    styles.checkbox,
-                    {
-                      borderColor: prayerStatuses[habit.id] ? '#4F8EF7' : themedColors.icon,
-                      borderWidth: 2,
-                      backgroundColor: prayerStatuses[habit.id] ? '#4F8EF7' : 'transparent',
-                    }
-                  ]}
+                  style={[styles.checkbox]}
                 />
                 <ThemedText style={styles.habitName}>{habit.name}</ThemedText>
               </ThemedView>

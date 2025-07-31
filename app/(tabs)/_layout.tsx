@@ -24,21 +24,21 @@ export default function TabLayout() {
           name="index"
           options={{
             title: "Home",
-            tabBarIcon: ({ color }) => <AntDesign name="home" size={30} color="#4F8EF7" />,
+            tabBarIcon: ({ color }) => <AntDesign name="home" size={30} color={color} />,
           }}
         />
         <Tabs.Screen
           name="streak"
           options={{
             title: "History",
-            tabBarIcon: ({ color }) => <AntDesign name="barschart" size={30} color="#4F8EF7" />,
+            tabBarIcon: ({ color }) => <AntDesign name="barschart" size={30} color={color} />,
           }}
         />
         <Tabs.Screen
           name="settings"
           options={{
             title: "Settings",
-            tabBarIcon: ({ color }) => <AntDesign name="setting" size={30} color="#4F8EF7" />,
+            tabBarIcon: ({ color }) => <AntDesign name="setting" size={30} color={color} />,
           }}
         />
       </Tabs>
