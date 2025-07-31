@@ -1,5 +1,7 @@
 //# In: constants/Habits.ts
 
+import { format } from 'date-fns';
+
 export const PRAYER_HABITS = [
     { id: 'fajr', name: 'Fajr' },
     { id: 'dhuhr', name: 'Dhuhr' },
@@ -8,20 +10,12 @@ export const PRAYER_HABITS = [
     { id: 'isha', name: 'Isha' },
 ];
 
+// Unified date helpers
+export const getDateKey = (d = new Date()) => format(d, 'yyyy-MM-dd');   // storage / context key
+export const getHumanDate = (d = new Date()) =>
+  format(d, "do LLLL, yyyy");                                            // UI caption
+
+// Old function
 export const getTodayDateString = () => {
-    const today = new Date();
-    const day = today.getDate();
-    const year = today.getFullYear();
-    const month = today.toLocaleString('default', { month: 'long' });
-    // Get ordinal suffix
-    const getOrdinal = (n: number) => {
-        if (n > 3 && n < 21) return 'th';
-        switch (n % 10) {
-            case 1: return 'st';
-            case 2: return 'nd';
-            case 3: return 'rd';
-            default: return 'th';
-        }
-    };
-    return `${day}${getOrdinal(day)} ${month}, ${year}`;
+    return getHumanDate();
 };

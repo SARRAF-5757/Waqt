@@ -1,23 +1,25 @@
 import React, { createContext, useState, useContext, useEffect, ReactNode } from 'react';
 import AsyncStorage from '@react-native-async-storage/async-storage';
+import { getDateKey } from '../constants/Habits';
 
-// Define the shape of our history data
+// structure of history instances
 interface HistoryItem {
   date: string;
   statuses: Record<string, boolean>;
 }
 
-// Define the shape of our context
+// context structure
 interface HabitContextType {
   historyData: HistoryItem[];
   isLoading: boolean;
+  
   updateHabitStatus: (date: string, habitId: string, completed: boolean) => Promise<void>;
   // Add a function to manually trigger a reload if needed
   reloadData: () => void;
 }
 
-// Create the context with a default value
-const HabitContext = createContext<HabitContextType | undefined>(undefined);
+// Create the context with an undefined value (but able to hold HabitContextType later on as well)
+const HabitContext = createContext<HabitContextType|undefined> (undefined);
 
 // Create the Provider component
 export const HabitProvider = ({ children }: { children: ReactNode }) => {
@@ -28,7 +30,22 @@ export const HabitProvider = ({ children }: { children: ReactNode }) => {
     setIsLoading(true);
     try {
       const allKeys = await AsyncStorage.getAllKeys();
-      const dateKeys = allKeys.filter(key => /^\d{4}-\d{2}-\d{2}$/.test(key));
+      const legacyKeys = allKeys.filter(key => !/^\d{4}-\d{2}-\d{2}$/.test(key));
+      for (const oldKey of legacyKeys) {
+        const rawValue = await AsyncStorage.getItem(oldKey);
+        if (rawValue) {
+          const parsedDate = new Date(Date.parse(oldKey));
+          if (!isNaN(parsedDate.getTime())) {
+            const newKey = getDateKey(parsedDate);
+            await AsyncStorage.setItem(newKey, rawValue);
+            await AsyncStorage.removeItem(oldKey);
+          }
+        }
+      }
+
+      // Get keys again after migration to include newly migrated keys
+      const updatedKeys = await AsyncStorage.getAllKeys();
+      const dateKeys = updatedKeys.filter(key => /^\d{4}-\d{2}-\d{2}$/.test(key));
       const storedItems = await AsyncStorage.multiGet(dateKeys);
       const loadedHistory = storedItems
         .map(([key, value]) => (value ? { date: key, statuses: JSON.parse(value) } : null))
@@ -53,6 +70,7 @@ export const HabitProvider = ({ children }: { children: ReactNode }) => {
     // Update state immediately for instant UI feedback
     setHistoryData(currentData => {
       const existingEntryIndex = currentData.findIndex(item => item.date === date);
+      
       if (existingEntryIndex > -1) {
         // Update existing entry
         const newData = [...currentData];
@@ -70,7 +88,7 @@ export const HabitProvider = ({ children }: { children: ReactNode }) => {
     } catch (error) {
       console.error('Failed to save updated habit status', error);
     }
-  };
+  };``
 
   const value = {
     historyData,
@@ -82,7 +100,7 @@ export const HabitProvider = ({ children }: { children: ReactNode }) => {
   return <HabitContext.Provider value={value}>{children}</HabitContext.Provider>;
 };
 
-// Create a custom hook for easy access to the context
+// hook for easy access to the context
 export const useHabits = () => {
   const context = useContext(HabitContext);
   if (context === undefined) {
