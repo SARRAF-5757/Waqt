@@ -1,8 +1,8 @@
 import React, { useMemo } from "react";
 import { StyleSheet, ScrollView, ActivityIndicator, View } from "react-native";
+import Checkbox from "expo-checkbox";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { subDays, eachDayOfInterval } from "date-fns";
-import Checkbox from "expo-checkbox";
 
 import { ThemedView } from "@/components/ThemedView";
 import { ThemedText } from "@/components/ThemedText";

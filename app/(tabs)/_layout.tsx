@@ -1,11 +1,10 @@
-import { Tabs } from "expo-router";
 import React from "react";
-import { Platform } from "react-native";
+import { Tabs } from "expo-router";
+import { AntDesign } from "@expo/vector-icons";
 
 import TabBarBackground from "@/components/ui/TabBarBackground";
 import { Colors } from "@/constants/Colors";
 import { useColorScheme } from "@/hooks/useColorScheme";
-import { AntDesign } from "@expo/vector-icons";
 import { HabitProvider } from "@/contexts/HabitContext";
 
 export default function TabLayout() {

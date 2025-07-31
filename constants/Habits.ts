@@ -1,5 +1,3 @@
-//# In: constants/Habits.ts
-
 import { format } from 'date-fns';
 
 export const PRAYER_HABITS = [

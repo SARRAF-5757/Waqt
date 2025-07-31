@@ -3,8 +3,8 @@ import { StyleSheet, TouchableOpacity, ScrollView } from 'react-native';
 import Checkbox from 'expo-checkbox';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
-import { ThemedText } from "@/components/ThemedText";
-import { ThemedView } from "@/components/ThemedView";
+import { ThemedText } from '@/components/ThemedText';
+import { ThemedView } from '@/components/ThemedView';
 import { Colors } from '@/constants/Colors';
 import { useColorScheme } from '@/hooks/useColorScheme';
 import { PRAYER_HABITS, getTodayDateString, getDateKey } from '@/constants/Habits';
