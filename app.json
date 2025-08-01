@@ -25,6 +25,8 @@
     },
     "plugins": [
       "expo-router",
+      "expo-navigation-bar",
+      "expo-system-ui",
       [
         "expo-splash-screen",
         {

@@ -5,19 +5,16 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 import { ThemedText } from '@/components/ThemedText';
 import { ThemedView } from '@/components/ThemedView';
-import { Colors } from '@/constants/Colors';
-import { useColorScheme } from '@/hooks/useColorScheme';
-import { PRAYER_HABITS, getTodayDateString, getDateKey } from '@/constants/Habits';
-import { useHabits } from '@/contexts/HabitContext';
+import { useThemeColors } from '@/hooks/useThemeColors';
+import { PRAYER_HABITS, getDateKey } from '@/constants/Habits';
+import { useHabits } from '@/providers/habitProvider';
 
 
 export default function Index() {
   // Hooks
   const { historyData, updateHabitStatus } = useHabits();
-  const todayDateString = getTodayDateString();
   const todayKey = getDateKey();
-  const colorScheme = useColorScheme() ?? 'light';
-  const themedColors = Colors[colorScheme];
+  const colors = useThemeColors();
   const insets = useSafeAreaInsets();
 
   // Derive today's statuses from context data
@@ -42,7 +39,7 @@ export default function Index() {
   return (
     <ThemedView style={styles.container}>
       <ScrollView contentContainerStyle={styles.contentContainer}>
-        <ThemedText style={[styles.dateHeader, { paddingTop: insets.top }]}>Today: {todayDateString}</ThemedText>
+        <ThemedText style={[styles.header, { paddingTop: insets.top }]}>Waqt</ThemedText>
         {/* Render each prayer habit */}
         {PRAYER_HABITS.map((habit) => (
             <TouchableOpacity
@@ -51,13 +48,13 @@ export default function Index() {
               activeOpacity={0.5}
               style={styles.touchableRow}
             >
-              <ThemedView 
-                lightColor="#eeeeeeff" 
-                darkColor="#232323ff" 
+              <ThemedView
+                lightColor={colors.surfaceVariant}
+                darkColor={colors.surfaceVariant}
                 style={styles.habitRow}
               >
                 <Checkbox
-                  color={themedColors.tint}
+                  color={colors.primary}
                   value={prayerStatuses[habit.id] || false}
                   onValueChange={() => handleTogglePrayer(habit.id)}
                   style={[styles.checkbox]}
@@ -81,11 +78,12 @@ const styles = StyleSheet.create({
     padding: 25,
     paddingTop: 30,
   },
-  dateHeader: {
+  header: {
     fontSize: 28,
     fontWeight: 'bold',
     textAlign: 'center',
     marginBottom: 24,
+    paddingVertical: 6,
   },
   touchableRow: {
     marginBottom: 20,

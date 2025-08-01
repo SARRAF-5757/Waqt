@@ -8,13 +8,12 @@ import { ThemedView } from "@/components/ThemedView";
 import { ThemedText } from "@/components/ThemedText";
 import { PRAYER_HABITS, getDateKey } from "@/constants/Habits";
 import { useColorScheme } from "@/hooks/useColorScheme";
-import { Colors } from "@/constants/Colors";
-import { useHabits } from "@/contexts/HabitContext";
+import { useThemeColors } from '@/hooks/useThemeColors';
+import { useHabits } from "@/providers/habitProvider";
 
 const PrayerContributionGraph = ({ prayerId, prayerName }: { prayerId: string; prayerName: string }) => {
   const { historyData } = useHabits();
-  const colorScheme = useColorScheme() ?? "light";
-  const themedColors = Colors[colorScheme];
+  const colors = useThemeColors();
 
   // Find all dates where this prayer was completed
   const completedDates = useMemo(() => {
@@ -43,7 +42,7 @@ const PrayerContributionGraph = ({ prayerId, prayerName }: { prayerId: string; p
         {last30Days.map((day, index) => (
           <Checkbox
             key={index}
-            color={themedColors.tint}
+            color={colors.primary}
             value={day.isCompleted}
             onValueChange={() => {}} // Read-only
             style={[styles.checkbox]}
@@ -58,12 +57,12 @@ export default function StreakScreen() {
   const { isLoading } = useHabits();
   const insets = useSafeAreaInsets();
   const colorScheme = useColorScheme() ?? "light";
-  const themedColors = Colors[colorScheme];
+  const colors = useThemeColors();
 
   if (isLoading) {
     return (
       <ThemedView style={[styles.centered, { paddingTop: insets.top }]}>
-        <ActivityIndicator size="large" color={themedColors.tint} />
+        <ActivityIndicator size="large" color={colors.primaryContainer} />
       </ThemedView>
     );
   }
@@ -71,7 +70,7 @@ export default function StreakScreen() {
   return (
     <ThemedView style={[styles.container, { paddingTop: insets.top }]}>
       <ScrollView contentContainerStyle={styles.listContainer}>
-        <ThemedText style={styles.mainHeader}>Last 30 Days</ThemedText>
+        <ThemedText style={styles.header}>Streak</ThemedText>
         {PRAYER_HABITS.map((prayer) => (
           <PrayerContributionGraph key={prayer.id} prayerId={prayer.id} prayerName={prayer.name} />
         ))}
@@ -94,7 +93,7 @@ const styles = StyleSheet.create({
     padding: 25,
     paddingTop: 30,
   },
-  mainHeader: {
+  header: {
     fontSize: 28,
     fontWeight: "bold",
     textAlign: "center",

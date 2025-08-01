@@ -1,22 +1,29 @@
 import React from "react";
+import { Platform } from "react-native";
 import { Tabs } from "expo-router";
 import { AntDesign } from "@expo/vector-icons";
+import { useSafeAreaInsets } from "react-native-safe-area-context";
 
-import TabBarBackground from "@/components/ui/TabBarBackground";
-import { Colors } from "@/constants/Colors";
-import { useColorScheme } from "@/hooks/useColorScheme";
-import { HabitProvider } from "@/contexts/HabitContext";
+import { useThemeColors } from '@/hooks/useThemeColors';
+import { HabitProvider } from "@/providers/habitProvider";
 
 export default function TabLayout() {
-  const colorScheme = useColorScheme();
+  const colors = useThemeColors();
+  const insets = useSafeAreaInsets();
 
   return (
     <HabitProvider>
       <Tabs
         screenOptions={{
-          tabBarActiveTintColor: Colors[colorScheme ?? "light"].tint,
+          tabBarActiveTintColor: colors.surfaceTint,
+          tabBarInactiveTintColor: colors.onSurfaceVariant,
+          tabBarStyle: {
+            backgroundColor: colors.background,
+            borderTopColor: colors.outlineVariant,
+            paddingBottom: Platform.OS === 'android' ? insets.bottom : 0,
+            height: Platform.OS === 'android' ? 50 + insets.bottom : 50,
+          },
           headerShown: false,
-          tabBarBackground: TabBarBackground,
         }}
       >
         <Tabs.Screen

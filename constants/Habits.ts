@@ -10,10 +10,3 @@ export const PRAYER_HABITS = [
 
 // Unified date helpers
 export const getDateKey = (d = new Date()) => format(d, 'yyyy-MM-dd');   // storage / context key
-export const getHumanDate = (d = new Date()) =>
-  format(d, "do LLLL, yyyy");                                            // UI caption
-
-// Old function
-export const getTodayDateString = () => {
-    return getHumanDate();
-};
