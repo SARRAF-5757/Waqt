@@ -10,13 +10,11 @@ import { useMaterial3ThemeContext } from '@/providers/materialYouProvider';
 
 // Preset theme colors inspired by Islamic culture and prayer times
 const THEME_COLORS = [
-  { name: 'Prayer Blue', color: '#4F8EF7' },
-  { name: 'Dawn Gold', color: '#FFB000' },
+  { name: 'Salah Blue', color: '#4F8EF7' },
   { name: 'Mosque Green', color: '#2E7D0F' },
-  { name: 'Sunset Orange', color: '#FF6B35' },
+  { name: 'Dawn Gold', color: '#ffd500' },
+  { name: 'Sunset Orange', color: '#ff870f' },
   { name: 'Night Purple', color: '#6750A4' },
-  { name: 'Kaaba Black', color: '#1C1B1F' },
-  { name: 'Pure White', color: '#FFFFFF' },
   { name: 'Coral Pink', color: '#FF5A5F' },
 ];
 
@@ -25,7 +23,7 @@ const THEME_STORAGE_KEY = '@waqt_theme_color';
 export default function SettingsScreen() {
   const insets = useSafeAreaInsets();
   const themedColors = useThemeColors();
-  const { updateTheme, resetTheme } = useMaterial3ThemeContext();
+  const { updateTheme, resetTheme, theme } = useMaterial3ThemeContext();
   const [selectedColor, setSelectedColor] = useState<string | null>(null);
 
   // Load the currently selected theme on component mount
@@ -33,7 +31,6 @@ export default function SettingsScreen() {
     const loadCurrentTheme = async () => {
       try {
         const savedColor = await AsyncStorage.getItem(THEME_STORAGE_KEY);
-        console.log('Loaded saved color from storage:', savedColor);
         if (savedColor) {
           setSelectedColor(savedColor);
         }
@@ -48,17 +45,11 @@ export default function SettingsScreen() {
   const handleColorSelect = (color: string, name: string) => {
     setSelectedColor(color);
     updateTheme(color);
-    console.log('Updated theme color to:', color);
   };
 
   const handleResetTheme = async () => {
     await resetTheme();
     setSelectedColor(null);
-    Alert.alert(
-      'Theme Reset',
-      'Theme has been reset to Material You (system colors)',
-      [{ text: 'OK' }]
-    );
   };
 
   return (
@@ -70,49 +61,61 @@ export default function SettingsScreen() {
         {/* Header */}
         <ThemedText style={styles.header}>Settings</ThemedText>
 
-        {/* Theme Section */}
-        <View style={styles.section}>
-          <View style={styles.colorGrid}>
-            {THEME_COLORS.map((themeColor) => (
-              <TouchableOpacity
-                key={themeColor.color}
-                style={[
-                  styles.colorOption,
-                  {
-                    backgroundColor: themedColors.surface,
-                    borderColor: selectedColor === themeColor.color 
-                      ? themedColors.primary 
-                      : themedColors.onSurfaceVariant,
-                  },
-                ]}
-                onPress={() => handleColorSelect(themeColor.color, themeColor.name)}
-                activeOpacity={0.7}
-              >
-                <View
-                  style={[
-                    styles.colorCircle,
-                    { backgroundColor: themeColor.color },
-                  ]}
-                />
-                <ThemedText style={styles.colorName}>{themeColor.name}</ThemedText>
-              </TouchableOpacity>
-            ))}
-          </View>
-
-          {/* Reset Button */}
+        {/* Material You Button */}
           <TouchableOpacity
-            style={[
-              styles.resetButton,
+            style={[ 
+              styles.materialButton,
               {
-                backgroundColor: themedColors.surfaceVariant,
-                borderColor: themedColors.onSurfaceVariant,
+                backgroundColor: selectedColor === null 
+                  ? themedColors.surfaceVariant
+                  : (themedColors.surfaceDim ?? themedColors.surfaceBright),
               },
             ]}
             onPress={handleResetTheme}
             activeOpacity={0.7}
           >
-            <ThemedText style={styles.resetButtonText}>Material You (Android Only)</ThemedText>
+            <View
+              style={[ 
+                styles.colorCircle, 
+                { backgroundColor: themedColors.primary }
+              ]}
+            />
+            <ThemedText style={[styles.colorName, {
+              color: selectedColor === null
+                ? themedColors.onPrimaryContainer
+                : themedColors.onSurfaceVariant
+            }]}>Material You</ThemedText>
           </TouchableOpacity>
+
+        {/* Color Options */}
+        <View style={styles.colorGrid}>
+          {THEME_COLORS.map((themeColor) => (
+            <TouchableOpacity
+              key={themeColor.color}
+              style={[
+                styles.colorOption,
+                {
+                  backgroundColor: selectedColor === themeColor.color
+                    ? themedColors.surfaceVariant
+                    : (themedColors.surfaceDim ?? themedColors.surfaceBright),
+                },
+              ]}
+              onPress={() => handleColorSelect(themeColor.color, themeColor.name)}
+              activeOpacity={0.7}
+            >
+              <View
+                style={[
+                  styles.colorCircle,
+                  { backgroundColor: themeColor.color },
+                ]}
+              />
+              <ThemedText style={[styles.colorName, {
+                color: selectedColor === themeColor.color
+                  ? themedColors.onPrimaryContainer
+                  : themedColors.onSurfaceVariant
+              }]}>{themeColor.name}</ThemedText>
+            </TouchableOpacity>
+          ))}
         </View>
       </ScrollView>
     </ThemedView>
@@ -127,30 +130,11 @@ const styles = StyleSheet.create({
     padding: 20,
   },
   header: {
-    fontSize: 28,
+    fontSize: 30,
     fontWeight: "bold",
     textAlign: "center",
+    marginBottom: 24,
     paddingVertical: 6,
-    marginBottom: 24
-  },
-  subtitle: {
-    fontSize: 16,
-    textAlign: 'center',
-    opacity: 0.7,
-    marginBottom: 32,
-  },
-  section: {
-    marginBottom: 32,
-  },
-  sectionTitle: {
-    fontSize: 24,
-    fontWeight: '600',
-    marginBottom: 8,
-  },
-  sectionDescription: {
-    fontSize: 16,
-    opacity: 0.7,
-    marginBottom: 20,
   },
   colorGrid: {
     flexDirection: 'row',
@@ -163,7 +147,6 @@ const styles = StyleSheet.create({
     padding: 16,
     marginBottom: 16,
     alignItems: 'center',
-    borderWidth: 2,
   },
   colorCircle: {
     width: 40,
@@ -187,25 +170,11 @@ const styles = StyleSheet.create({
     textAlign: 'center',
     opacity: 0.7,
   },
-  resetButton: {
+  materialButton: {
+    width: '100%',
     borderRadius: 16,
     padding: 16,
+    marginBottom: 16,
     alignItems: 'center',
-    marginTop: 8,
-    borderWidth: 2,
-  },
-  resetButtonText: {
-    fontSize: 16,
-    fontWeight: '600',
-  },
-  aboutCard: {
-    borderRadius: 12,
-    padding: 16,
-  },
-  aboutText: {
-    fontSize: 14,
-    lineHeight: 22,
-    marginBottom: 12,
-    opacity: 0.8,
   },
 });

@@ -7,13 +7,16 @@ import { subDays, eachDayOfInterval } from "date-fns";
 import { ThemedView } from "@/components/ThemedView";
 import { ThemedText } from "@/components/ThemedText";
 import { PRAYER_HABITS, getDateKey } from "@/constants/Habits";
-import { useColorScheme } from "@/hooks/useColorScheme";
 import { useThemeColors } from '@/hooks/useThemeColors';
+import { useColorScheme } from '@/hooks/useColorScheme';
 import { useHabits } from "@/providers/habitProvider";
 
+
+// render a single prayer's contribution graph
 const PrayerContributionGraph = ({ prayerId, prayerName }: { prayerId: string; prayerName: string }) => {
   const { historyData } = useHabits();
   const colors = useThemeColors();
+  const colorScheme = useColorScheme() ?? 'light';
 
   // Find all dates where this prayer was completed
   const completedDates = useMemo(() => {
@@ -29,20 +32,34 @@ const PrayerContributionGraph = ({ prayerId, prayerName }: { prayerId: string; p
   const last30Days = useMemo(() => {
     const endDate = new Date();
     const startDate = subDays(endDate, 29);
-    return eachDayOfInterval({ start: startDate, end: endDate }).map((day) => ({
-      date: day,
-      isCompleted: completedDates.has(getDateKey(day)),
-    }));
+    return eachDayOfInterval({ start: startDate, end: endDate })
+      .map((day) => ({
+        date: day,
+        isCompleted: completedDates.has(getDateKey(day)),
+      }))
+      .reverse(); //remove this to make it chronological
   }, [completedDates]);
 
   return (
     <ThemedView style={styles.graphContainer}>
-      <ThemedText style={styles.prayerHeader}>{prayerName}</ThemedText>
+      <ThemedView
+        style={styles.prayerBox}
+        lightColor={colors.surfaceVariant}
+        darkColor={colors.surfaceVariant}
+      >
+        <ThemedText style={styles.prayerHeader}>{prayerName}</ThemedText>
+      </ThemedView>
       <ThemedView style={styles.grid}>
         {last30Days.map((day, index) => (
           <Checkbox
             key={index}
-            color={colors.primary}
+            color={
+              day.isCompleted
+                ? colors.primary
+                : colorScheme === 'light'
+                  ? colors.surfaceDim
+                  : colors.surfaceBright
+            }
             value={day.isCompleted}
             onValueChange={() => {}} // Read-only
             style={[styles.checkbox]}
@@ -53,23 +70,23 @@ const PrayerContributionGraph = ({ prayerId, prayerName }: { prayerId: string; p
   );
 };
 
+
+// streak screen
 export default function StreakScreen() {
   const { isLoading } = useHabits();
   const insets = useSafeAreaInsets();
-  const colorScheme = useColorScheme() ?? "light";
-  const colors = useThemeColors();
 
   if (isLoading) {
     return (
-      <ThemedView style={[styles.centered, { paddingTop: insets.top }]}>
-        <ActivityIndicator size="large" color={colors.primaryContainer} />
+      <ThemedView style={[{ paddingTop: insets.top }]}>
+        <ActivityIndicator/>
       </ThemedView>
     );
   }
 
   return (
     <ThemedView style={[styles.container, { paddingTop: insets.top }]}>
-      <ScrollView contentContainerStyle={styles.listContainer}>
+      <ScrollView contentContainerStyle={styles.contentContainer}>
         <ThemedText style={styles.header}>Streak</ThemedText>
         {PRAYER_HABITS.map((prayer) => (
           <PrayerContributionGraph key={prayer.id} prayerId={prayer.id} prayerName={prayer.name} />
@@ -84,38 +101,39 @@ const styles = StyleSheet.create({
   container: {
     flex: 1,
   },
-  centered: {
-    flex: 1,
-    justifyContent: "center",
-    alignItems: "center"
-  },
-  listContainer: {
-    padding: 25,
-    paddingTop: 30,
+  contentContainer: {
+    padding: 20,
   },
   header: {
-    fontSize: 28,
+    fontSize: 30,
     fontWeight: "bold",
     textAlign: "center",
-    paddingVertical: 3,
-    marginBottom: 24
+    marginBottom: 24,
+    paddingVertical: 6,
   },
   graphContainer: {
-    marginBottom: 30
+    marginBottom: 20
+  },
+  prayerBox: {
+    alignItems: 'center',
+    paddingTop: 10,
+    borderRadius: 20,
+    marginBottom: 10,
   },
   prayerHeader: {
     fontSize: 22,
     fontWeight: "600",
-    marginBottom: 15
+    marginBottom: 15,
+    textAlign: "center",
   },
   grid: {
     flexDirection: "row",
     flexWrap: "wrap"
   },
   checkbox: {
-    width: 20,
-    height: 20,
-    borderRadius: 4,
+    width: 22,
+    height: 22,
+    borderRadius: 8,
     margin: 2,
     borderWidth: 1.3,
   },

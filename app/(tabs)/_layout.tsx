@@ -1,29 +1,27 @@
 import React from "react";
-import { Platform } from "react-native";
 import { Tabs } from "expo-router";
 import { AntDesign } from "@expo/vector-icons";
-import { useSafeAreaInsets } from "react-native-safe-area-context";
 
 import { useThemeColors } from '@/hooks/useThemeColors';
-import { HabitProvider } from "@/providers/habitProvider";
+import { HapticTab } from "@/components/HapticTab";
 
 export default function TabLayout() {
   const colors = useThemeColors();
-  const insets = useSafeAreaInsets();
 
   return (
-    <HabitProvider>
       <Tabs
         screenOptions={{
           tabBarActiveTintColor: colors.surfaceTint,
           tabBarInactiveTintColor: colors.onSurfaceVariant,
           tabBarStyle: {
-            backgroundColor: colors.background,
+            backgroundColor: colors.surfaceDim,
             borderTopColor: colors.outlineVariant,
-            paddingBottom: Platform.OS === 'android' ? insets.bottom : 0,
-            height: Platform.OS === 'android' ? 50 + insets.bottom : 50,
+            paddingTop: 10,
+            height: 85,
+            paddingBottom: 10,
           },
           headerShown: false,
+          tabBarButton: HapticTab,
         }}
       >
         <Tabs.Screen
@@ -48,6 +46,5 @@ export default function TabLayout() {
           }}
         />
       </Tabs>
-    </HabitProvider>
   );
 }

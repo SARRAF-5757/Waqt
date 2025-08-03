@@ -38,6 +38,8 @@ export function useThemeColors() {
         surfaceVariant: material3Colors.surfaceVariant,
         onSurfaceVariant: material3Colors.onSurfaceVariant,
         surfaceTint: material3Colors.surfaceTint,
+        surfaceDim: material3Colors.surfaceDim,
+        surfaceBright: material3Colors.surfaceBright,
         
         // Material 3 background colors
         background: material3Colors.background,

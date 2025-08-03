@@ -1,16 +1,14 @@
 import { useEffect } from "react";
 import { useFonts } from "expo-font";
 import * as SplashScreen from "expo-splash-screen";
-import { StatusBar } from "expo-status-bar";
 import { SafeAreaProvider } from "react-native-safe-area-context";
 import { DarkTheme, DefaultTheme, ThemeProvider } from "@react-navigation/native";
 import { Stack } from "expo-router";
 import "react-native-reanimated";
 
 import { useColorScheme } from "@/hooks/useColorScheme";
-import { Material3ThemeProvider } from '@/providers/materialYouProvider';
+import { MaterialYouProvider } from '@/providers/materialYouProvider';
 import { HabitProvider } from "@/providers/habitProvider";
-import { SystemUIHandler } from '@/components/SystemUIHandler';
 
 // prevent splash screen from hiding before loading is complete
 SplashScreen.preventAutoHideAsync();
@@ -28,7 +26,6 @@ export default function RootLayout() {
 		}
 	}, [loaded]);
 
-
 	if (!loaded) {
 		return null;
 	}
@@ -36,16 +33,14 @@ export default function RootLayout() {
 return (
     <SafeAreaProvider>
       <HabitProvider>
-        <Material3ThemeProvider>
-          <SystemUIHandler />
+        <MaterialYouProvider>
           <ThemeProvider value={colorScheme === "dark" ? DarkTheme : DefaultTheme}>
             <Stack>
               <Stack.Screen name="(tabs)" options={{ headerShown: false }} />
               <Stack.Screen name="+not-found" />
             </Stack>
-            <StatusBar style="auto" translucent={true} />
           </ThemeProvider>
-        </Material3ThemeProvider>
+        </MaterialYouProvider>
       </HabitProvider>
     </SafeAreaProvider>
   );

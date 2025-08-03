@@ -3,15 +3,15 @@ import { useMaterial3Theme, Material3Theme } from '@pchmn/expo-material3-theme';
 import { useColorScheme } from 'react-native';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 
-type Material3ThemeProviderProps = {
+type MaterialYouProviderProps = {
   theme: Material3Theme;
   updateTheme: (sourceColor: string) => void;
   resetTheme: () => void;
 };
 
-const Material3ThemeProviderContext = createContext<Material3ThemeProviderProps>({} as Material3ThemeProviderProps);
+const MaterialYouProviderContext = createContext<MaterialYouProviderProps>({} as MaterialYouProviderProps);
 
-interface Material3ThemeProviderComponentProps {
+interface MaterialYouProviderComponentProps {
   children: ReactNode;
   sourceColor?: string;
   fallbackSourceColor?: string;
@@ -19,12 +19,12 @@ interface Material3ThemeProviderComponentProps {
 
 const THEME_STORAGE_KEY = '@waqt_theme_color';
 
-export function Material3ThemeProvider({ 
+export function MaterialYouProvider({ 
   children, 
   sourceColor, 
   fallbackSourceColor = '#4F8EF7'
-}: Material3ThemeProviderComponentProps) {
-  const [persistedColor, setPersistedColor] = useState<string | null>(null);
+}: MaterialYouProviderComponentProps) {
+  const [currentColor, setCurrentColor] = useState<string | null>(null);
   const [isLoading, setIsLoading] = useState(true);
 
   // Load persisted theme color on app start
@@ -32,35 +32,38 @@ export function Material3ThemeProvider({
     const loadPersistedTheme = async () => {
       try {
         const savedColor = await AsyncStorage.getItem(THEME_STORAGE_KEY);
-        console.log('Material3ThemeProvider: Loaded color from storage:', savedColor);
         if (savedColor) {
-          setPersistedColor(savedColor);
+          setCurrentColor(savedColor);
+        } else {
+          setCurrentColor(sourceColor || fallbackSourceColor);
         }
       } catch (error) {
         console.warn('Failed to load persisted theme:', error);
+        setCurrentColor(sourceColor || fallbackSourceColor);
       } finally {
         setIsLoading(false);
       }
     };
 
     loadPersistedTheme();
-  }, []);
+  }, [sourceColor, fallbackSourceColor]);
 
   const { theme, updateTheme: originalUpdateTheme, resetTheme: originalResetTheme } = useMaterial3Theme({
-    sourceColor: persistedColor || sourceColor,
+    sourceColor: currentColor || sourceColor,
     fallbackSourceColor,
   });
 
   // Enhanced updateTheme that persists the color
   const updateTheme = async (color: string) => {
     try {
-      await AsyncStorage.setItem(THEME_STORAGE_KEY, color);
-      console.log('Material3ThemeProvider: Saved color to storage:', color);
-      setPersistedColor(color);
+      // Update current color state to trigger re-render
+      setCurrentColor(color);
       originalUpdateTheme(color);
+      await AsyncStorage.setItem(THEME_STORAGE_KEY, color);
     } catch (error) {
       console.warn('Failed to persist theme color:', error);
       // Still update the theme even if persistence fails
+      setCurrentColor(color);
       originalUpdateTheme(color);
     }
   };
@@ -69,12 +72,14 @@ export function Material3ThemeProvider({
   const resetTheme = async () => {
     try {
       await AsyncStorage.removeItem(THEME_STORAGE_KEY);
-      console.log('Material3ThemeProvider: Removed color from storage');
-      setPersistedColor(null);
+      const resetColor = sourceColor || fallbackSourceColor;
+      setCurrentColor(resetColor);
       originalResetTheme();
     } catch (error) {
       console.warn('Failed to clear persisted theme:', error);
       // Still reset the theme even if clearing storage fails
+      const resetColor = sourceColor || fallbackSourceColor;
+      setCurrentColor(resetColor);
       originalResetTheme();
     }
   };
@@ -85,16 +90,16 @@ export function Material3ThemeProvider({
   }
 
   return (
-    <Material3ThemeProviderContext.Provider value={{ theme, updateTheme, resetTheme }}>
+    <MaterialYouProviderContext.Provider value={{ theme, updateTheme, resetTheme }}>
       {children}
-    </Material3ThemeProviderContext.Provider>
+    </MaterialYouProviderContext.Provider>
   );
 }
 
 export function useMaterial3ThemeContext() {
-  const context = useContext(Material3ThemeProviderContext);
+  const context = useContext(MaterialYouProviderContext);
   if (!context) {
-    throw new Error('useMaterial3ThemeContext must be used inside Material3ThemeProvider');
+    throw new Error('useMaterial3ThemeContext must be used inside MaterialYouProvider');
   }
   return context;
 }
