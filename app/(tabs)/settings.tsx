@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { StyleSheet, ScrollView, TouchableOpacity, View, Alert } from 'react-native';
+import { StyleSheet, ScrollView, TouchableOpacity } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 
@@ -23,7 +23,7 @@ const THEME_STORAGE_KEY = '@waqt_theme_color';
 export default function SettingsScreen() {
   const insets = useSafeAreaInsets();
   const themedColors = useThemeColors();
-  const { updateTheme, resetTheme, theme } = useMaterial3ThemeContext();
+  const { updateTheme, resetTheme } = useMaterial3ThemeContext();
   const [selectedColor, setSelectedColor] = useState<string | null>(null);
 
   // Load the currently selected theme on component mount
@@ -45,6 +45,7 @@ export default function SettingsScreen() {
   const handleColorSelect = (color: string, name: string) => {
     setSelectedColor(color);
     updateTheme(color);
+    AsyncStorage.setItem(THEME_STORAGE_KEY, color);
   };
 
   const handleResetTheme = async () => {
@@ -74,7 +75,7 @@ export default function SettingsScreen() {
             onPress={handleResetTheme}
             activeOpacity={0.7}
           >
-            <View
+            <ThemedView
               style={[ 
                 styles.colorCircle, 
                 { backgroundColor: themedColors.primary }
@@ -88,7 +89,7 @@ export default function SettingsScreen() {
           </TouchableOpacity>
 
         {/* Color Options */}
-        <View style={styles.colorGrid}>
+        <ThemedView style={styles.colorGrid}>
           {THEME_COLORS.map((themeColor) => (
             <TouchableOpacity
               key={themeColor.color}
@@ -103,7 +104,7 @@ export default function SettingsScreen() {
               onPress={() => handleColorSelect(themeColor.color, themeColor.name)}
               activeOpacity={0.7}
             >
-              <View
+              <ThemedView
                 style={[
                   styles.colorCircle,
                   { backgroundColor: themeColor.color },
@@ -116,7 +117,7 @@ export default function SettingsScreen() {
               }]}>{themeColor.name}</ThemedText>
             </TouchableOpacity>
           ))}
-        </View>
+        </ThemedView>
       </ScrollView>
     </ThemedView>
   );

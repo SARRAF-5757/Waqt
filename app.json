@@ -9,14 +9,20 @@
     "userInterfaceStyle": "automatic",
     "newArchEnabled": true,
     "ios": {
-      "supportsTablet": true
+      "supportsTablet": true,
+      "edgeToEdgeEnabled": true,
+      "bundleIdentifier": "com.sarraf5757.Waqt",
+      "infoPlist": {
+        "ITSAppUsesNonExemptEncryption": false
+      }
     },
     "android": {
       "adaptiveIcon": {
         "foregroundImage": "./assets/images/adaptive-icon.png",
         "backgroundColor": "#ffffff"
       },
-      "package": "com.sarraf5757.Waqt"
+      "package": "com.sarraf5757.Waqt",
+      "edgeToEdgeEnabled": true
     },
     "web": {
       "bundler": "metro",
