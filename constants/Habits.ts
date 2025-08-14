@@ -8,5 +8,13 @@ export const PRAYER_HABITS = [
     { id: 'isha', name: 'Isha' },
 ];
 
-// Unified date helpers
-export const getDateKey = (d = new Date()) => format(d, 'yyyy-MM-dd');   // storage / context key
+// storage / context key
+export const getDateKey = (d = new Date()) => {
+    const date = new Date(d);
+    if (date.getHours() < 4) {
+        // If before 4am, use the previous day
+        date.setDate(date.getDate() - 1);
+        //date.setHours(0, 0, 0, 0);  // reset time to midnight
+    }
+    return format(date, 'yyyy-MM-dd');
+};
