@@ -53,6 +53,40 @@ export default function SettingsScreen() {
     setSelectedColor(null);
   };
 
+  // Render all preset color options using for-loops
+  const colorOptionButtons = [];
+
+  for (let i = 0; i < THEME_COLORS.length; ++i) {
+    const themeColor = THEME_COLORS[i];
+    colorOptionButtons.push(
+      <TouchableOpacity
+        key={themeColor.color}
+        style={[
+          styles.colorOption,
+          {
+            backgroundColor: selectedColor === themeColor.color
+              ? themedColors.surfaceVariant
+              : (themedColors.surfaceDim ?? themedColors.surfaceBright),
+          },
+        ]}
+        onPress={() => handleColorSelect(themeColor.color, themeColor.name)}
+        activeOpacity={0.7}
+      >
+        <ThemedView
+          style={[
+            styles.colorCircle,
+            { backgroundColor: themeColor.color },
+          ]}
+        />
+        <ThemedText style={[styles.colorName, {
+          color: selectedColor === themeColor.color
+            ? themedColors.onPrimaryContainer
+            : themedColors.onSurfaceVariant
+        }]}>{themeColor.name}</ThemedText>
+      </TouchableOpacity>
+    );
+  }
+
   return (
     <ThemedView style={styles.container}>
       <ScrollView 
@@ -63,60 +97,34 @@ export default function SettingsScreen() {
         <ThemedText style={styles.header}>Settings</ThemedText>
 
         {/* Material You Button */}
-          <TouchableOpacity
+        <TouchableOpacity
+          style={[ 
+            styles.materialButton,
+            {
+              backgroundColor: selectedColor === null 
+                ? themedColors.surfaceVariant
+                : (themedColors.surfaceDim ?? themedColors.surfaceBright),
+            },
+          ]}
+          onPress={handleResetTheme}
+          activeOpacity={0.7}
+        >
+          <ThemedView
             style={[ 
-              styles.materialButton,
-              {
-                backgroundColor: selectedColor === null 
-                  ? themedColors.surfaceVariant
-                  : (themedColors.surfaceDim ?? themedColors.surfaceBright),
-              },
+              styles.colorCircle, 
+              { backgroundColor: themedColors.primary }
             ]}
-            onPress={handleResetTheme}
-            activeOpacity={0.7}
-          >
-            <ThemedView
-              style={[ 
-                styles.colorCircle, 
-                { backgroundColor: themedColors.primary }
-              ]}
-            />
-            <ThemedText style={[styles.colorName, {
-              color: selectedColor === null
-                ? themedColors.onPrimaryContainer
-                : themedColors.onSurfaceVariant
-            }]}>Material You</ThemedText>
-          </TouchableOpacity>
+          />
+          <ThemedText style={[styles.colorName, {
+            color: selectedColor === null
+              ? themedColors.onPrimaryContainer
+              : themedColors.onSurfaceVariant
+          }]}>Material You</ThemedText>
+        </TouchableOpacity>
 
         {/* Color Options */}
         <ThemedView style={styles.colorGrid}>
-          {THEME_COLORS.map((themeColor) => (
-            <TouchableOpacity
-              key={themeColor.color}
-              style={[
-                styles.colorOption,
-                {
-                  backgroundColor: selectedColor === themeColor.color
-                    ? themedColors.surfaceVariant
-                    : (themedColors.surfaceDim ?? themedColors.surfaceBright),
-                },
-              ]}
-              onPress={() => handleColorSelect(themeColor.color, themeColor.name)}
-              activeOpacity={0.7}
-            >
-              <ThemedView
-                style={[
-                  styles.colorCircle,
-                  { backgroundColor: themeColor.color },
-                ]}
-              />
-              <ThemedText style={[styles.colorName, {
-                color: selectedColor === themeColor.color
-                  ? themedColors.onPrimaryContainer
-                  : themedColors.onSurfaceVariant
-              }]}>{themeColor.name}</ThemedText>
-            </TouchableOpacity>
-          ))}
+          {colorOptionButtons}
         </ThemedView>
       </ScrollView>
     </ThemedView>

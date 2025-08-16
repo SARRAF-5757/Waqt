@@ -1,4 +1,4 @@
-import { format } from 'date-fns';
+import { format, subHours } from 'date-fns';
 
 export const PRAYER_HABITS = [
     { id: 'fajr', name: 'Fajr' },
@@ -9,12 +9,9 @@ export const PRAYER_HABITS = [
 ];
 
 // storage / context key
+// Note: Day changes at 4 AM instead of midnight
+// This allows users to edit the previous day until 4 AM
 export const getDateKey = (d = new Date()) => {
-    const date = new Date(d);
-    if (date.getHours() < 4) {
-        // If before 4am, use the previous day
-        date.setDate(date.getDate() - 1);
-        //date.setHours(0, 0, 0, 0);  // reset time to midnight
-    }
-    return format(date, 'yyyy-MM-dd');
+    const shifted = subHours(d, 4);
+    return format(shifted, 'yyyy-MM-dd');
 };

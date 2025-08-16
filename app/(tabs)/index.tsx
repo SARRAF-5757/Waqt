@@ -17,11 +17,16 @@ export default function Index() {
   const insets = useSafeAreaInsets();
 
   // Find today's prayer completion statuses from context data
-  let todayStatuses: Record<string, boolean> = {};          // empty object
-  const todayHistory = historyData.find(habitEntry => habitEntry.date === todayKey);  // Search for today's entry in the habit history
-  if (todayHistory && todayHistory.statuses) {              // If found and has statuses, use them
-    todayStatuses = todayHistory.statuses;
+  let todayStatuses: Record<string, boolean> = {};
+
+  for (let i = 0; i < historyData.length; ++i) {
+    const habitEntry = historyData[i];
+    if (habitEntry.date === todayKey && habitEntry.statuses) {  // for each entry in the history data, if the date matches today and has prayer statuses
+      todayStatuses = habitEntry.statuses;                  // set today's statuses to that entry's statuses
+      break;
+    }
   }
+
   // Local state for prayer checkboxes (for instant UI feedback)
   const [prayerStatuses, setPrayerStatuses] = useState<Record<string, boolean>>(todayStatuses);
 
@@ -39,33 +44,40 @@ export default function Index() {
   };
   
   
+  // Render each prayer habit using for-loop
+  const prayerHabitRows = [];
+  
+  for (let i = 0; i < PRAYER_HABITS.length; ++i) {
+    const habit = PRAYER_HABITS[i];
+    prayerHabitRows.push(
+      <TouchableOpacity
+        key={habit.id}
+        onPress={() => handleTogglePrayer(habit.id)}
+        activeOpacity={0.5}
+        style={styles.touchableRow}
+      >
+        <ThemedView
+          lightColor={prayerStatuses[habit.id] || false ? colors.surfaceVariant : colors.surfaceDim}
+          darkColor={prayerStatuses[habit.id] || false ? colors.surfaceVariant : colors.surfaceBright}
+          style={styles.habitRow}
+        >
+          <Checkbox
+            color={prayerStatuses[habit.id] || false ? colors.primary : colors.onSurfaceVariant}
+            value={prayerStatuses[habit.id] || false}
+            onValueChange={() => handleTogglePrayer(habit.id)}
+            style={[styles.checkbox]}
+          />
+          <ThemedText style={styles.habitName}>{habit.name}</ThemedText>
+        </ThemedView>
+      </TouchableOpacity>
+    );
+  }
+
   return (
     <ThemedView style={styles.container}>
       <ScrollView contentContainerStyle={styles.contentContainer}>
         <ThemedText style={[styles.header, { paddingTop: insets.top+6 }]}>Waqt</ThemedText>
-        {/* render each prayer habit */}
-        {PRAYER_HABITS.map((habit) => (
-            <TouchableOpacity
-              key={habit.id}
-              onPress={() => handleTogglePrayer(habit.id)}
-              activeOpacity={0.5}
-              style={styles.touchableRow}
-            >
-              <ThemedView
-                lightColor={prayerStatuses[habit.id] || false ? colors.surfaceVariant : colors.surfaceDim}
-                darkColor={prayerStatuses[habit.id] || false ? colors.surfaceVariant : colors.surfaceBright}
-                style={styles.habitRow}
-              >
-                <Checkbox
-                  color={prayerStatuses[habit.id] || false ? colors.primary : colors.onSurfaceVariant}
-                  value={prayerStatuses[habit.id] || false}
-                  onValueChange={() => handleTogglePrayer(habit.id)}
-                  style={[styles.checkbox]}
-                />
-                <ThemedText style={styles.habitName}>{habit.name}</ThemedText>
-              </ThemedView>
-            </TouchableOpacity>
-        ))}
+        {prayerHabitRows}
       </ScrollView>
     </ThemedView>
   );
