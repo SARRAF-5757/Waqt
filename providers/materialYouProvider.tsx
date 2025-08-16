@@ -9,6 +9,7 @@ type MaterialYouProviderProps = {
   resetTheme: () => void;
 };
 
+// The context object (initially empty)
 const MaterialYouProviderContext = createContext<MaterialYouProviderProps>({} as MaterialYouProviderProps);
 
 interface MaterialYouProviderComponentProps {
@@ -24,10 +25,11 @@ export function MaterialYouProvider({
   sourceColor, 
   fallbackSourceColor = '#4F8EF7'
 }: MaterialYouProviderComponentProps) {
+  // State: the current source color and loading status
   const [currentColor, setCurrentColor] = useState<string | null>(null);
   const [isLoading, setIsLoading] = useState(true);
 
-  // Load persisted theme color on app start
+  // On mount, load the persisted theme color from AsyncStorage (if any)
   useEffect(() => {
     const loadPersistedTheme = async () => {
       try {
@@ -44,25 +46,23 @@ export function MaterialYouProvider({
         setIsLoading(false);
       }
     };
-
     loadPersistedTheme();
   }, [sourceColor, fallbackSourceColor]);
 
+  // Get the Material 3 theme and update/reset functions from the library
   const { theme, updateTheme: originalUpdateTheme, resetTheme: originalResetTheme } = useMaterial3Theme({
     sourceColor: currentColor || sourceColor,
     fallbackSourceColor,
   });
 
-  // Enhanced updateTheme that persists the color
+  // Enhanced updateTheme that persists the color in AsyncStorage
   const updateTheme = async (color: string) => {
     try {
-      // Update current color state to trigger re-render
-      setCurrentColor(color);
-      originalUpdateTheme(color);
-      await AsyncStorage.setItem(THEME_STORAGE_KEY, color);
+      setCurrentColor(color); // update state for UI
+      originalUpdateTheme(color); // update theme in library
+      await AsyncStorage.setItem(THEME_STORAGE_KEY, color); // persist
     } catch (error) {
       console.warn('Failed to persist theme color:', error);
-      // Still update the theme even if persistence fails
       setCurrentColor(color);
       originalUpdateTheme(color);
     }
@@ -77,18 +77,18 @@ export function MaterialYouProvider({
       originalResetTheme();
     } catch (error) {
       console.warn('Failed to clear persisted theme:', error);
-      // Still reset the theme even if clearing storage fails
       const resetColor = sourceColor || fallbackSourceColor;
       setCurrentColor(resetColor);
       originalResetTheme();
     }
   };
 
-  // Don't render until we've loaded the persisted theme
+  // Don't render children until we've loaded the persisted theme
   if (isLoading) {
     return null;
   }
 
+  // Provide the theme and update/reset functions to all children
   return (
     <MaterialYouProviderContext.Provider value={{ theme, updateTheme, resetTheme }}>
       {children}
@@ -96,6 +96,7 @@ export function MaterialYouProvider({
   );
 }
 
+// Custom hook for easy access to the Material You theme context
 export function useMaterial3ThemeContext() {
   const context = useContext(MaterialYouProviderContext);
   if (!context) {
@@ -105,9 +106,9 @@ export function useMaterial3ThemeContext() {
 }
 
 // Hook to get the current Material 3 colors for the current color scheme
+// Custom hook to get the current Material 3 colors for the current color scheme
 export function useMaterial3Colors() {
   const colorScheme = useColorScheme();
   const { theme } = useMaterial3ThemeContext();
-  
   return theme[colorScheme ?? 'light'];
 }
