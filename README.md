@@ -2,7 +2,7 @@
 
 A simple React Native app for helping you improve your prayer habits.
 
-<img src="https://github.com/SARRAF-5757/Waqt/blob/master/assets/images/icons/ios-light.png?raw=true" alt="App Icon" style="border-radius: 20px;">
+<img src="https://github.com/SARRAF-5757/Waqt/blob/master/assets/images/icons/ios-light.png?raw=true" alt="App Icon" width="50%" style="border-radius: 50%; display: block; margin-left: auto; margin-right: auto;" />
 
 
 ### Personal Story
