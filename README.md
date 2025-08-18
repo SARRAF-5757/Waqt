@@ -1,50 +1,68 @@
-# Welcome to your Expo app 👋
+# Waqt
 
-This is an [Expo](https://expo.dev) project created with [`create-expo-app`](https://www.npmjs.com/package/create-expo-app).
+A simple React Native app for helping you improve your prayer habits.
 
-## Get started
+### Personal Story
+The motivation behind this app is procrastination. Its easy to forget the priority of prayer in our busy lives and for me personally, what happens is I keep putting it off for longer and longer until I suddenly look at my phone and realize the next prayer is coming up and pray at the last second or miss it completely. I have seen other apps that remind you about the adhan, but for those of us that don't pray right when we hear the adhan, getting a second reminder becomes hard. And that's where I believe this app will help. YOU will tell the app when YOU can pray and it will intelligently take your preferences and prayer time shifts throughout the year into account to remind you to pray at the right time. And hopefully seeing countless checked off boxes in the history page will give you a little boost to keep going!
 
-1. Install dependencies
+## Features (for now)
+- Track daily prayer completion with a GitHub contribution graph style streak grid
+- Material You dynamic theming (for Android only) and custom color selection
+- No internet access required, all data is stored locally
 
-   ```bash
+## Upcoming Features
+- _Waqt_ and location-based prayer notifications
+- More advanced score system to take _kaza_ prayers into account
+- More ways to represent your history data (Bar charts, Heatmaps, Month view, Year view, etc)
+- Ability to keep track of prayer data for as long or delete until a specific date
+- Custom reminder & "custom reminder offset until prayer time expires" option in settings
+
+### Installation
+#### <u>Android</u>
+Just install the APK file in release
+
+#### <u>IOS</u>
+(Until (and if) I post it on the App Store)
+1. Clone this repository:
+   ```sh
+   git clone https://github.com/SARRAF-5757/Waqt.git
+   cd Waqt
+   ```
+2. Install dependencies:
+   ```sh
    npm install
    ```
-
-2. Start the app
-
-   ```bash
-    npx expo start
+3. Start the Expo development server:
+   ```sh
+   npx expo start
    ```
+4. Scan the QR code with the Expo Go app on your phone, or run on an emulator.
 
-In the output, you'll find options to open the app in a
 
-- [development build](https://docs.expo.dev/develop/development-builds/introduction/)
-- [Android emulator](https://docs.expo.dev/workflow/android-studio-emulator/)
-- [iOS simulator](https://docs.expo.dev/workflow/ios-simulator/)
-- [Expo Go](https://expo.dev/go), a limited sandbox for trying out app development with Expo
+## Known Issues
+- prayer resetting at 4 am everyday
+    - this will be the default behavior until I implement time & location based reminders
 
-You can start developing by editing the files inside the **app** directory. This project uses [file-based routing](https://docs.expo.dev/router/introduction).
+<br>
+<br>
+<br>
+<br>
 
-## Get a fresh project
 
-When you're ready, run:
+# For interested devs
 
-```bash
-npm run reset-project
-```
+## Project Structure
+- `app/(tabs)/index.tsx` — Home screen, check off today's prayers
+- `app/(tabs)/streak.tsx` — Visual streak grid for each prayer
+- `app/(tabs)/settings.tsx` — Theme and color settings
+- `providers/` — Custom React Context providers for habits and theming
+- `components/` — Themed UI components
+- `constants/` — Habit/prayer definitions and helpers
 
-This command will move the starter code to the **app-example** directory and create a blank **app** directory where you can start developing.
+## How It Works
+- All habit/prayer data is managed by a custom React Context provider (`HabitProvider`).
+- Theme color is managed by a separate provider (`MaterialYouProvider`).
+- Data is stored in local storage (AsyncStorage) and loaded automatically.
 
-## Learn more
-
-To learn more about developing your project with Expo, look at the following resources:
-
-- [Expo documentation](https://docs.expo.dev/): Learn fundamentals, or go into advanced topics with our [guides](https://docs.expo.dev/guides).
-- [Learn Expo tutorial](https://docs.expo.dev/tutorial/introduction/): Follow a step-by-step tutorial where you'll create a project that runs on Android, iOS, and the web.
-
-## Join the community
-
-Join our community of developers creating universal apps.
-
-- [Expo on GitHub](https://github.com/expo/expo): View our open source platform and contribute.
-- [Discord community](https://chat.expo.dev): Chat with Expo users and ask questions.
+## License
+MIT
