@@ -2,8 +2,11 @@
 
 A simple React Native app for helping you improve your prayer habits.
 
+<img src="https://github.com/SARRAF-5757/Waqt/blob/master/assets/images/icons/ios-light.png?raw=true" alt="App Icon" style="border-radius: 20px;">
+
+
 ### Personal Story
-The motivation behind this app is procrastination. Its easy to forget the priority of prayer in our busy lives and for me personally, what happens is I keep putting it off for longer and longer until I suddenly look at my phone and realize the next prayer is coming up and pray at the last second or miss it completely. I have seen other apps that remind you about the adhan, but for those of us that don't pray right when we hear the adhan, getting a second reminder becomes hard. And that's where I believe this app will help. YOU will tell the app when YOU can pray and it will intelligently take your preferences and prayer time shifts throughout the year into account to remind you to pray at the right time. And hopefully seeing countless checked off boxes in the history page will give you a little boost to keep going!
+The motivation behind this app comes from my own struggle with procrastination. In our busy lives, it's easy to not prioritize prayer. For me, I often find myself putting it off until suddenly I notice the next prayer is approaching—and then I either rush to pray at the last second or miss it entirely. While there are other apps that remind you at Adhan time, they don't help much if you can't pray right away. Getting a second, well-timed reminder is hard. That's where this app comes in: YOU tell the app when you're able to pray, and it will learn your preferences and adjust to prayer time shifts throughout the year, reminding you at the right moment. And I hope as you see more and more checked-off boxes in your history, you'll get the boost to keep going and make prayer a consistent part of your day.
 
 ## Features (for now)
 - Track daily prayer completion with a GitHub contribution graph style streak grid
