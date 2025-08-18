@@ -11,40 +11,36 @@ import { useHabits } from '@/providers/habitProvider';
 
 
 export default function Index() {
-  const { historyData, updateHabitStatus } = useHabits();   // get habit data and update function from context
-  const todayKey = getDateKey();                            // get today's date key
+  const { historyData, updateHabitStatus } = useHabits();       // get habit data and update function from context
+  const todayKey = getDateKey();                                // get today's date key
   const colors = useThemeColors();
   const insets = useSafeAreaInsets();
+  let todayStatuses: Record<string, boolean> = {};
+  const [prayerStatuses, setPrayerStatuses] = useState<Record<string, boolean>>(todayStatuses); // Local state for prayer checkboxes (for instant UI feedback)
 
   // Find today's prayer completion statuses from context data
-  let todayStatuses: Record<string, boolean> = {};
-
   for (let i = 0; i < historyData.length; ++i) {
     const habitEntry = historyData[i];
     if (habitEntry.date === todayKey && habitEntry.statuses) {  // for each entry in the history data, if the date matches today and has prayer statuses
-      todayStatuses = habitEntry.statuses;                  // set today's statuses to that entry's statuses
+      todayStatuses = habitEntry.statuses;                      // set today's statuses to that entry's statuses
       break;
     }
   }
-
-  // Local state for prayer checkboxes (for instant UI feedback)
-  const [prayerStatuses, setPrayerStatuses] = useState<Record<string, boolean>>(todayStatuses);
 
   // Sync local state with context data if date changes or completion statuses change
   useEffect(() => {
     setPrayerStatuses(todayStatuses);
   }, [todayKey, JSON.stringify(todayStatuses)]);
 
-
   // On prayer checkbox press
   const handleTogglePrayer = (id: string) => {
-    const newVal = !prayerStatuses[id];                 // flip the status for the given prayer id
-    setPrayerStatuses(s => ({ ...s, [id]: newVal }));   // update local state (for UI refresh)
-    updateHabitStatus(todayKey, id, newVal);            // update context data
+    const newVal = !prayerStatuses[id];                       // flip the status for the given prayer id
+    setPrayerStatuses(s => ({ ...s, [id]: newVal }));         // update local state (for UI refresh)
+    updateHabitStatus(todayKey, id, newVal);                  // update context data
   };
   
   
-  // Render each prayer habit using for-loop
+  // Build list of prayers to render
   const prayerHabitRows = [];
   
   for (let i = 0; i < PRAYER_HABITS.length; ++i) {

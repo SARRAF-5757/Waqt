@@ -1,6 +1,6 @@
 import { StyleSheet, ScrollView, ActivityIndicator } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
-import { subDays, eachDayOfInterval } from "date-fns";
+import { subDays, subHours } from "date-fns";
 
 import { ThemedView } from "@/components/ThemedView";
 import { ThemedText } from "@/components/ThemedText";
@@ -24,37 +24,54 @@ const PrayerContributionGraph = ({ prayerId, prayerName }: { prayerId: string; p
     }
   }
 
-  // Build last however many days array
-  const filledDays = [];                        // array of days to be filled with checked/unchecked status
-  const endDate = new Date();
-  const startDate = subDays(endDate, 104);      //# subtract how many days back to show
-  const allDays = eachDayOfInterval({ start: startDate, end: endDate });  // empty array of all days in the interval to be modified and pushed to filledDays
+  // Generate however many consecutive date keys going backward from today
+  const filledDays = [];
+  const now = new Date();
 
-  for (let i = 0; i < allDays.length; ++i) {
-    const day = allDays[i];
-    const dateKey = getDateKey(day);
+  for (let daysBack = 104; daysBack >= 0; daysBack--) {
+    // Calculate the actual calendar date for this many days back
+    const calendarDate = subDays(now, daysBack);
+    const dateKey = getDateKey(calendarDate);
+    
+    // shift date by 4 hours to display correctly
+    const shiftedDate = subHours(calendarDate, 4);
+    
     filledDays.push({
-      date: day,
+      date: shiftedDate,
       isCompleted: completedDatesSet.has(dateKey),  // check if this date is in the completed set
       dateKey: dateKey,
     });
+  }  
+  
+  // Find the first Sunday to start our grid from
+  let firstSunday;
+  for (let i = 0; i < filledDays.length; i++) {
+    if (filledDays[i].date.getDay() === 0) { // Sunday = 0
+      firstSunday = i;
+      break;
+    }
   }
-
+  // If no Sunday found, start from beginning
+  if (firstSunday === undefined) {
+    firstSunday = 0;
+  }
+  
   // Group days into weeks (columns)
   const weeks = [];                             // empty array to be filled with week arrays
   let currentWeek = [];                         // current week array to be filled with day objects
-
-  for (let i = 0; i < filledDays.length; ++i) {
+  
+  for (let i = firstSunday; i < filledDays.length; i++) {
     const day = filledDays[i];
     currentWeek.push(day);
-
+    
+    // push into weeks array when 7 days are added
     if (currentWeek.length === 7) {
       weeks.push(currentWeek);
       currentWeek = [];
     }
   }
-
-  // If the last week is not full, fill with empty days
+  
+  // if there's an incomplete week at the end, fill remaining days with empty slots
   if (currentWeek.length > 0) {
     while (currentWeek.length < 7) {
       currentWeek.push({
@@ -162,19 +179,20 @@ const styles = StyleSheet.create({
     paddingVertical: 6,
   },
   graphContainer: {
-    marginBottom: 20
+    marginBottom: 25,
+    alignItems: 'center',
   },
   prayerBox: {
-    alignItems: 'center',
     paddingTop: 10,
     borderRadius: 20,
-    marginBottom: 10,
+    marginBottom:15,
+    width: '90%',
   },
   prayerHeader: {
-    fontSize: 22,
     fontWeight: "600",
     marginBottom: 15,
     textAlign: "center",
+    fontSize: 22,
   },
   contributionGraph: {
     flexDirection: "row",
@@ -194,5 +212,5 @@ const styles = StyleSheet.create({
   emptyDay: {
     width: 22,
     height: 22,
-  }
+  },
 });

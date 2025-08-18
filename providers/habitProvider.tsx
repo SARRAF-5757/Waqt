@@ -9,7 +9,7 @@ interface HistoryItem {
   statuses: Record<string, boolean>;  // { fajr: true, dhuhr: false, ... }
 }
 
-// The shape of the context value shared with all components
+//! The shape of the context value shared with all components
 interface HistoryContextType {
   historyData: HistoryItem[];         // All habit data loaded from storage
   isLoading: boolean;                 // True while loading from storage
@@ -91,6 +91,8 @@ export const HabitProvider = ({ children }: { children: ReactNode }) => {
   useEffect(() => {
     loadHistoryData();
   }, []);
+
+
 
   // Update the completion status for a specific habit on a specific date
   // Update state immediately for UI, then save to AsyncStorage

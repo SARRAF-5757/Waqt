@@ -1,12 +1,14 @@
-import React, { useState, useEffect } from 'react';
-import { StyleSheet, ScrollView, TouchableOpacity } from 'react-native';
+import React from 'react';
+import { StyleSheet, ScrollView, TouchableOpacity, Platform } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
-import AsyncStorage from '@react-native-async-storage/async-storage';
 
 import { ThemedText } from "@/components/ThemedText";
 import { ThemedView } from "@/components/ThemedView";
 import { useThemeColors } from '@/hooks/useThemeColors';
 import { useMaterial3ThemeContext } from '@/providers/materialYouProvider';
+
+// Special key to detect Material You mode
+const MATERIAL_YOU_KEY = 'MATERIAL_YOU';
 
 // Preset theme colors inspired by Islamic culture and prayer times
 const THEME_COLORS = [
@@ -18,58 +20,33 @@ const THEME_COLORS = [
   { name: 'Coral Pink', color: '#FF5A5F' },
 ];
 
-const THEME_STORAGE_KEY = '@waqt_theme_color';
-
 export default function SettingsScreen() {
   const insets = useSafeAreaInsets();
   const themedColors = useThemeColors();
-  const { updateTheme, resetTheme } = useMaterial3ThemeContext();
-  const [selectedColor, setSelectedColor] = useState<string | null>(null);
+  const { updateTheme, resetTheme, currentColor } = useMaterial3ThemeContext();
 
-  // Load the currently selected theme on component mount
-  useEffect(() => {
-    const loadCurrentTheme = async () => {
-      try {
-        const savedColor = await AsyncStorage.getItem(THEME_STORAGE_KEY);
-        if (savedColor) {
-          setSelectedColor(savedColor);
-        }
-      } catch (error) {
-        console.warn('Failed to load current theme:', error);
-      }
-    };
+  // Check if we're currently in Material You mode
+  const isMaterialYouMode = currentColor === MATERIAL_YOU_KEY;
 
-    loadCurrentTheme();
-  }, []);
-
-  const handleColorSelect = (color: string, name: string) => {
-    setSelectedColor(color);
-    updateTheme(color);
-    AsyncStorage.setItem(THEME_STORAGE_KEY, color);
-  };
-
-  const handleResetTheme = async () => {
-    await resetTheme();
-    setSelectedColor(null);
-  };
-
-  // Render all preset color options using for-loops
+  // Build list of color option buttons to be rendered
   const colorOptionButtons = [];
 
   for (let i = 0; i < THEME_COLORS.length; ++i) {
     const themeColor = THEME_COLORS[i];
+    const isSelected = !isMaterialYouMode && currentColor === themeColor.color; // color is selected if it matches exactly and we're not in Material You mode
+    
     colorOptionButtons.push(
       <TouchableOpacity
         key={themeColor.color}
         style={[
           styles.colorOption,
           {
-            backgroundColor: selectedColor === themeColor.color
+            backgroundColor: isSelected
               ? themedColors.surfaceVariant
               : (themedColors.surfaceDim ?? themedColors.surfaceBright),
           },
         ]}
-        onPress={() => handleColorSelect(themeColor.color, themeColor.name)}
+        onPress={() => updateTheme(themeColor.color)}
         activeOpacity={0.7}
       >
         <ThemedView
@@ -79,7 +56,7 @@ export default function SettingsScreen() {
           ]}
         />
         <ThemedText style={[styles.colorName, {
-          color: selectedColor === themeColor.color
+          color: isSelected
             ? themedColors.onPrimaryContainer
             : themedColors.onSurfaceVariant
         }]}>{themeColor.name}</ThemedText>
@@ -96,31 +73,33 @@ export default function SettingsScreen() {
         {/* Header */}
         <ThemedText style={styles.header}>Settings</ThemedText>
 
-        {/* Material You Button */}
-        <TouchableOpacity
-          style={[ 
-            styles.materialButton,
-            {
-              backgroundColor: selectedColor === null 
-                ? themedColors.surfaceVariant
-                : (themedColors.surfaceDim ?? themedColors.surfaceBright),
-            },
-          ]}
-          onPress={handleResetTheme}
-          activeOpacity={0.7}
-        >
-          <ThemedView
+        {/* Material You Button (Only shows up on android) */}
+        {Platform.OS === 'android' && (
+          <TouchableOpacity
             style={[ 
-              styles.colorCircle, 
-              { backgroundColor: themedColors.primary }
+              styles.materialButton,
+              {
+                backgroundColor: isMaterialYouMode
+                  ? themedColors.surfaceVariant
+                  : (themedColors.surfaceDim ?? themedColors.surfaceBright),
+              },
             ]}
-          />
-          <ThemedText style={[styles.colorName, {
-            color: selectedColor === null
-              ? themedColors.onPrimaryContainer
-              : themedColors.onSurfaceVariant
-          }]}>Material You</ThemedText>
-        </TouchableOpacity>
+            onPress={resetTheme}
+            activeOpacity={0.7}
+          >
+            <ThemedView
+              style={[ 
+                styles.colorCircle, 
+                { backgroundColor: themedColors.primary }
+              ]}
+            />
+            <ThemedText style={[styles.colorName, {
+              color: isMaterialYouMode
+                ? themedColors.onPrimaryContainer
+                : themedColors.onSurfaceVariant
+            }]}>Material You</ThemedText>
+          </TouchableOpacity>
+        )}
 
         {/* Color Options */}
         <ThemedView style={styles.colorGrid}>
