@@ -34,9 +34,9 @@ export default function Index() {
 
   // On prayer checkbox press
   const handleTogglePrayer = (id: string) => {
-    const newVal = !prayerStatuses[id];                       // flip the status for the given prayer id
-    setPrayerStatuses(s => ({ ...s, [id]: newVal }));         // update local state (for UI refresh)
-    updateHabitStatus(todayKey, id, newVal);                  // update context data
+    const newVal = !prayerStatuses[id];                         // flip the status for the given prayer id
+    setPrayerStatuses(s => ({ ...s, [id]: newVal }));           // update local state (for UI refresh)
+    updateHabitStatus(todayKey, id, newVal);                    // update context data
   };
   
   
