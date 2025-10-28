@@ -1,6 +1,6 @@
 import React from "react";
 import { Tabs } from "expo-router";
-import { AntDesign } from "@expo/vector-icons";
+import { Feather, AntDesign } from "@expo/vector-icons";
 
 import { useThemeColors } from '@/hooks/useThemeColors';
 import { HapticTab } from "@/components/HapticTab";
@@ -28,21 +28,21 @@ export default function TabLayout() {
           name="index"
           options={{
             title: "Home",
-            tabBarIcon: ({ color }) => <AntDesign name="home" size={30} color={color} />,
+            tabBarIcon: ({ color }) => <Feather name="home" size={26} color={color} />,
           }}
         />
         <Tabs.Screen
           name="streak"
           options={{
             title: "History",
-            tabBarIcon: ({ color }) => <AntDesign name="barschart" size={30} color={color} />,
+            tabBarIcon: ({ color }) => <AntDesign name="bar-chart" size={26} color={color} />,
           }}
         />
         <Tabs.Screen
           name="settings"
           options={{
             title: "Settings",
-            tabBarIcon: ({ color }) => <AntDesign name="setting" size={30} color={color} />,
+            tabBarIcon: ({ color }) => <Feather name="settings" size={26} color={color} />,
           }}
         />
       </Tabs>
