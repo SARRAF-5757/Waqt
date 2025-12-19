@@ -1,13 +1,25 @@
 import React, { useState, useEffect } from 'react';
-import { StyleSheet, TouchableOpacity, ScrollView } from 'react-native';
+import { StyleSheet, TouchableOpacity, ScrollView, Platform, Alert } from 'react-native';
 import Checkbox from 'expo-checkbox';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
+import * as Notifications from 'expo-notifications';
 
 import { ThemedText } from '@/components/ThemedText';
 import { ThemedView } from '@/components/ThemedView';
 import { PRAYER_HABITS, getDateKey } from '@/constants/Habits';
 import { useThemeColors } from '@/hooks/useThemeColors';
 import { useHabits } from '@/providers/habitProvider';
+
+
+
+Notifications.setNotificationHandler({
+  handleNotification: async () => ({
+    shouldPlaySound: false,
+    shouldSetBadge: false,
+    shouldShowBanner: true,
+    shouldShowList: true,
+  }),
+});
 
 
 export default function Index() {
@@ -17,6 +29,7 @@ export default function Index() {
   const insets = useSafeAreaInsets();
   let todayStatuses: Record<string, boolean> = {};
   const [prayerStatuses, setPrayerStatuses] = useState<Record<string, boolean>>(todayStatuses); // Local state for prayer checkboxes (for instant UI feedback)
+  const [notification, setNotification] = useState<Notifications.Notification | undefined>(undefined);
 
   // Find today's prayer completion statuses from context data
   for (let i = 0; i < historyData.length; ++i) {
@@ -32,7 +45,48 @@ export default function Index() {
     setPrayerStatuses(todayStatuses);
   }, [todayKey, JSON.stringify(todayStatuses)]);
 
-  // On prayer checkbox press
+  //# Schedule a notification
+  const sendTestNotification = async () => {
+    try {
+      // Check/request permissions
+      const existing = await Notifications.getPermissionsAsync();
+      let status = existing.status;
+      if (status !== 'granted') {
+        const requested = await Notifications.requestPermissionsAsync();
+        status = requested.status;
+      }
+      if (status !== 'granted') {
+        Alert.alert('Permission required', 'Please allow notifications.');
+        return;
+      }
+
+      // Platform specific settings
+      if (Platform.OS === 'android') {
+        await Notifications.setNotificationChannelAsync('default', {
+          name: 'default',
+          importance: Notifications.AndroidImportance.DEFAULT,
+          vibrationPattern: [0, 250, 250, 250],
+        });
+      } else if (Platform.OS === 'ios') {
+        //TODO: Implement ios notifications
+      }
+
+      // Schedule a notification
+      await Notifications.scheduleNotificationAsync({
+        content: {
+          title: 'Waqt — Test Notification',
+          body: 'This is a test notification.',
+          data: { test: true },
+        },
+        trigger: null, // `null` = display immediately
+      });
+    } catch (error) {
+      console.error('Failed to send test notification', error);
+      Alert.alert('Error', 'Failed to schedule notification. See console for details.');
+    }
+  };
+
+  //# On prayer checkbox press
   const handleTogglePrayer = (id: string) => {
     const newVal = !prayerStatuses[id];                         // flip the status for the given prayer id
     setPrayerStatuses(s => ({ ...s, [id]: newVal }));           // update local state (for UI refresh)
@@ -40,7 +94,7 @@ export default function Index() {
   };
   
   
-  // Build list of prayers to render
+  //* Build list of prayers to render
   const prayerHabitRows = [];
   
   for (let i = 0; i < PRAYER_HABITS.length; ++i) {
@@ -74,6 +128,21 @@ export default function Index() {
       <ScrollView contentContainerStyle={styles.contentContainer}>
         <ThemedText style={[styles.header, { paddingTop: insets.top+6 }]}>Waqt</ThemedText>
         {prayerHabitRows}
+        {/* Test notification button (developer/testing only) */}
+        <TouchableOpacity onPress={sendTestNotification} style={{
+          marginHorizontal: 20,
+          backgroundColor: colors.surfaceVariant,
+          paddingVertical: 10,
+          borderRadius: 10,
+          marginBottom: 16,
+          alignItems: 'center',
+        }} activeOpacity={0.7}>
+          <ThemedText style={{
+            color: 'white',
+            fontSize: 16,
+            fontWeight: '600'
+          }}>Send Notification</ThemedText>
+        </TouchableOpacity>
       </ScrollView>
     </ThemedView>
   );
