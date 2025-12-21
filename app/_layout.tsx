@@ -9,6 +9,7 @@ import "react-native-reanimated";
 import { useColorScheme } from "@/hooks/useColorScheme";
 import { MaterialYouProvider } from '@/providers/materialYouProvider';
 import { HabitProvider } from "@/providers/habitProvider";
+import { PrayerTimesProvider } from "@/providers/prayerTimesProvider";
 
 // prevent splash screen from hiding before loading is complete
 SplashScreen.preventAutoHideAsync();
@@ -33,14 +34,16 @@ export default function RootLayout() {
 return (
     <SafeAreaProvider>
       <HabitProvider>
-        <MaterialYouProvider>
-          <ThemeProvider value={colorScheme === "dark" ? DarkTheme : DefaultTheme}>
-            <Stack>
-              <Stack.Screen name="(tabs)" options={{ headerShown: false }} />
-              <Stack.Screen name="+not-found" />
-            </Stack>
-          </ThemeProvider>
-        </MaterialYouProvider>
+        <PrayerTimesProvider>
+          <MaterialYouProvider>
+            <ThemeProvider value={colorScheme === "dark" ? DarkTheme : DefaultTheme}>
+              <Stack>
+                <Stack.Screen name="(tabs)" options={{ headerShown: false }} />
+                <Stack.Screen name="+not-found" />
+              </Stack>
+            </ThemeProvider>
+          </MaterialYouProvider>
+        </PrayerTimesProvider>
       </HabitProvider>
     </SafeAreaProvider>
   );
