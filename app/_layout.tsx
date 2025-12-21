@@ -7,7 +7,7 @@ import { Stack } from "expo-router";
 import "react-native-reanimated";
 
 import { useColorScheme } from "@/hooks/useColorScheme";
-import { MaterialYouProvider } from '@/providers/materialYouProvider';
+import { MaterialYouProvider } from "@/providers/materialYouProvider";
 import { HabitProvider } from "@/providers/habitProvider";
 import { PrayerTimesProvider } from "@/providers/prayerTimesProvider";
 
@@ -15,23 +15,23 @@ import { PrayerTimesProvider } from "@/providers/prayerTimesProvider";
 SplashScreen.preventAutoHideAsync();
 
 export default function RootLayout() {
-	const colorScheme = useColorScheme();
+  const colorScheme = useColorScheme();
 
-	const [loaded] = useFonts({
-		SpaceMono: require("../assets/fonts/SpaceMono-Regular.ttf"),
-	});
+  const [loaded] = useFonts({
+    SpaceMono: require("../assets/fonts/SpaceMono-Regular.ttf"),
+  });
 
-	useEffect(() => {
-		if (loaded) {
-			SplashScreen.hideAsync();
-		}
-	}, [loaded]);
+  useEffect(() => {
+    if (loaded) {
+      SplashScreen.hideAsync();
+    }
+  }, [loaded]);
 
-	if (!loaded) {
-		return null;
-	}
+  if (!loaded) {
+    return null;
+  }
 
-return (
+  return (
     <SafeAreaProvider>
       <HabitProvider>
         <PrayerTimesProvider>

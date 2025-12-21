@@ -1,20 +1,18 @@
-import React, { useState, useEffect } from 'react';
-import { StyleSheet, TouchableOpacity, ScrollView, Platform, Alert } from 'react-native';
-import Checkbox from 'expo-checkbox';
-import { useSafeAreaInsets } from 'react-native-safe-area-context';
-import { format } from 'date-fns';
-import * as Notifications from 'expo-notifications';
-import * as Location from 'expo-location';
-import * as Adhan from 'adhan';
+import React, { useState, useEffect } from "react";
+import { StyleSheet, TouchableOpacity, ScrollView, Platform, Alert } from "react-native";
+import Checkbox from "expo-checkbox";
+import { useSafeAreaInsets } from "react-native-safe-area-context";
+import { format } from "date-fns";
+import * as Notifications from "expo-notifications";
+import * as Location from "expo-location";
+import * as Adhan from "adhan";
 
-import { ThemedText } from '@/components/ThemedText';
-import { ThemedView } from '@/components/ThemedView';
-import { PRAYER_HABITS, getDateKey } from '@/constants/Habits';
-import { useThemeColors } from '@/hooks/useThemeColors';
-import { useHabits } from '@/providers/habitProvider';
-import { PrayerTimesProvider, usePrayerTimes } from '@/providers/prayerTimesProvider';
-
-
+import { ThemedText } from "@/components/ThemedText";
+import { ThemedView } from "@/components/ThemedView";
+import { PRAYER_HABITS, getDateKey } from "@/constants/Habits";
+import { useThemeColors } from "@/hooks/useThemeColors";
+import { useHabits } from "@/providers/habitProvider";
+import { usePrayerTimes } from "@/providers/prayerTimesProvider";
 
 Notifications.setNotificationHandler({
   handleNotification: async () => ({
@@ -25,10 +23,9 @@ Notifications.setNotificationHandler({
   }),
 });
 
-
 export default function Index() {
-  const { historyData, updateHabitStatus } = useHabits();       // get habit data and update function from context
-  const todayKey = getDateKey();                                // get today's date key
+  const { historyData, updateHabitStatus } = useHabits(); // get habit data and update function from context
+  const todayKey = getDateKey(); // get today's date key
   const colors = useThemeColors();
   const insets = useSafeAreaInsets();
   let todayStatuses: Record<string, boolean> = {};
@@ -39,8 +36,9 @@ export default function Index() {
   // Find today's prayer completion statuses from context data
   for (let i = 0; i < historyData.length; i++) {
     const habitEntry = historyData[i];
-    if (habitEntry.date === todayKey && habitEntry.statuses) {  // for each entry in the history data, if the date matches today and has prayer statuses
-      todayStatuses = habitEntry.statuses;                      // set today's statuses to that entry's statuses
+    if (habitEntry.date === todayKey && habitEntry.statuses) {
+      // for each entry in the history data, if the date matches today and has prayer statuses
+      todayStatuses = habitEntry.statuses; // set today's statuses to that entry's statuses
       break;
     }
   }
@@ -50,16 +48,16 @@ export default function Index() {
     const setupPrayerNotifs = async () => {
       try {
         // wait for permissions
-        let { status:locationStatus } = await Location.requestForegroundPermissionsAsync();
-        const { status:notifStatus } = await Notifications.getPermissionsAsync();
+        let { status: locationStatus } = await Location.requestForegroundPermissionsAsync();
+        const { status: notifStatus } = await Notifications.getPermissionsAsync();
 
-        if (locationStatus != 'granted' || notifStatus != 'granted') {
-          console.error("Couldn't get permissions")
+        if (locationStatus != "granted" || notifStatus != "granted") {
+          console.error("Couldn't get permissions");
         }
 
         // get prayer times
         let location = await Location.getCurrentPositionAsync({});
-        const {latitude, longitude} = location.coords;
+        const { latitude, longitude } = location.coords;
 
         const coordinates = new Adhan.Coordinates(latitude, longitude);
         const params = Adhan.CalculationMethod.MoonsightingCommittee();
@@ -68,13 +66,13 @@ export default function Index() {
         const prayerTimes = new Adhan.PrayerTimes(coordinates, date, params);
 
         // Platform specific things
-        if (Platform.OS === 'android') {
-          await Notifications.setNotificationChannelAsync('default', {
-            name: 'default',
+        if (Platform.OS === "android") {
+          await Notifications.setNotificationChannelAsync("default", {
+            name: "default",
             importance: Notifications.AndroidImportance.DEFAULT,
             vibrationPattern: [0, 250, 250, 250],
           });
-        } else if (Platform.OS === 'ios') {
+        } else if (Platform.OS === "ios") {
           // TODO: Implement ios notifications
         }
 
@@ -82,7 +80,7 @@ export default function Index() {
         await Notifications.cancelAllScheduledNotificationsAsync(); //cancel old notifs
 
         const formatTime = (date: Date) => {
-          return date.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+          return date.toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" });
         };
 
         await Notifications.scheduleNotificationAsync({
@@ -93,8 +91,8 @@ export default function Index() {
           },
           trigger: {
             type: Notifications.SchedulableTriggerInputTypes.DATE,
-            date: prayerTimes.fajr
-          }
+            date: prayerTimes.fajr,
+          },
         });
 
         await Notifications.scheduleNotificationAsync({
@@ -105,8 +103,8 @@ export default function Index() {
           },
           trigger: {
             type: Notifications.SchedulableTriggerInputTypes.DATE,
-            date: prayerTimes.dhuhr
-          }
+            date: prayerTimes.dhuhr,
+          },
         });
 
         await Notifications.scheduleNotificationAsync({
@@ -117,8 +115,8 @@ export default function Index() {
           },
           trigger: {
             type: Notifications.SchedulableTriggerInputTypes.DATE,
-            date: prayerTimes.asr
-          }
+            date: prayerTimes.asr,
+          },
         });
 
         await Notifications.scheduleNotificationAsync({
@@ -129,8 +127,8 @@ export default function Index() {
           },
           trigger: {
             type: Notifications.SchedulableTriggerInputTypes.DATE,
-            date: prayerTimes.maghrib
-          }
+            date: prayerTimes.maghrib,
+          },
         });
 
         await Notifications.scheduleNotificationAsync({
@@ -141,47 +139,38 @@ export default function Index() {
           },
           trigger: {
             type: Notifications.SchedulableTriggerInputTypes.DATE,
-            date: prayerTimes.isha
-          }
+            date: prayerTimes.isha,
+          },
         });
-
       } catch (error) {
         console.error("Failed to Schedule Notifications", error);
       }
-    }
+    };
     setupPrayerNotifs();
   }, []);
-
 
   // Sync local state with context data if date changes or completion statuses change
   useEffect(() => {
     setPrayerStatuses(todayStatuses);
   }, [todayKey, JSON.stringify(todayStatuses)]);
 
-
   //# On prayer checkbox press
   const handleTogglePrayer = (id: string) => {
-    const newVal = !prayerStatuses[id];                         // flip the status for the given prayer id
-    setPrayerStatuses(s => ({ ...s, [id]: newVal }));           // update local state (for UI refresh)
-    updateHabitStatus(todayKey, id, newVal);                    // update context data
+    const newVal = !prayerStatuses[id]; // flip the status for the given prayer id
+    setPrayerStatuses((s) => ({ ...s, [id]: newVal })); // update local state (for UI refresh)
+    updateHabitStatus(todayKey, id, newVal); // update context data
   };
-  
-  
+
   //* Build list of prayers to render
   const prayerHabitRows = [];
-  
+
   for (let i = 0; i < PRAYER_HABITS.length; ++i) {
     const habit = PRAYER_HABITS[i];
     const timeDate = times[habit.id];
-    const timeStr = timeDate ? format(timeDate, 'h:mm a') : '';
+    const timeStr = timeDate ? format(timeDate, "h:mm a") : "";
 
     prayerHabitRows.push(
-      <TouchableOpacity
-        key={habit.id}
-        onPress={() => handleTogglePrayer(habit.id)}
-        activeOpacity={0.5}
-        style={styles.touchableRow}
-      >
+      <TouchableOpacity key={habit.id} onPress={() => handleTogglePrayer(habit.id)} activeOpacity={0.5} style={styles.touchableRow}>
         <ThemedView
           lightColor={prayerStatuses[habit.id] || false ? colors.surfaceVariant : colors.surfaceDim}
           darkColor={prayerStatuses[habit.id] || false ? colors.surfaceVariant : colors.surfaceBright}
@@ -194,28 +183,23 @@ export default function Index() {
             style={[styles.checkbox]}
           />
           <ThemedText style={styles.habitName}>{habit.name}</ThemedText>
-          <ThemedView
-            style={styles.timeContainer}
-            lightColor={colors.surfaceVariant}
-            darkColor={colors.surfaceVariant}
-          >
+          <ThemedView style={styles.timeContainer} lightColor={colors.surfaceVariant} darkColor={colors.surfaceVariant}>
             <ThemedText style={styles.habitTime}>{timeStr}</ThemedText>
           </ThemedView>
         </ThemedView>
-      </TouchableOpacity>
+      </TouchableOpacity>,
     );
   }
 
   return (
     <ThemedView style={styles.container}>
       <ScrollView contentContainerStyle={styles.contentContainer}>
-        <ThemedText style={[styles.header, { paddingTop: insets.top+6 }]}>Waqt</ThemedText>
+        <ThemedText style={[styles.header, { paddingTop: insets.top + 6 }]}>Waqt</ThemedText>
         {prayerHabitRows}
       </ScrollView>
     </ThemedView>
   );
 }
-
 
 // Styles
 const styles = StyleSheet.create({
@@ -227,8 +211,8 @@ const styles = StyleSheet.create({
   },
   header: {
     fontSize: 30,
-    fontWeight: 'bold',
-    textAlign: 'center',
+    fontWeight: "bold",
+    textAlign: "center",
     marginBottom: 24,
     paddingVertical: 6,
   },
@@ -236,8 +220,8 @@ const styles = StyleSheet.create({
     marginBottom: 20,
   },
   habitRow: {
-    flexDirection: 'row',
-    alignItems: 'center',
+    flexDirection: "row",
+    alignItems: "center",
     padding: 20,
     borderRadius: 20,
   },
@@ -252,7 +236,7 @@ const styles = StyleSheet.create({
     flex: 1,
   },
   timeContainer: {
-    borderRadius:25,
+    borderRadius: 25,
   },
   habitTime: {
     marginLeft: 25,

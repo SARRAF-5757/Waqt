@@ -1,7 +1,7 @@
-import React, { createContext, useContext, ReactNode, useEffect, useState } from 'react';
-import { useMaterial3Theme, Material3Theme } from '@pchmn/expo-material3-theme';
-import { useColorScheme } from 'react-native';
-import AsyncStorage from '@react-native-async-storage/async-storage';
+import React, { createContext, useContext, ReactNode, useEffect, useState } from "react";
+import { useMaterial3Theme, Material3Theme } from "@pchmn/expo-material3-theme";
+import { useColorScheme } from "react-native";
+import AsyncStorage from "@react-native-async-storage/async-storage";
 
 type MaterialYouProviderProps = {
   theme: Material3Theme;
@@ -19,16 +19,16 @@ interface MaterialYouProviderComponentProps {
   fallbackSourceColor?: string;
 }
 
-const THEME_STORAGE_KEY = '@waqt_theme_color';
-const MATERIAL_YOU_KEY = 'MATERIAL_YOU'; // Special key to indicate Material You mode
+const THEME_STORAGE_KEY = "@waqt_theme_color";
+const MATERIAL_YOU_KEY = "MATERIAL_YOU"; // Special key to indicate Material You mode
 
 // Inner component that handles the theme library after we know the correct color
-function MaterialYouProviderLoaded({ 
-  children, 
-  initialColor, 
+function MaterialYouProviderLoaded({
+  children,
+  initialColor,
   fallbackSourceColor,
   onUpdateTheme,
-  onResetTheme
+  onResetTheme,
 }: {
   children: ReactNode;
   initialColor: string;
@@ -38,9 +38,13 @@ function MaterialYouProviderLoaded({
 }) {
   // Check if we should use Material You (system colors) or a specific color
   const isMaterialYou = initialColor === MATERIAL_YOU_KEY;
-  
+
   // Now we can safely initialize the theme library with the correct color
-  const { theme, updateTheme: libUpdateTheme, resetTheme: libResetTheme } = useMaterial3Theme({
+  const {
+    theme,
+    updateTheme: libUpdateTheme,
+    resetTheme: libResetTheme,
+  } = useMaterial3Theme({
     sourceColor: isMaterialYou ? undefined : initialColor, // undefined lets library extract system colors
     fallbackSourceColor,
   });
@@ -57,22 +61,20 @@ function MaterialYouProviderLoaded({
   };
 
   return (
-    <MaterialYouProviderContext.Provider value={{ 
-      theme, 
-      updateTheme, 
-      resetTheme,
-      currentColor: initialColor
-    }}>
+    <MaterialYouProviderContext.Provider
+      value={{
+        theme,
+        updateTheme,
+        resetTheme,
+        currentColor: initialColor,
+      }}
+    >
       {children}
     </MaterialYouProviderContext.Provider>
   );
 }
 
-export function MaterialYouProvider({ 
-  children, 
-  sourceColor, 
-  fallbackSourceColor = '#4F8EF7'
-}: MaterialYouProviderComponentProps) {
+export function MaterialYouProvider({ children, sourceColor, fallbackSourceColor = "#4F8EF7" }: MaterialYouProviderComponentProps) {
   // State: the current source color and loading status
   const [currentColor, setCurrentColor] = useState<string | null>(null);
   const [isLoading, setIsLoading] = useState(true);
@@ -89,7 +91,7 @@ export function MaterialYouProvider({
           setCurrentColor(MATERIAL_YOU_KEY);
         }
       } catch (error) {
-        console.warn('Failed to load persisted theme:', error);
+        console.warn("Failed to load persisted theme:", error);
         // Fallback to Material You mode on error
         setCurrentColor(MATERIAL_YOU_KEY);
       } finally {
@@ -105,7 +107,7 @@ export function MaterialYouProvider({
       setCurrentColor(color);
       await AsyncStorage.setItem(THEME_STORAGE_KEY, color);
     } catch (error) {
-      console.warn('Failed to persist theme color:', error);
+      console.warn("Failed to persist theme color:", error);
       // Still update the color for UI, even if persistence fails
       setCurrentColor(color);
     }
@@ -118,7 +120,7 @@ export function MaterialYouProvider({
       await AsyncStorage.setItem(THEME_STORAGE_KEY, MATERIAL_YOU_KEY);
       setCurrentColor(MATERIAL_YOU_KEY);
     } catch (error) {
-      console.warn('Failed to reset to Material You theme:', error);
+      console.warn("Failed to reset to Material You theme:", error);
       // Fallback: still set Material You mode even if storage fails
       setCurrentColor(MATERIAL_YOU_KEY);
     }
@@ -131,12 +133,7 @@ export function MaterialYouProvider({
 
   // Now render the loaded component with the correct initial color
   return (
-    <MaterialYouProviderLoaded
-      initialColor={currentColor}
-      fallbackSourceColor={fallbackSourceColor}
-      onUpdateTheme={handleUpdateTheme}
-      onResetTheme={handleResetTheme}
-    >
+    <MaterialYouProviderLoaded initialColor={currentColor} fallbackSourceColor={fallbackSourceColor} onUpdateTheme={handleUpdateTheme} onResetTheme={handleResetTheme}>
       {children}
     </MaterialYouProviderLoaded>
   );
@@ -146,7 +143,7 @@ export function MaterialYouProvider({
 export function useMaterial3ThemeContext() {
   const context = useContext(MaterialYouProviderContext);
   if (!context) {
-    throw new Error('useMaterial3ThemeContext must be used inside MaterialYouProvider');
+    throw new Error("useMaterial3ThemeContext must be used inside MaterialYouProvider");
   }
   return context;
 }
@@ -156,5 +153,5 @@ export function useMaterial3ThemeContext() {
 export function useMaterial3Colors() {
   const colorScheme = useColorScheme();
   const { theme } = useMaterial3ThemeContext();
-  return theme[colorScheme ?? 'light'];
+  return theme[colorScheme ?? "light"];
 }

@@ -1,6 +1,6 @@
-import React, { createContext, useState, useContext, useEffect } from 'react';
-import * as Location from 'expo-location';
-import * as Adhan from 'adhan';
+import React, { createContext, useState, useContext, useEffect } from "react";
+import * as Location from "expo-location";
+import * as Adhan from "adhan";
 
 type TimesMap = Record<string, Date | undefined>;
 
@@ -12,7 +12,7 @@ export const PrayerTimesProvider = ({ children }: { children: React.ReactNode })
   const computeTimes = async () => {
     try {
       const { status } = await Location.requestForegroundPermissionsAsync();
-      if (status !== 'granted') return;
+      if (status !== "granted") return;
       const loc = await Location.getCurrentPositionAsync({});
       const coords = new Adhan.Coordinates(loc.coords.latitude, loc.coords.longitude);
       const params = Adhan.CalculationMethod.MoonsightingCommittee();
@@ -25,9 +25,8 @@ export const PrayerTimesProvider = ({ children }: { children: React.ReactNode })
         maghrib: prayerTimes.maghrib,
         isha: prayerTimes.isha,
       });
-
     } catch (e) {
-      console.error('Failed to get prayer times', e);
+      console.error("Failed to get prayer times", e);
     }
   };
 
@@ -40,6 +39,6 @@ export const PrayerTimesProvider = ({ children }: { children: React.ReactNode })
 
 export const usePrayerTimes = () => {
   const context = useContext(PrayerTimesContext);
-  if (!context) throw new Error('usePrayerTimes must be used inside PrayerTimesProvider');
+  if (!context) throw new Error("usePrayerTimes must be used inside PrayerTimesProvider");
   return context;
 };
