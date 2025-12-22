@@ -49,7 +49,7 @@ export default function Index() {
       try {
         // wait for permissions
         let { status: locationStatus } = await Location.requestForegroundPermissionsAsync();
-        const { status: notifStatus } = await Notifications.getPermissionsAsync();
+        let { status: notifStatus } = await Notifications.requestPermissionsAsync();
 
         if (locationStatus != "granted" || notifStatus != "granted") {
           console.error("Couldn't get permissions");

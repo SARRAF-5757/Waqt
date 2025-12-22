@@ -55,6 +55,13 @@
           "locationAlwaysAndWhenInUsePermission": "Allow Waqt to use your location."
         }
       ],
+      [
+        "expo-notifications",
+        {
+          "icon": "./assets/images/icons/notif.png",
+          "color": "#ffffff"
+        }
+      ],
       "expo-web-browser"
     ],
     "experiments": {
