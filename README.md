@@ -2,7 +2,9 @@
 
 A simple React Native app for helping you improve your prayer habits.
 
-<img src="https://github.com/SARRAF-5757/Waqt/blob/master/assets/images/icons/splash-icon-light.png?raw=true" alt="App Icon" width="50%" />
+<p align="center">
+  <img src="https://github.com/SARRAF-5757/Waqt/blob/master/assets/images/icons/splash-icon-light.png?raw=true" alt="App Icon" width="50%" />
+</p>
 
 ### Personal Story
 
@@ -79,5 +81,5 @@ The motivation behind this app comes from my own struggle with procrastination. 
 - All habit/prayer data is managed by a custom React Context provider (`habitProvider`).
 - Theme color is managed by a separate provider (`materialYouProvider`).
 - Data is stored in local storage (AsyncStorage) and loaded automatically.
-- Prayer times are calculated using [adhan-js](https://github.com/batoulapps/adhan-js) and provided by `prayerTimesProvider`
+- Prayer times are calculated using [adhan-js](https://github.com/batoulapps/adhan-js) and provided by `prayerTimesProvider` to display in homepage
 - Prayer notifications are scheduled directly in `index`

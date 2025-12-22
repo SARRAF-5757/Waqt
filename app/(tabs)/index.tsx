@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from "react";
-import { StyleSheet, TouchableOpacity, ScrollView, Platform, Alert } from "react-native";
+import { StyleSheet, TouchableOpacity, ScrollView, Platform, useColorScheme, Image } from "react-native";
 import Checkbox from "expo-checkbox";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { format } from "date-fns";
@@ -30,8 +30,8 @@ export default function Index() {
   const insets = useSafeAreaInsets();
   let todayStatuses: Record<string, boolean> = {};
   const [prayerStatuses, setPrayerStatuses] = useState<Record<string, boolean>>(todayStatuses); // Local state for prayer checkboxes (for instant UI feedback)
-  const [notification, setNotification] = useState<Notifications.Notification | undefined>(undefined);
   const { times } = usePrayerTimes();
+  const colorScheme = useColorScheme();
 
   // Find today's prayer completion statuses from context data
   for (let i = 0; i < historyData.length; i++) {
@@ -78,10 +78,6 @@ export default function Index() {
 
         // schedule notifications
         await Notifications.cancelAllScheduledNotificationsAsync(); //cancel old notifs
-
-        const formatTime = (date: Date) => {
-          return date.toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" });
-        };
 
         await Notifications.scheduleNotificationAsync({
           content: {
@@ -167,7 +163,7 @@ export default function Index() {
   for (let i = 0; i < PRAYER_HABITS.length; ++i) {
     const habit = PRAYER_HABITS[i];
     const timeDate = times[habit.id];
-    const timeStr = timeDate ? format(timeDate, "h:mm a") : "";
+    const timeStr = timeDate ? format(timeDate, "h:mm aa ") : "--:--";
 
     prayerHabitRows.push(
       <TouchableOpacity key={habit.id} onPress={() => handleTogglePrayer(habit.id)} activeOpacity={0.5} style={styles.touchableRow}>
@@ -194,7 +190,13 @@ export default function Index() {
   return (
     <ThemedView style={styles.container}>
       <ScrollView contentContainerStyle={styles.contentContainer}>
-        <ThemedText style={[styles.header, { paddingTop: insets.top + 6 }]}>Waqt</ThemedText>
+        <ThemedView style={[styles.headerContainer, { paddingTop: insets.top + 10 }]}>
+          <Image
+            source={colorScheme === "dark" ? require("@/assets/images/icons/splash-icon-light.png") : require("@/assets/images/icons/splash-icon-dark.png")}
+            style={styles.logo}
+            resizeMode="contain"
+          />
+        </ThemedView>
         {prayerHabitRows}
       </ScrollView>
     </ThemedView>
@@ -237,9 +239,18 @@ const styles = StyleSheet.create({
   },
   timeContainer: {
     borderRadius: 25,
+    paddingHorizontal: 10,
+    paddingVertical: 4,
   },
   habitTime: {
-    marginLeft: 25,
     fontSize: 16,
+  },
+  headerContainer: {
+    alignItems: "center",
+    marginBottom: 25,
+  },
+  logo: {
+    width: 180,
+    height: 180,
   },
 });

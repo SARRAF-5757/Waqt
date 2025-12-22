@@ -13,7 +13,7 @@
         "monochromeImage": "./assets/images/icons/adaptive-icon.png",
         "backgroundColor": "#ffffff"
       },
-      "package": "com.sarraf5757.Waqt"
+      "package": "com.sarraf.Waqt"
     },
     "ios": {
       "icon": {
@@ -22,7 +22,7 @@
         "tinted": "./assets/images/icons/ios-tinted.png"
       },
       "supportsTablet": true,
-      "bundleIdentifier": "com.sarraf5757.Waqt",
+      "bundleIdentifier": "com.sarraf.Waqt",
       "infoPlist": {
         "ITSAppUsesNonExemptEncryption": false
       }
