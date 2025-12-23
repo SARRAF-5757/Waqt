@@ -1,6 +1,6 @@
 # Waqt
 
-A simple React Native app for helping you improve your prayer habits.
+A simple app to help you improve your prayer habits.
 
 <p align="center">
   <img src="https://github.com/SARRAF-5757/Waqt/blob/master/assets/images/icons/splash-icon-light.png?raw=true" alt="App Icon" width="50%" />
@@ -22,6 +22,7 @@ The motivation behind this app comes from my own struggle with procrastination. 
 - [ ] Ability to keep track of prayer data for as long or delete until a specific date
 - [ ] Custom reminder & "custom reminder offset until prayer time expires" option in settings
 - [ ] Make the app prettier
+- [ ] Incorporate haptics to UI elements
 
 ### Installation
 
@@ -60,7 +61,6 @@ The motivation behind this app comes from my own struggle with procrastination. 
 - prayer resetting at 4 am everyday
   - this will be the default behavior until I implement time & location based reminders
 
-<br>
 <br>
 <br>
 <br>

@@ -163,7 +163,7 @@ export default function Index() {
   for (let i = 0; i < PRAYER_HABITS.length; ++i) {
     const habit = PRAYER_HABITS[i];
     const timeDate = times[habit.id];
-    const timeStr = timeDate ? format(timeDate, "h:mm aa ") : "--:--";
+    const timeStr = timeDate ? format(timeDate, "h:mm aa ") : "--:-- ";
 
     prayerHabitRows.push(
       <TouchableOpacity key={habit.id} onPress={() => handleTogglePrayer(habit.id)} activeOpacity={0.5} style={styles.touchableRow}>
