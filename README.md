@@ -23,6 +23,9 @@ The motivation behind this app comes from my own struggle with procrastination. 
 - [ ] Custom reminder & "custom reminder offset until prayer time expires" option in settings
 - [ ] Make the app prettier
 - [ ] Incorporate haptics to UI elements
+- [ ] Backup/Restore data functionality
+- [ ] Export history as spreadsheet file
+- [ ] Widgets
 
 ### Installation
 
