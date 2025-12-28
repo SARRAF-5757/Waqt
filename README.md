@@ -10,6 +10,20 @@ A simple app to help you improve your prayer habits.
 
 The motivation behind this app comes from my own struggle with procrastination. In our busy lives, it's easy to not prioritize prayer. For me, I often find myself putting it off until suddenly I notice the next prayer is approaching—and then I either rush to pray at the last second or miss it entirely. While there are other apps that remind you at Adhan time, they don't help much if you can't pray right away. Getting a second, well-timed reminder is hard. That's where this app comes in: YOU tell the app when you're able to pray, and it will learn your preferences and adjust to prayer time shifts throughout the year, reminding you at the right moment. And I hope as you see more and more checked-off boxes in your history, you'll get the boost to keep going and make prayer a consistent part of your day.
 
+<h3 align="center">Dark Mode</h3>
+<p align="center">
+  <img src="images/homePageDark.png" alt="Home Page Dark" width="20%" />
+  <img src="images/historyPageDark.png" alt="History Page Dark" width="20%" />
+  <img src="images/settingsPageDark.png" alt="Settings Page Dark" width="20%" />
+</p>
+
+<h3 align="center">Light Mode</h3>
+<p align="center">
+  <img src="images/homePageLight.png" alt="Home Page Light" width="20%" />
+  <img src="images/historyPageLight.png" alt="History Page Light" width="20%" />
+  <img src="images/settingsPageLight.png" alt="Settings Page Light" width="20%" />
+</p>
+
 ## Features Checklist
 
 - [x] Track daily prayer completion with a GitHub contribution graph style streak grid
