@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from "react";
-import { StyleSheet, TouchableOpacity, ScrollView, Platform, useColorScheme, Image } from "react-native";
+import { StyleSheet, TouchableOpacity, ScrollView, Platform, useColorScheme, Image, AppState } from "react-native";
 import Checkbox from "expo-checkbox";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { format } from "date-fns";
@@ -44,105 +44,89 @@ export default function Index() {
   }
 
   // Schedule prayer notifications
-  useEffect(() => {
-    const setupPrayerNotifs = async () => {
-      try {
-        // wait for permissions
-        let { status: locationStatus } = await Location.requestForegroundPermissionsAsync();
-        let { status: notifStatus } = await Notifications.requestPermissionsAsync();
+  const setupPrayerNotifs = async () => {
+    try {
+      // wait for permissions
+      let { status: locationStatus } = await Location.requestForegroundPermissionsAsync();
+      let { status: notifStatus } = await Notifications.requestPermissionsAsync();
 
-        if (locationStatus != "granted" || notifStatus != "granted") {
-          console.error("Couldn't get permissions");
-        }
-
-        // get prayer times
-        let location = await Location.getCurrentPositionAsync({});
-        const { latitude, longitude } = location.coords;
-
-        const coordinates = new Adhan.Coordinates(latitude, longitude);
-        const params = Adhan.CalculationMethod.MoonsightingCommittee();
-        const date = new Date();
-
-        const prayerTimes = new Adhan.PrayerTimes(coordinates, date, params);
-
-        // Platform specific things
-        if (Platform.OS === "android") {
-          await Notifications.setNotificationChannelAsync("default", {
-            name: "default",
-            importance: Notifications.AndroidImportance.DEFAULT,
-            vibrationPattern: [0, 250, 250, 250],
-          });
-        } else if (Platform.OS === "ios") {
-          // TODO: Implement ios notifications
-        }
-
-        // schedule notifications
-        await Notifications.cancelAllScheduledNotificationsAsync(); //cancel old notifs
-
-        await Notifications.scheduleNotificationAsync({
-          content: {
-            title: "It's time for Fajr",
-            body: "",
-            sound: true,
-          },
-          trigger: {
-            type: Notifications.SchedulableTriggerInputTypes.DATE,
-            date: prayerTimes.fajr,
-          },
-        });
-
-        await Notifications.scheduleNotificationAsync({
-          content: {
-            title: "It's time for Dhuhr",
-            body: "",
-            sound: true,
-          },
-          trigger: {
-            type: Notifications.SchedulableTriggerInputTypes.DATE,
-            date: prayerTimes.dhuhr,
-          },
-        });
-
-        await Notifications.scheduleNotificationAsync({
-          content: {
-            title: "It's time for Asr",
-            body: "",
-            sound: true,
-          },
-          trigger: {
-            type: Notifications.SchedulableTriggerInputTypes.DATE,
-            date: prayerTimes.asr,
-          },
-        });
-
-        await Notifications.scheduleNotificationAsync({
-          content: {
-            title: "It's time for Maghrib",
-            body: "",
-            sound: true,
-          },
-          trigger: {
-            type: Notifications.SchedulableTriggerInputTypes.DATE,
-            date: prayerTimes.maghrib,
-          },
-        });
-
-        await Notifications.scheduleNotificationAsync({
-          content: {
-            title: "It's time for Isha",
-            body: "",
-            sound: true,
-          },
-          trigger: {
-            type: Notifications.SchedulableTriggerInputTypes.DATE,
-            date: prayerTimes.isha,
-          },
-        });
-      } catch (error) {
-        console.error("Failed to Schedule Notifications", error);
+      if (locationStatus !== "granted" || notifStatus !== "granted") {
+        console.error("Couldn't get permissions");
+        return;
       }
-    };
+
+      // get prayer times
+      let location = await Location.getCurrentPositionAsync({});
+      const { latitude, longitude } = location.coords;
+
+      const coordinates = new Adhan.Coordinates(latitude, longitude);
+      const params = Adhan.CalculationMethod.MoonsightingCommittee();
+
+      // Platform specific things
+      if (Platform.OS === "android") {
+        await Notifications.setNotificationChannelAsync("default", {
+          name: "default",
+          importance: Notifications.AndroidImportance.DEFAULT,
+          vibrationPattern: [0, 250, 250, 250],
+        });
+      }
+
+      // schedule notifications
+      await Notifications.cancelAllScheduledNotificationsAsync(); //cancel old notifs
+
+      const prayerKeys = ["fajr", "dhuhr", "asr", "maghrib", "isha"] as const;
+      const prayerNames = {
+        fajr: "Fajr",
+        dhuhr: "Dhuhr",
+        asr: "Asr",
+        maghrib: "Maghrib",
+        isha: "Isha",
+      };
+
+      const now = new Date();
+
+      // Schedule notifications for the next 10 days to handle prolonged offline usage
+      for (let i = 0; i < 10; i++) {
+        const targetDate = new Date();
+        targetDate.setDate(now.getDate() + i);
+
+        const prayerTimes = new Adhan.PrayerTimes(coordinates, targetDate, params);
+
+        for (const key of prayerKeys) {
+          const time = prayerTimes[key];
+          if (time && time > now) {
+            await Notifications.scheduleNotificationAsync({
+              content: {
+                title: `It's time for ${prayerNames[key]}`,
+                body: "",
+                sound: true,
+              },
+              trigger: {
+                type: Notifications.SchedulableTriggerInputTypes.DATE,
+                date: time,
+              },
+            });
+          }
+        }
+      }
+    } catch (error) {
+      console.error("Failed to Schedule Notifications", error);
+    }
+  };
+
+  // Schedule notifications initially and on app foreground transition
+  useEffect(() => {
     setupPrayerNotifs();
+
+    const subscription = AppState.addEventListener("change", (nextAppState) => {
+      if (nextAppState === "active") {
+        setupPrayerNotifs();
+      }
+    });
+
+    return () => {
+      subscription.remove();
+    };
   }, []);
 
   // Sync local state with context data if date changes or completion statuses change
