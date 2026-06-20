@@ -2,11 +2,13 @@ import React, { useState, useEffect } from "react";
 import { StyleSheet, ScrollView, TouchableOpacity, Platform, TextInput } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import AsyncStorage from "@react-native-async-storage/async-storage";
+import { CustomPicker } from "@/components/CustomPicker";
 
 import { ThemedText } from "@/components/ThemedText";
 import { ThemedView } from "@/components/ThemedView";
 import { useThemeColors } from "@/hooks/useThemeColors";
 import { useMaterial3ThemeContext } from "@/providers/materialYouProvider";
+import { usePrayerTimes } from "@/providers/prayerTimesProvider";
 
 // Special key to detect Material You mode
 const MATERIAL_YOU_KEY = "MATERIAL_YOU";
@@ -27,10 +29,18 @@ export default function SettingsScreen() {
   const { updateTheme, resetTheme, currentColor } = useMaterial3ThemeContext();
 
   const [endTimeOffset, setEndTimeOffset] = useState("15");
+  const [calculationMethod, setCalculationMethod] = useState("MoonsightingCommittee");
+  const [madhab, setMadhab] = useState("shafi");
 
   useEffect(() => {
     AsyncStorage.getItem("endTimeOffset").then((val) => {
       if (val) setEndTimeOffset(val);
+    });
+    AsyncStorage.getItem("calculationMethod").then((val) => {
+      if (val) setCalculationMethod(val);
+    });
+    AsyncStorage.getItem("madhab").then((val) => {
+      if (val) setMadhab(val);
     });
   }, []);
 
@@ -39,6 +49,18 @@ export default function SettingsScreen() {
     const numericVal = val.replace(/[^0-9]/g, "");
     setEndTimeOffset(numericVal);
     AsyncStorage.setItem("endTimeOffset", numericVal);
+  };
+
+  const { reload: reloadPrayerTimes } = usePrayerTimes();
+
+  const handleMethodChange = (val: string) => {
+    setCalculationMethod(val);
+    AsyncStorage.setItem("calculationMethod", val).then(() => reloadPrayerTimes());
+  };
+
+  const handleMadhabChange = (val: string) => {
+    setMadhab(val);
+    AsyncStorage.setItem("madhab", val).then(() => reloadPrayerTimes());
   };
 
   // Check if we're currently in Material You mode
@@ -84,11 +106,14 @@ export default function SettingsScreen() {
         {/* Header */}
         <ThemedText style={styles.header}>Settings</ThemedText>
 
+        {/* Notifications Settings Header */}
+        <ThemedText style={[styles.sectionHeader, { color: themedColors.onSurface }]}>Notifications</ThemedText>
+
         {/* End Time Notification Setting */}
-        <ThemedView style={[styles.settingContainer, { backgroundColor: themedColors.surfaceVariant }]}>
-          <ThemedText style={[styles.settingLabel, { color: themedColors.onSurfaceVariant }]}>End time notification offset (minutes)</ThemedText>
+        <ThemedView style={[styles.settingContainer, { backgroundColor: themedColors.surfaceDim ?? themedColors.surfaceBright }]}>
+          <ThemedText style={[styles.settingLabel, { color: themedColors.onSurfaceVariant }]}>End time offset (minutes before)</ThemedText>
           <TextInput
-            style={[styles.textInput, { color: themedColors.onSurface, borderColor: themedColors.outline }]}
+            style={[styles.textInput, { color: themedColors.onSurface, borderColor: themedColors.outline, backgroundColor: themedColors.surface }]}
             keyboardType="numeric"
             value={endTimeOffset}
             onChangeText={handleOffsetChange}
@@ -97,8 +122,50 @@ export default function SettingsScreen() {
           />
         </ThemedView>
 
+        {/* Prayer Settings Header */}
+        <ThemedText style={[styles.sectionHeader, { color: themedColors.onSurface }]}>Prayer Times</ThemedText>
+
+        <ThemedView style={[styles.settingContainer, { backgroundColor: themedColors.surfaceDim ?? themedColors.surfaceBright }]}>
+          <ThemedText style={[styles.settingLabel, { color: themedColors.onSurfaceVariant }]}>Calculation Method</ThemedText>
+          <CustomPicker
+            label="Calculation Method"
+            selectedValue={calculationMethod}
+            onValueChange={handleMethodChange}
+            items={[
+              { label: "Muslim World League", value: "MuslimWorldLeague" },
+              { label: "Egyptian", value: "Egyptian" },
+              { label: "Karachi", value: "Karachi" },
+              { label: "Umm Al-Qura", value: "UmmAlQura" },
+              { label: "Dubai", value: "Dubai" },
+              { label: "Moonsighting Committee", value: "MoonsightingCommittee" },
+              { label: "North America", value: "NorthAmerica" },
+              { label: "Kuwait", value: "Kuwait" },
+              { label: "Qatar", value: "Qatar" },
+              { label: "Singapore", value: "Singapore" },
+              { label: "Tehran", value: "Tehran" },
+              { label: "Turkey", value: "Turkey" },
+              { label: "Other", value: "Other" },
+            ]}
+          />
+        </ThemedView>
+
+        <ThemedView style={[styles.settingContainer, { backgroundColor: themedColors.surfaceDim ?? themedColors.surfaceBright }]}>
+          <ThemedText style={[styles.settingLabel, { color: themedColors.onSurfaceVariant }]}>Madhab (Asr Shadow)</ThemedText>
+          <CustomPicker
+            label="Madhab (Asr Shadow)"
+            selectedValue={madhab}
+            onValueChange={handleMadhabChange}
+            items={[
+              { label: "Standard (Shafi/Maliki/Hanbali)", value: "shafi" },
+              { label: "Hanafi", value: "hanafi" },
+            ]}
+          />
+        </ThemedView>
+
+
+
         {/* Theme Settings Header */}
-        <ThemedText style={[styles.sectionHeader, { color: themedColors.onSurface }]}>Theme Colors</ThemedText>
+        <ThemedText style={[styles.sectionHeader, { color: themedColors.onSurface }]}>Theme</ThemedText>
 
         {/* Material You Button (Only shows up on android) */}
         {Platform.OS === "android" && (

@@ -2,6 +2,8 @@ import React, { createContext, useState, useContext, useEffect } from "react";
 import * as Location from "expo-location";
 import * as Adhan from "adhan";
 
+import AsyncStorage from "@react-native-async-storage/async-storage";
+
 // Prayer time structure
 type TimesMap = Record<string, Date | undefined>;
 
@@ -20,7 +22,13 @@ export const PrayerTimesProvider = ({ children }: { children: React.ReactNode })
       if (status !== "granted") return;
       const loc = await Location.getCurrentPositionAsync({});
       const coords = new Adhan.Coordinates(loc.coords.latitude, loc.coords.longitude);
-      const params = Adhan.CalculationMethod.MoonsightingCommittee();
+
+      const methodStr = await AsyncStorage.getItem("calculationMethod") || "MoonsightingCommittee";
+      const madhabStr = await AsyncStorage.getItem("madhab") || "shafi";
+      
+      const params = (Adhan.CalculationMethod as any)[methodStr]();
+      params.madhab = madhabStr === "hanafi" ? Adhan.Madhab.Hanafi : Adhan.Madhab.Shafi;
+
       const prayerTimes = new Adhan.PrayerTimes(coords, new Date(), params);
 
       setTimes({

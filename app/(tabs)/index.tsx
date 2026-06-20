@@ -61,7 +61,12 @@ export default function Index() {
       const { latitude, longitude } = location.coords;
 
       const coordinates = new Adhan.Coordinates(latitude, longitude);
-      const params = Adhan.CalculationMethod.MoonsightingCommittee();
+      
+      const methodStr = await AsyncStorage.getItem("calculationMethod") || "MoonsightingCommittee";
+      const madhabStr = await AsyncStorage.getItem("madhab") || "shafi";
+      
+      const params = (Adhan.CalculationMethod as any)[methodStr]();
+      params.madhab = madhabStr === "hanafi" ? Adhan.Madhab.Hanafi : Adhan.Madhab.Shafi;
 
       // Platform specific things
       if (Platform.OS === "android") {
