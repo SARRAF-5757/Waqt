@@ -1,6 +1,5 @@
-import { Text, type TextProps, StyleSheet, Platform } from "react-native";
+import { Text, type TextProps, StyleSheet, Platform, useColorScheme } from "react-native";
 
-import { useColorScheme } from "@/hooks/useColorScheme";
 import { useThemeColors } from "@/hooks/useThemeColors";
 
 export type ThemedTextProps = TextProps & {
@@ -19,7 +18,7 @@ export function ThemedText({
   type = "default",
   ...rest
 }: ThemedTextProps) {
-  // ^ JS -------------------------------------------------------------------
+  //* ----------------------------- JS ----------------------------- *//
   const colorScheme = useColorScheme();
   const colors = useThemeColors();
 
@@ -28,7 +27,8 @@ export function ThemedText({
       ? darkColor ?? lightColor ?? colors.onSurface
       : lightColor ?? darkColor ?? colors.onSurface;
 
-  // ^ RETURN ---------------------------------------------------------------
+  //* --------------------------- RETURN --------------------------- *//
+  // Render a React Native Text with dynamic theme colors
   return (
     <Text
       style={[
@@ -45,7 +45,7 @@ export function ThemedText({
   );
 }
 
-// ^ STYLING ---------------------------------------------------------------
+//* --------------------------- STYLING --------------------------- *//
 const styles = StyleSheet.create({
   default: {
     fontSize: 16,

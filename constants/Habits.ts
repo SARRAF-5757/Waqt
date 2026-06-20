@@ -1,6 +1,7 @@
 /**
- * List of the five daily prayers shown in the app.
+ * Defines the core daily prayer habits tracked by the app.
  */
+
 export const PRAYER_HABITS = [
   { id: "fajr", name: "Fajr" },
   { id: "dhuhr", name: "Dhuhr" },

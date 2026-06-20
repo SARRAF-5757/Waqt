@@ -1,7 +1,6 @@
 /**
  * Root layout for the whole app.
  *
- * Provider order matters:
  * 1. HabitProvider       - prayer completion history
  * 2. PrayerTimesProvider - today's prayer times from GPS
  * 3. MaterialYouProvider - theme colors (Android Material You)
@@ -15,15 +14,15 @@ import { DarkTheme, DefaultTheme, ThemeProvider } from "@react-navigation/native
 import { Stack } from "expo-router";
 import "react-native-reanimated";
 
-import { useColorScheme } from "@/hooks/useColorScheme";
+import { useColorScheme } from "react-native";
 import { HabitProvider } from "@/providers/habitProvider";
 import { MaterialYouProvider } from "@/providers/materialYouProvider";
 import { PrayerTimesProvider } from "@/providers/prayerTimesProvider";
 
-SplashScreen.preventAutoHideAsync();
+SplashScreen.preventAutoHideAsync(); // prevent splash screen from hiding before loading's complete
 
 export default function RootLayout() {
-  // ^ JS -------------------------------------------------------------------
+  //* ----------------------------- JS ----------------------------- *//
   const colorScheme = useColorScheme();
 
   // Load the custom font before showing the app UI.
@@ -42,24 +41,29 @@ export default function RootLayout() {
     return null;
   }
 
-  // ^ RETURN ---------------------------------------------------------------
+  //* --------------------------- RETURN --------------------------- *//
   return (
-    <SafeAreaProvider>
-      <HabitProvider>
-        <PrayerTimesProvider>
-          <MaterialYouProvider>
-            <ThemeProvider value={colorScheme === "dark" ? DarkTheme : DefaultTheme}>
-              <Stack>
-                <Stack.Screen name="(tabs)" options={{ headerShown: false }} />
-                <Stack.Screen name="+not-found" />
-              </Stack>
-            </ThemeProvider>
-          </MaterialYouProvider>
-        </PrayerTimesProvider>
-      </HabitProvider>
-    </SafeAreaProvider>
+    <>
+      {/* Global SafeArea context */}
+      <SafeAreaProvider>
+        {/* Habit tracking context */}
+        <HabitProvider>
+          {/* GPS Prayer times context */}
+          <PrayerTimesProvider>
+            {/* Material You dynamic colors context */}
+            <MaterialYouProvider>
+              {/* React Navigation theme context */}
+              <ThemeProvider value={colorScheme === "dark" ? DarkTheme : DefaultTheme}>
+                {/* Main Routing Stack */}
+                <Stack>
+                  <Stack.Screen name="(tabs)" options={{ headerShown: false }} />
+                  <Stack.Screen name="+not-found" />
+                </Stack>
+              </ThemeProvider>
+            </MaterialYouProvider>
+          </PrayerTimesProvider>
+        </HabitProvider>
+      </SafeAreaProvider>
+    </>
   );
 }
-
-// ^ STYLING ---------------------------------------------------------------
-// Root layout has no local StyleSheet. Screen styling lives in each tab file.

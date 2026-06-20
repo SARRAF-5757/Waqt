@@ -4,6 +4,11 @@ import AsyncStorage from "@react-native-async-storage/async-storage";
 import { Platform } from "react-native";
 import * as Adhan from "adhan";
 
+//* ----------------------------- JS ----------------------------- *//
+
+/**
+ * Configures how the app displays notifications when it is in the foreground.
+ */
 export function configureNotificationHandler() {
   Notifications.setNotificationHandler({
     handleNotification: async () => ({
@@ -16,6 +21,10 @@ export function configureNotificationHandler() {
   });
 }
 
+/**
+ * Schedules notifications for the next 10 days based on calculated prayer times
+ * and user preferences (like calculation method and warning offset).
+ */
 export const setupPrayerNotifications = async () => {
     try {
       let { status: locationStatus } = await Location.requestForegroundPermissionsAsync();

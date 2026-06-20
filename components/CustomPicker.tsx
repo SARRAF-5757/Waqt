@@ -10,7 +10,6 @@ import {
 } from "react-native";
 import { BlurView } from "expo-blur";
 import { Ionicons } from "@expo/vector-icons";
-
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 
 import { ThemedText } from "@/components/ThemedText";
@@ -29,10 +28,11 @@ type CustomPickerProps = {
 };
 
 /**
- * Dropdown picker used on the Settings screen.
- * iOS opens a blurred sheet. Android opens a Material-style dialog card.
+ * Dropdown picker used on the Settings screen
+ * iOS opens a blurred sheet. Android opens a Material-style dialog card
  */
 export function CustomPicker({ label, selectedValue, onValueChange, items }: CustomPickerProps) {
+  //* ----------------------------- JS ----------------------------- *//
   const [modalVisible, setModalVisible] = useState(false);
   const colors = useThemeColors();
   const colorScheme = useColorScheme();
@@ -40,7 +40,10 @@ export function CustomPicker({ label, selectedValue, onValueChange, items }: Cus
 
   const isIOS = Platform.OS === 'ios';
 
-  // Find the human-readable label for the currently selected value.
+  /**
+   * Find the human-readable label for the currently selected value
+   * We iterate through the items array to find the matching value
+   */
   let selectedLabel = "Select...";
   for (let i = 0; i < items.length; i++) {
     if (items[i].value === selectedValue) {
@@ -49,22 +52,29 @@ export function CustomPicker({ label, selectedValue, onValueChange, items }: Cus
     }
   }
 
+  /**
+   * Closes the picker modal.
+   */
   const closeModal = () => {
     setModalVisible(false);
   };
 
+  /**
+   * Called when the user taps an option in the list.
+   * Updates the value and closes the modal.
+   */
   const handleSelect = (value: string) => {
     onValueChange(value);
     closeModal();
   };
 
+  //* --------------------------- RETURN --------------------------- *//
   return (
     <>
-      <Pressable
-        onPress={() => setModalVisible(true)}
-        android_ripple={{ color: colors.primary }}
+      {/* Picker Button */}
+      <View
         style={[
-          styles.pickerButton,
+          styles.pickerButtonWrapper,
           isIOS ? styles.iosPickerButton : styles.androidPickerButton,
           {
             borderColor: colors.outline,
@@ -72,14 +82,22 @@ export function CustomPicker({ label, selectedValue, onValueChange, items }: Cus
           },
         ]}
       >
-        <ThemedText style={[styles.pickerButtonText, { color: colors.onSurface }]}>
-          {selectedLabel}
-        </ThemedText>
-        <Ionicons name="chevron-down" size={20} color={colors.onSurfaceVariant} />
-      </Pressable>
+        <Pressable
+          onPress={() => setModalVisible(true)}
+          android_ripple={{ color: colors.primary }}
+          style={[styles.pickerButtonPressable]}
+        >
+          <ThemedText style={[styles.pickerButtonText, { color: colors.onSurface }]}>
+            {selectedLabel}
+          </ThemedText>
+          <Ionicons name="chevron-down" size={20} color={colors.onSurfaceVariant} />
+        </Pressable>
+      </View>
 
+      {/* Dropdown Modal */}
       <Modal animationType={isIOS ? "slide" : "fade"} transparent visible={modalVisible} onRequestClose={closeModal}>
         <View style={styles.modalOverlay}>
+          {/* Modal Backdrop */}
           <Pressable style={styles.modalBackdrop} onPress={closeModal} />
 
           {isIOS ? (
@@ -87,6 +105,7 @@ export function CustomPicker({ label, selectedValue, onValueChange, items }: Cus
               <BlurView intensity={80} tint={colorScheme === 'dark' ? 'dark' : 'light'} style={styles.iosSheetBlur}>
                 <View style={[styles.iosSheetContent, { borderColor: colors.outline }]}>
                   <ThemedText style={[styles.modalTitle, { color: colors.onSurface }]}>{label}</ThemedText>
+                  {/* List of Options */}
                   <ScrollView style={styles.scrollContainer} showsVerticalScrollIndicator={false}>
                     {items.map((item) => {
                       const isSelected = item.value === selectedValue;
@@ -123,7 +142,8 @@ export function CustomPicker({ label, selectedValue, onValueChange, items }: Cus
                 </View>
               </BlurView>
             </View>
-          ) : (
+          )
+          : (
             <View style={styles.androidDialogOverlay}>
               <View
                 style={[
@@ -135,6 +155,7 @@ export function CustomPicker({ label, selectedValue, onValueChange, items }: Cus
                 ]}
               >
                 <ThemedText style={[styles.modalTitle, { color: colors.onSurface }]}>{label}</ThemedText>
+                {/* List of Options */}
                 <ScrollView style={styles.scrollContainer} showsVerticalScrollIndicator={false}>
                   {items.map((item) => {
                     const isSelected = item.value === selectedValue;
@@ -177,15 +198,19 @@ export function CustomPicker({ label, selectedValue, onValueChange, items }: Cus
   );
 }
 
+//* --------------------------- STYLING --------------------------- *//
 const styles = StyleSheet.create({
-  pickerButton: {
+  pickerButtonWrapper: {
+    borderWidth: StyleSheet.hairlineWidth,
+    marginTop: 8,
+    overflow: "hidden",
+  },
+  pickerButtonPressable: {
     flexDirection: "row",
     alignItems: "center",
     justifyContent: "space-between",
-    borderWidth: StyleSheet.hairlineWidth,
     paddingHorizontal: 16,
     paddingVertical: 14,
-    marginTop: 8,
   },
   iosPickerButton: {
     borderRadius: 12,

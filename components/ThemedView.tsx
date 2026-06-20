@@ -1,6 +1,5 @@
-import { View, type ViewProps } from "react-native";
+import { View, type ViewProps, useColorScheme } from "react-native";
 
-import { useColorScheme } from "@/hooks/useColorScheme";
 import { useThemeColors } from "@/hooks/useThemeColors";
 
 export type ThemedViewProps = ViewProps & {
@@ -12,7 +11,7 @@ export type ThemedViewProps = ViewProps & {
  * Basic themed container. Prefer PlatformScreen / PlatformCard for full screens and cards.
  */
 export function ThemedView({ style, lightColor, darkColor, ...otherProps }: ThemedViewProps) {
-  // ^ JS -------------------------------------------------------------------
+  //* ----------------------------- JS ----------------------------- *//
   const colorScheme = useColorScheme();
   const colors = useThemeColors();
 
@@ -21,9 +20,9 @@ export function ThemedView({ style, lightColor, darkColor, ...otherProps }: Them
       ? darkColor ?? lightColor ?? colors.background
       : lightColor ?? darkColor ?? colors.background;
 
-  // ^ RETURN ---------------------------------------------------------------
-  return <View style={[{ backgroundColor }, style]} {...otherProps} />;
+  //* --------------------------- RETURN --------------------------- *//
+  // Render a React Native View with dynamic theme colors
+  return (
+    <View style={[{ backgroundColor }, style]} {...otherProps} />
+  );
 }
-
-// ^ STYLING ---------------------------------------------------------------
-// This component uses inline backgroundColor only. No StyleSheet needed here.

@@ -24,13 +24,19 @@ type PrayerContributionGraphProps = {
 };
 
 /**
- * GitHub-style contribution grid for one prayer.
+ * GitHub-style contribution grid for one prayer
+ *! Shows a grid of squares representing the last x number of days
  */
 function PrayerContributionGraph({ prayerId, prayerName }: PrayerContributionGraphProps) {
+  //* ----------------------------- JS ----------------------------- *//
   const { historyData } = useHabits();
   const colors = useThemeColors();
+  const isIOS = Platform.OS === 'ios';
 
-  // Collect every date where this specific prayer was marked complete.
+  /**
+   * Collect every date where this specific prayer was marked complete.
+   * This builds a Set of dates so we can quickly check if a day was completed.
+   */
   const completedDates = new Set<string>();
   for (let i = 0; i < historyData.length; i++) {
     const entry = historyData[i];
@@ -39,7 +45,10 @@ function PrayerContributionGraph({ prayerId, prayerName }: PrayerContributionGra
     }
   }
 
-  // Build one cell per day for the last 105 days.
+  /**
+   * Build one cell per day for the last 105 days.
+   * We shift the date by 4 hours so the weekday labels line up visually.
+   */
   const dayCells: DayCell[] = [];
   const now = new Date();
 
@@ -47,7 +56,6 @@ function PrayerContributionGraph({ prayerId, prayerName }: PrayerContributionGra
     const calendarDate = subDays(now, daysBack);
     const dateKey = getDateKey(calendarDate);
 
-    // Shift by 4 hours so weekday labels line up visually in the grid.
     const shiftedDate = subHours(calendarDate, 4);
 
     dayCells.push({
@@ -57,7 +65,10 @@ function PrayerContributionGraph({ prayerId, prayerName }: PrayerContributionGra
     });
   }
 
-  // Find the first Sunday so week columns start on Sunday.
+  /**
+   * Find the first Sunday in our list of days, 
+   * so that our week columns always start on a Sunday.
+   */
   let firstSundayIndex = 0;
   for (let i = 0; i < dayCells.length; i++) {
     if (dayCells[i].date.getDay() === 0) {
@@ -66,7 +77,10 @@ function PrayerContributionGraph({ prayerId, prayerName }: PrayerContributionGra
     }
   }
 
-  // Split days into week columns of 7 cells each.
+  /**
+   * Split the linear list of days into chunks of 7 (weeks).
+   * This allows us to map through columns and then rows in the grid.
+   */
   const weeks: DayCell[][] = [];
   let currentWeek: DayCell[] = [];
 
@@ -79,7 +93,7 @@ function PrayerContributionGraph({ prayerId, prayerName }: PrayerContributionGra
     }
   }
 
-  // Pad the final partial week with blank placeholders.
+  // Pad the final partial week with blank placeholders to keep the grid aligned.
   if (currentWeek.length > 0) {
     while (currentWeek.length < 7) {
       currentWeek.push({
@@ -91,24 +105,25 @@ function PrayerContributionGraph({ prayerId, prayerName }: PrayerContributionGra
     weeks.push(currentWeek);
   }
 
-  const isIOS = Platform.OS === "ios";
-
+  //* --------------------------- RETURN --------------------------- *//
   return (
-    <View style={styles.graphContainer}>
-      <View style={[styles.prayerBox, { backgroundColor: colors.surfaceVariant, borderRadius: isIOS ? 20 : 12 }]}>
-        <ThemedText style={styles.prayerHeader}>{prayerName}</ThemedText>
-      </View>
-
+    <View style={styles.prayerBox}>
       <View style={[styles.graphCardContent, { backgroundColor: colors.surfaceVariant, borderRadius: isIOS ? 20 : 12 }]}>
+        <ThemedText style={styles.prayerHeader}>{prayerName}</ThemedText>
+        {/* render row by row */}
         <View style={styles.graphRow}>
+          {/* weekday indicator letter */}
           <View style={styles.weekdayColumn}>
             {WEEKDAY_LETTERS.map((letter, index) => (
-              <ThemedText key={index} style={styles.weekdayLetter}>
-                {letter}
-              </ThemedText>
+              <View key={index} style={styles.weekdayLetterContainer}>
+                <ThemedText style={[styles.weekdayLetter, { color: colors.onSurfaceVariant }]}>
+                  {letter}
+                </ThemedText>
+              </View>
             ))}
           </View>
-
+          
+          {/* row associated with the day */}
           <View style={styles.contributionGraph}>
             {weeks.map((week, weekIndex) => (
               <View key={weekIndex} style={styles.weekColumn}>
@@ -139,14 +154,17 @@ function PrayerContributionGraph({ prayerId, prayerName }: PrayerContributionGra
 }
 
 /**
- * History screen.
- * Shows one contribution graph per prayer.
+ * History screen
+ *! Shows one contribution graph per prayer
  */
 export default function StreakScreen() {
+  //* ----------------------------- JS ----------------------------- *//
   const { isLoading } = useHabits();
   const insets = useSafeAreaInsets();
   const colors = useThemeColors();
+  const isIOS = Platform.OS === 'ios';
 
+  //* --------------------------- RETURN --------------------------- *//
   if (isLoading) {
     return (
       <View style={[styles.container, { paddingTop: insets.top, justifyContent: "center", alignItems: "center", backgroundColor: colors.background }]}>
@@ -158,7 +176,7 @@ export default function StreakScreen() {
   return (
     <View style={[styles.container, { paddingTop: insets.top, backgroundColor: colors.background }]}>
       <ScrollView contentContainerStyle={styles.contentContainer}>
-        <ThemedText type="title" style={styles.header}>
+        <ThemedText type="title" style={[styles.header, isIOS ? { paddingTop: insets.top + 10 } : undefined]}>
           Streak
         </ThemedText>
         {PRAYER_HABITS.map((prayer) => (
@@ -169,6 +187,7 @@ export default function StreakScreen() {
   );
 }
 
+//* --------------------------- STYLING --------------------------- *//
 const styles = StyleSheet.create({
   container: {
     flex: 1,
@@ -179,49 +198,42 @@ const styles = StyleSheet.create({
   },
   header: {
     textAlign: "center",
-    marginTop: 64,
-    marginBottom: 48,
-  },
-  graphContainer: {
-    marginBottom: 20,
-    alignItems: "center",
+    marginTop: 18,
+    marginBottom: 42,
   },
   prayerBox: {
-    paddingVertical: 12,
-    paddingHorizontal: 16,
+    marginBottom: 20,
     alignItems: "center",
-    marginBottom: 12,
-    width: "100%",
   },
   prayerHeader: {
     fontWeight: "600",
     textAlign: "center",
     fontSize: 22,
+    paddingBottom: 16,
   },
   graphCardContent: {
     padding: 16,
-    width: "100%",
   },
   graphRow: {
     flexDirection: "row",
     alignItems: "flex-start",
+    justifyContent: "center",
   },
   weekdayColumn: {
-    marginRight: 4,
-    marginLeft: 4,
+    marginRight: 8,
+    marginTop: -3,
+  },
+  weekdayLetterContainer: {
+    height: 22,
+    justifyContent: "center",
+    alignItems: "center",
   },
   weekdayLetter: {
-    height: 18,
-    textAlign: "center",
-    fontSize: 12,
-    marginVertical: 3.9,
-    marginTop: 0,
+    fontSize: 11,
   },
   contributionGraph: {
     flexDirection: "row",
-    justifyContent: "center",
     alignItems: "flex-start",
-    flex: 1,
   },
   weekColumn: {
     flexDirection: "column",
@@ -244,7 +256,7 @@ const styles = StyleSheet.create({
     borderRadius: 2,
   },
   emptyDay: {
-    width: 22,
-    height: 22,
+    width: 20,
+    height: 20,
   },
 });

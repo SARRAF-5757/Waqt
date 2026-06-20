@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from "react";
-import { StyleSheet, ScrollView, Pressable, Platform, TextInput, View } from "react-native";
+import { StyleSheet, ScrollView, Pressable, Platform, TextInput, View, useColorScheme } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 
@@ -18,12 +18,14 @@ import { useMaterial3ThemeContext } from "@/providers/materialYouProvider";
 import { usePrayerTimes } from "@/providers/prayerTimesProvider";
 
 /**
- * Settings screen.
- * Saves user preferences to AsyncStorage and reloads prayer times when needed.
+ * Settings screen
+ * !Saves user preferences to AsyncStorage and reloads prayer times when needed
  */
 export default function SettingsScreen() {
+  //* ----------------------------- JS ----------------------------- *//
   const insets = useSafeAreaInsets();
   const colors = useThemeColors();
+  const colorScheme = useColorScheme();
   const { updateTheme, resetTheme, currentColor } = useMaterial3ThemeContext();
   const { reload: reloadPrayerTimes } = usePrayerTimes();
 
@@ -31,6 +33,9 @@ export default function SettingsScreen() {
   const [calculationMethod, setCalculationMethod] = useState<string>(DEFAULT_SETTINGS.calculationMethod);
   const [madhab, setMadhab] = useState<string>(DEFAULT_SETTINGS.madhab);
 
+  /**
+   * Load saved settings from AsyncStorage when the screen mounts.
+   */
   useEffect(() => {
     AsyncStorage.getItem(STORAGE_KEYS.endTimeOffset).then((value) => {
       if (value) {
@@ -49,12 +54,20 @@ export default function SettingsScreen() {
     });
   }, []);
 
+  /**
+   * Updates the notification end time offset
+   * Strips non-numeric characters before saving
+   */
   const handleOffsetChange = (value: string) => {
     const numericValue = value.replace(/[^0-9]/g, "");
     setEndTimeOffset(numericValue);
     AsyncStorage.setItem(STORAGE_KEYS.endTimeOffset, numericValue);
   };
 
+  /**
+   * Updates the prayer calculation method
+   * Reloads prayer times right after saving to reflect changes instantly
+   */
   const handleMethodChange = (value: string) => {
     setCalculationMethod(value);
     AsyncStorage.setItem(STORAGE_KEYS.calculationMethod, value).then(() => {
@@ -62,6 +75,10 @@ export default function SettingsScreen() {
     });
   };
 
+  /**
+   * Updates the Madhab preference for Asr calculation
+   * Reloads prayer times right after saving to reflect changes instantly
+   */
   const handleMadhabChange = (value: string) => {
     setMadhab(value);
     AsyncStorage.setItem(STORAGE_KEYS.madhab, value).then(() => {
@@ -73,22 +90,25 @@ export default function SettingsScreen() {
   const isMaterialYouMode = currentColor === MATERIAL_YOU_KEY;
   const sectionTitleStyle = isIOS ? styles.iosSectionHeader : styles.androidSectionHeader;
 
+  //* --------------------------- RETURN --------------------------- *//
   return (
     <View style={[styles.container, { backgroundColor: colors.background }]}>
       <ScrollView
         contentContainerStyle={[styles.contentContainer, { paddingTop: insets.top + 20 }]}
         showsVerticalScrollIndicator={false}
       >
-        <ThemedText type="title" style={styles.header}>
+        <ThemedText type="title" style={[styles.header, isIOS ? { paddingTop: insets.top + 10 } : undefined]}>
           Settings
         </ThemedText>
 
         <ThemedText style={[sectionTitleStyle, { color: colors.onSurfaceVariant }]}>
           Notifications
         </ThemedText>
+
+        {/* Notification Settings */}
         <View style={[styles.card, { backgroundColor: colors.surfaceVariant, borderRadius: isIOS ? 20 : 12 }]}>
           <ThemedText style={[styles.settingLabel, { color: colors.onSurfaceVariant }]}>
-            End time offset (minutes before)
+            Waqt end time reminder (minutes before)
           </ThemedText>
           <TextInput
             style={[
@@ -108,6 +128,7 @@ export default function SettingsScreen() {
           />
         </View>
 
+        {/* Calculation Settings */}
         <ThemedText style={[sectionTitleStyle, { color: colors.onSurfaceVariant }]}>
           Prayer Times
         </ThemedText>
@@ -116,6 +137,7 @@ export default function SettingsScreen() {
             Calculation Method
           </ThemedText>
           <CustomPicker
+            key={`calc-${currentColor}-${colorScheme}`}
             label="Calculation Method"
             selectedValue={calculationMethod}
             onValueChange={handleMethodChange}
@@ -128,6 +150,7 @@ export default function SettingsScreen() {
             Madhab (Asr Shadow)
           </ThemedText>
           <CustomPicker
+            key={`madhab-${currentColor}-${colorScheme}`}
             label="Madhab (Asr Shadow)"
             selectedValue={madhab}
             onValueChange={handleMadhabChange}
@@ -135,20 +158,32 @@ export default function SettingsScreen() {
           />
         </View>
 
+        {/* Theme Settings */}
         <ThemedText style={[sectionTitleStyle, { color: colors.onSurfaceVariant }]}>Theme</ThemedText>
-
+        {/* Material You theme option (only on android) */}
         {Platform.OS === "android" && (
           <Pressable
+            key={`material-you-${currentColor}-${colorScheme}`}
             onPress={resetTheme}
             android_ripple={{ color: colors.primary }}
-            style={({ pressed }) => [
-              styles.themeOption,
-              styles.androidThemeOption,
-              {
-                backgroundColor: isMaterialYouMode ? colors.secondaryContainer : colors.surfaceVariant,
-                opacity: pressed ? 0.85 : 1,
-              },
-            ]}
+            style={({ pressed }) =>
+              isIOS
+                ? [
+                    styles.themeOption,
+                    styles.materialYouThemeOption,
+                    {
+                      backgroundColor: isMaterialYouMode ? colors.secondaryContainer : colors.surfaceVariant,
+                      opacity: pressed ? 0.85 : 1,
+                    },
+                  ]
+                : [
+                    styles.themeOption,
+                    styles.materialYouThemeOption,
+                    {
+                      backgroundColor: isMaterialYouMode ? colors.secondaryContainer : colors.surfaceVariant,
+                    },
+                  ]
+            }
           >
             <View style={[styles.colorCircle, { backgroundColor: colors.primary }]} />
             <ThemedText
@@ -164,7 +199,8 @@ export default function SettingsScreen() {
           </Pressable>
         )}
 
-        <View style={styles.colorGrid}>
+        {/* Loop through and render the rest of the color options */}
+        <View style={styles.colorGrid} key={`grid-${currentColor}-${colorScheme}`}>
           {THEME_COLOR_OPTIONS.map((themeColor) => {
             const isSelected = !isMaterialYouMode && currentColor === themeColor.color;
 
@@ -173,16 +209,28 @@ export default function SettingsScreen() {
                 key={themeColor.color}
                 onPress={() => updateTheme(themeColor.color)}
                 android_ripple={{ color: themeColor.color }}
-                style={({ pressed }) => [
-                  styles.themeOption,
-                  isIOS ? styles.iosThemeOption : styles.androidThemeOption,
-                  {
-                    backgroundColor: isSelected
-                      ? colors.primaryContainer
-                      : colors.surfaceVariant,
-                    opacity: pressed ? 0.85 : 1,
-                  },
-                ]}
+                style={({ pressed }) =>
+                  isIOS
+                    ? [
+                        styles.themeOption,
+                        styles.iosThemeOption,
+                        {
+                          backgroundColor: isSelected
+                            ? colors.primaryContainer
+                            : colors.surfaceVariant,
+                          opacity: pressed ? 0.85 : 1,
+                        },
+                      ]
+                    : [
+                        styles.themeOption,
+                        styles.androidThemeOption,
+                        {
+                          backgroundColor: isSelected
+                            ? colors.primaryContainer
+                            : colors.surfaceVariant,
+                        },
+                      ]
+                }
               >
                 <View style={[styles.colorCircle, { backgroundColor: themeColor.color }]} />
                 <ThemedText
@@ -204,6 +252,7 @@ export default function SettingsScreen() {
   );
 }
 
+//* --------------------------- RETURN --------------------------- *//
 const styles = StyleSheet.create({
   container: {
     flex: 1,
@@ -214,8 +263,8 @@ const styles = StyleSheet.create({
   },
   header: {
     textAlign: "center",
-    marginTop: 64,
-    marginBottom: 48,
+    marginTop: 18,
+    marginBottom: 42,
   },
   iosSectionHeader: {
     fontSize: 13,
@@ -271,6 +320,12 @@ const styles = StyleSheet.create({
   },
   androidThemeOption: {
     width: "48%",
+    borderRadius: 16,
+    padding: 16,
+    elevation: 1,
+  },
+  materialYouThemeOption: {
+    width: "100%",
     borderRadius: 16,
     padding: 16,
     elevation: 1,

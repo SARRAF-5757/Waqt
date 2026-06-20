@@ -22,14 +22,16 @@ import { configureNotificationHandler, setupPrayerNotifications } from "@/servic
 import { getDateKey } from "@/utils/dateKey";
 import { getStatusesForDate } from "@/utils/habits";
 
-// Set up notification display rules once when this file loads.
+// Set up notification display rules once when this file loads
 configureNotificationHandler();
 
 /**
- * Home screen.
- * Shows today's five prayers with checkboxes and calculated prayer times.
+ * Home screen
+ * Shows today's five prayers with checkboxes and calculated prayer times
  */
 export default function HomeScreen() {
+  //* ----------------------------- JS ----------------------------- *//
+  
   const { historyData, updateHabitStatus } = useHabits();
   const { times } = usePrayerTimes();
   const colors = useThemeColors();
@@ -38,7 +40,12 @@ export default function HomeScreen() {
 
   const todayKey = getDateKey();
   const todayStatuses = getStatusesForDate(historyData, todayKey);
+  const isIOS = Platform.OS === 'ios';
 
+  /**
+   * Automatically schedule notifications and re-schedule them 
+   * whenever the app comes back to the foreground.
+   */
   useEffect(() => {
     setupPrayerNotifications();
 
@@ -53,29 +60,30 @@ export default function HomeScreen() {
     };
   }, []);
 
+  /**
+   * Toggles the completion status of a prayer for today.
+   * @param prayerId - The unique ID of the prayer (e.g. "fajr")
+   */
   const handleTogglePrayer = (prayerId: string) => {
     const newValue = !todayStatuses[prayerId];
     updateHabitStatus(todayKey, prayerId, newValue);
   };
 
-  const logoSource =
-    colorScheme === "dark"
-      ? require("@/assets/images/icons/splash-icon-light.png")
-      : require("@/assets/images/icons/splash-icon-dark.png");
+  const logoSource = colorScheme === "dark" ? require("@/assets/images/icons/splash-icon-light.png") : require("@/assets/images/icons/splash-icon-dark.png");
 
-  const isIOS = Platform.OS === 'ios';
-
+  //* --------------------------- RETURN --------------------------- *//
   return (
     <View style={[styles.container, { backgroundColor: colors.background }]}>
       <ScrollView contentContainerStyle={styles.contentContainer}>
-        <View style={[styles.headerContainer, { paddingTop: insets.top + 10 }]}>
+        <View style={[styles.headerContainer, isIOS ? { paddingTop: insets.top + 10 } : undefined]}>
           <Image source={logoSource} style={styles.logo} resizeMode="contain" />
         </View>
 
+        {/* Loop through and render all prayers */}
         {PRAYER_HABITS.map((habit) => {
           const isCompleted = todayStatuses[habit.id] || false;
           const prayerTime = times[habit.id as keyof typeof times];
-          const timeLabel = prayerTime ? format(prayerTime, "h:mm aa ") : "--:-- ";
+          const timeLabel = prayerTime ? format(prayerTime, "h:mm aa ") : "--:--";
 
           return (
             <Pressable
@@ -108,7 +116,6 @@ export default function HomeScreen() {
                     styles.timeContainer,
                     {
                       backgroundColor: colors.surface,
-                      borderRadius: 8,
                     },
                   ]}
                 >
@@ -130,6 +137,7 @@ export default function HomeScreen() {
   );
 }
 
+//* --------------------------- STYLING --------------------------- *//
 const styles = StyleSheet.create({
   container: {
     flex: 1,
@@ -140,8 +148,8 @@ const styles = StyleSheet.create({
   },
   headerContainer: {
     alignItems: "center",
-    marginTop: 64,
-    marginBottom: 48,
+    marginTop: 60,
+    marginBottom: 36,
   },
   logo: {
     width: 180,
@@ -169,6 +177,7 @@ const styles = StyleSheet.create({
   timeContainer: {
     paddingHorizontal: 10,
     paddingVertical: 4,
+    borderRadius: 8,
   },
   habitTime: {
     fontSize: 16,

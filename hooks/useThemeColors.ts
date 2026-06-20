@@ -1,14 +1,14 @@
 import { Platform } from "react-native";
 
-import { useColorScheme } from "@/hooks/useColorScheme";
-import { Colors } from "@/constants/Colors";
-import { IOSColors } from "@/constants/PlatformColors";
+import { useColorScheme } from "react-native";
+import { Colors, IOSColors } from "@/constants/Colors";
 import { useMaterial3Colors } from "@/providers/materialYouProvider";
 
 /**
  * Returns the active color palette for the current light/dark mode.
- * Android uses Material You. iOS uses system-style semantic colors.
+ * Android uses Material You. iOS uses app-defined colors.
  */
+//* ----------------------------- JS ----------------------------- *//
 export function useThemeColors() {
   const colorScheme = useColorScheme() ?? "light";
   const material3Colors = useMaterial3Colors();

@@ -9,6 +9,10 @@ export type PrayerTimesMap = {
   isha: Date | undefined;
 };
 
+/**
+ * Calculates prayer times for the current day based on GPS coordinates and
+ * saved calculation preferences
+ */
 export async function computeTodayPrayerTimes(
   latitude: number,
   longitude: number

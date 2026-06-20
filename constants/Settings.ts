@@ -1,3 +1,7 @@
+/**
+ * Defines default configuration values and options used in the Settings screen.
+ */
+
 export const DEFAULT_SETTINGS = {
   endTimeOffset: "15",
   calculationMethod: "MoonsightingCommittee",

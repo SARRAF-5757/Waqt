@@ -4,7 +4,11 @@ import { StyleSheet } from "react-native";
 import { ThemedText } from "@/components/ThemedText";
 import { ThemedView } from "@/components/ThemedView";
 
-export default function NotFoundScreen() {
+/**
+ * Fallback screen for missing routes.
+ */
+export default function NotFoundScreen() {  
+  //* --------------------------- RETURN --------------------------- *//
   return (
     <>
       <Stack.Screen options={{ title: "Oops!" }} />
@@ -18,6 +22,7 @@ export default function NotFoundScreen() {
   );
 }
 
+//* --------------------------- STYLING --------------------------- *//
 const styles = StyleSheet.create({
   container: {
     flex: 1,

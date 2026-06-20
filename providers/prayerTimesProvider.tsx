@@ -12,9 +12,10 @@ const PrayerTimesContext = createContext<PrayerTimesContextValue | undefined>(un
 
 /**
  * Fetches today's prayer times from the device location and shares them
- * with any screen that needs to display prayer times.
+ * with any screen that needs to display prayer times
  */
 export function PrayerTimesProvider({ children }: { children: React.ReactNode }) {
+  //* ----------------------------- JS ----------------------------- *//
   const [times, setTimes] = useState<PrayerTimesMap>({
     fajr: undefined,
     dhuhr: undefined,
@@ -23,6 +24,10 @@ export function PrayerTimesProvider({ children }: { children: React.ReactNode })
     isha: undefined,
   });
 
+  /**
+   * Requests GPS permissions, gets the current location, and computes
+   * today's prayer times based on user preferences
+   */
   const reload = async () => {
     try {
       const { status } = await Location.requestForegroundPermissionsAsync();
@@ -46,6 +51,8 @@ export function PrayerTimesProvider({ children }: { children: React.ReactNode })
     reload();
   }, []);
 
+  //* --------------------------- RETURN --------------------------- *//
+  // Share prayer times with child components
   return (
     <PrayerTimesContext.Provider value={{ times, reload }}>
       {children}
@@ -53,6 +60,10 @@ export function PrayerTimesProvider({ children }: { children: React.ReactNode })
   );
 }
 
+/**
+ * Hook to easily access the prayer times context
+ * Must be used within a PrayerTimesProvider
+ */
 export function usePrayerTimes() {
   const context = useContext(PrayerTimesContext);
   if (!context) {

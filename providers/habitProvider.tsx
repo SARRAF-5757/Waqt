@@ -1,6 +1,5 @@
 import React, { createContext, useContext, useEffect, useState } from "react";
 import AsyncStorage from "@react-native-async-storage/async-storage";
-import * as Location from "expo-location";
 
 import { getDateKey } from "@/utils/dateKey";
 import { getStatusesForDate, HabitHistoryItem } from "@/utils/habits";
@@ -15,17 +14,20 @@ type HabitContextValue = {
 };
 
 const HabitContext = createContext<HabitContextValue | undefined>(undefined);
-
 const DATE_KEY_PATTERN = /^\d{4}-\d{2}-\d{2}$/;
 
 /**
- * Loads prayer completion history from AsyncStorage and shares it with the app.
- * Any screen can read historyData or call updateHabitStatus().
+ * Loads prayer completion history from AsyncStorage and shares it with the app
+ * Any screen can read historyData or call updateHabitStatus()
  */
 export function HabitProvider({ children }: { children: React.ReactNode }) {
+  //* ----------------------------- JS ----------------------------- *//
   const [historyData, setHistoryData] = useState<HabitHistoryItem[]>([]);
   const [isLoading, setIsLoading] = useState(true);
 
+  /**
+   * Loads history from storage, migrating legacy keys if necessary
+   */
   const loadHistoryData = async () => {
     setIsLoading(true);
 
@@ -44,6 +46,10 @@ export function HabitProvider({ children }: { children: React.ReactNode }) {
     loadHistoryData();
   }, []);
 
+  /**
+   * Updates the completion status of a specific prayer for a given date,
+   * both in React state and in AsyncStorage
+   */
   const updateHabitStatus = async (date: string, prayerId: string, completed: boolean) => {
     const currentStatuses = getStatusesForDate(historyData, date);
     const newStatuses = { ...currentStatuses, [prayerId]: completed };
@@ -82,9 +88,19 @@ export function HabitProvider({ children }: { children: React.ReactNode }) {
     reloadData: loadHistoryData,
   };
 
-  return <HabitContext.Provider value={value}>{children}</HabitContext.Provider>;
+  //* --------------------------- RETURN --------------------------- *//
+  // Share history state with child components
+  return (
+    <HabitContext.Provider value={value}>
+      {children}
+    </HabitContext.Provider>
+  );
 }
 
+/**
+ * Hook to easily access the habit tracking context
+ * Must be used within a HabitProvider
+ */
 export function useHabits() {
   const context = useContext(HabitContext);
   if (!context) {
@@ -93,6 +109,10 @@ export function useHabits() {
   return context;
 }
 
+/**
+ * Finds old date string keys in AsyncStorage and migrates them
+ * to the new consistent YYYY-MM-DD format
+ */
 async function migrateLegacyStorageKeys() {
   const allKeys = await AsyncStorage.getAllKeys();
   const legacyKeys: string[] = [];
@@ -122,6 +142,10 @@ async function migrateLegacyStorageKeys() {
   }
 }
 
+/**
+ * Reads all valid YYYY-MM-DD keys from AsyncStorage and parses
+ * them into a list of history items for the app state
+ */
 async function readHistoryFromStorage(): Promise<HabitHistoryItem[]> {
   const allKeys = await AsyncStorage.getAllKeys();
   const dateKeys: string[] = [];
