@@ -19,18 +19,18 @@ export function useThemeColors() {
     return {
       primary: material3Colors.primary,
       onPrimary: "#FFFFFF",
-      primaryContainer: iosColors.fill,
-      onPrimaryContainer: iosColors.label,
+      primaryContainer: material3Colors.primaryContainer,
+      onPrimaryContainer: material3Colors.onPrimaryContainer,
 
       secondary: material3Colors.primary,
       onSecondary: "#FFFFFF",
-      secondaryContainer: iosColors.fill,
-      onSecondaryContainer: iosColors.label,
+      secondaryContainer: material3Colors.secondaryContainer,
+      onSecondaryContainer: material3Colors.onSecondaryContainer,
 
       tertiary: material3Colors.primary,
       onTertiary: "#FFFFFF",
-      tertiaryContainer: iosColors.fill,
-      onTertiaryContainer: iosColors.label,
+      tertiaryContainer: material3Colors.tertiaryContainer,
+      onTertiaryContainer: material3Colors.onTertiaryContainer,
 
       error: "#FF3B30",
       onError: "#FFFFFF",

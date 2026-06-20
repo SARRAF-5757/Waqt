@@ -182,7 +182,6 @@ export function CustomPicker({ label, selectedValue, onValueChange, items }: Cus
 //* --------------------------- STYLING --------------------------- *//
 const styles = StyleSheet.create({
   pickerButtonWrapper: {
-    borderWidth: StyleSheet.hairlineWidth,
     marginTop: 8,
     overflow: "hidden",
   },
@@ -222,7 +221,6 @@ const styles = StyleSheet.create({
     flexShrink: 1,
   },
   iosSheetContent: {
-    borderWidth: StyleSheet.hairlineWidth,
     borderRadius: 24,
     padding: 20,
     flexShrink: 1,

@@ -131,7 +131,6 @@ function PrayerContributionGraph({ prayerId, prayerName }: PrayerContributionGra
                       <View
                         style={[
                           styles.daySquare,
-                          isIOS ? styles.iosDaySquare : styles.androidDaySquare,
                           {
                             backgroundColor: day.isCompleted ? colors.primary : colors.surface,
                           },
@@ -246,12 +245,7 @@ const styles = StyleSheet.create({
     width: 16,
     height: 16,
     margin: 2,
-  },
-  iosDaySquare: {
     borderRadius: 4,
-  },
-  androidDaySquare: {
-    borderRadius: 2,
   },
   emptyDay: {
     width: 20,
