@@ -1,50 +1,58 @@
 import React from "react";
-import { Tabs } from "expo-router";
-import { Feather, AntDesign } from "@expo/vector-icons";
+import { Platform, View } from "react-native";
+import { withLayoutContext } from "expo-router";
+import { createNativeBottomTabNavigator } from "@react-navigation/bottom-tabs/unstable";
 
 import { useThemeColors } from "@/hooks/useThemeColors";
-import { HapticTab } from "@/components/HapticTab";
 
+const NativeTabs = withLayoutContext(createNativeBottomTabNavigator().Navigator);
+
+/**
+ * Bottom tab navigation shared by Home, History, and Settings.
+ */
 export default function TabLayout() {
   const colors = useThemeColors();
 
   return (
-    <Tabs
+    <NativeTabs
       screenOptions={{
-        tabBarActiveTintColor: colors.surfaceTint,
+        tabBarActiveTintColor: colors.tabIconSelected,
         tabBarInactiveTintColor: colors.onSurfaceVariant,
-        tabBarStyle: {
-          backgroundColor: colors.surfaceDim,
-          borderTopColor: colors.outlineVariant,
-          paddingTop: 10,
-          height: 85,
-          paddingBottom: 10,
-        },
         headerShown: false,
-        tabBarButton: HapticTab,
+        tabBarControllerMode: 'tabBar',
+        tabBarStyle: Platform.OS === 'android' ? { backgroundColor: colors.surfaceDim || colors.surfaceVariant } : undefined,
       }}
     >
-      <Tabs.Screen
+      <NativeTabs.Screen
         name="index"
         options={{
           title: "Home",
-          tabBarIcon: ({ color }) => <Feather name="home" size={26} color={color} />,
+          tabBarIcon: Platform.select({
+            ios: { type: 'sfSymbol', name: 'house' },
+            android: { type: 'drawableResource', name: 'ic_menu_home' }
+          }),
         }}
       />
-      <Tabs.Screen
+      <NativeTabs.Screen
         name="streak"
         options={{
           title: "History",
-          tabBarIcon: ({ color }) => <AntDesign name="bar-chart" size={26} color={color} />,
+          tabBarIcon: Platform.select({
+            ios: { type: 'sfSymbol', name: 'chart.bar' },
+            android: { type: 'drawableResource', name: 'ic_menu_recent_history' }
+          }),
         }}
       />
-      <Tabs.Screen
+      <NativeTabs.Screen
         name="settings"
         options={{
           title: "Settings",
-          tabBarIcon: ({ color }) => <Feather name="settings" size={26} color={color} />,
+          tabBarIcon: Platform.select({
+            ios: { type: 'sfSymbol', name: 'gearshape' },
+            android: { type: 'drawableResource', name: 'ic_menu_preferences' }
+          }),
         }}
       />
-    </Tabs>
+    </NativeTabs>
   );
 }

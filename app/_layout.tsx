@@ -1,3 +1,12 @@
+/**
+ * Root layout for the whole app.
+ *
+ * Provider order matters:
+ * 1. HabitProvider       - prayer completion history
+ * 2. PrayerTimesProvider - today's prayer times from GPS
+ * 3. MaterialYouProvider - theme colors (Android Material You)
+ * 4. ThemeProvider       - navigation light/dark theme
+ */
 import { useEffect } from "react";
 import { useFonts } from "expo-font";
 import * as SplashScreen from "expo-splash-screen";
@@ -7,20 +16,22 @@ import { Stack } from "expo-router";
 import "react-native-reanimated";
 
 import { useColorScheme } from "@/hooks/useColorScheme";
-import { MaterialYouProvider } from "@/providers/materialYouProvider";
 import { HabitProvider } from "@/providers/habitProvider";
+import { MaterialYouProvider } from "@/providers/materialYouProvider";
 import { PrayerTimesProvider } from "@/providers/prayerTimesProvider";
 
-// prevent splash screen from hiding before loading is complete
 SplashScreen.preventAutoHideAsync();
 
 export default function RootLayout() {
+  // ^ JS -------------------------------------------------------------------
   const colorScheme = useColorScheme();
 
+  // Load the custom font before showing the app UI.
   const [loaded] = useFonts({
     SpaceMono: require("../assets/fonts/SpaceMono-Regular.ttf"),
   });
 
+  // Hide the splash screen once fonts are ready.
   useEffect(() => {
     if (loaded) {
       SplashScreen.hideAsync();
@@ -31,6 +42,7 @@ export default function RootLayout() {
     return null;
   }
 
+  // ^ RETURN ---------------------------------------------------------------
   return (
     <SafeAreaProvider>
       <HabitProvider>
@@ -48,3 +60,6 @@ export default function RootLayout() {
     </SafeAreaProvider>
   );
 }
+
+// ^ STYLING ---------------------------------------------------------------
+// Root layout has no local StyleSheet. Screen styling lives in each tab file.

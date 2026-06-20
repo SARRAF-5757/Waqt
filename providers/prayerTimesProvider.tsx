@@ -1,58 +1,62 @@
-import React, { createContext, useState, useContext, useEffect } from "react";
+import React, { createContext, useContext, useEffect, useState } from "react";
 import * as Location from "expo-location";
-import * as Adhan from "adhan";
 
-import AsyncStorage from "@react-native-async-storage/async-storage";
+import { computeTodayPrayerTimes, PrayerTimesMap } from "@/utils/prayerTimes";
 
-// Prayer time structure
-type TimesMap = Record<string, Date | undefined>;
+type PrayerTimesContextValue = {
+  times: PrayerTimesMap;
+  reload: () => Promise<void>;
+};
 
-// Structure of shared context
-const PrayerTimesContext = createContext<{ times: TimesMap; reload: () => Promise<void> } | undefined>(undefined);
+const PrayerTimesContext = createContext<PrayerTimesContextValue | undefined>(undefined);
 
-// Share with all children
-export const PrayerTimesProvider = ({ children }: { children: React.ReactNode }) => {
-  // States
-  const [times, setTimes] = useState<TimesMap>({});
+/**
+ * Fetches today's prayer times from the device location and shares them
+ * with any screen that needs to display prayer times.
+ */
+export function PrayerTimesProvider({ children }: { children: React.ReactNode }) {
+  const [times, setTimes] = useState<PrayerTimesMap>({
+    fajr: undefined,
+    dhuhr: undefined,
+    asr: undefined,
+    maghrib: undefined,
+    isha: undefined,
+  });
 
-  // Calculate times
-  const computeTimes = async () => {
+  const reload = async () => {
     try {
       const { status } = await Location.requestForegroundPermissionsAsync();
-      if (status !== "granted") return;
-      const loc = await Location.getCurrentPositionAsync({});
-      const coords = new Adhan.Coordinates(loc.coords.latitude, loc.coords.longitude);
+      if (status !== "granted") {
+        return;
+      }
 
-      const methodStr = await AsyncStorage.getItem("calculationMethod") || "MoonsightingCommittee";
-      const madhabStr = await AsyncStorage.getItem("madhab") || "shafi";
-      
-      const params = (Adhan.CalculationMethod as any)[methodStr]();
-      params.madhab = madhabStr === "hanafi" ? Adhan.Madhab.Hanafi : Adhan.Madhab.Shafi;
+      const location = await Location.getCurrentPositionAsync({});
+      const prayerTimes = await computeTodayPrayerTimes(
+        location.coords.latitude,
+        location.coords.longitude,
+      );
 
-      const prayerTimes = new Adhan.PrayerTimes(coords, new Date(), params);
-
-      setTimes({
-        fajr: prayerTimes.fajr,
-        dhuhr: prayerTimes.dhuhr,
-        asr: prayerTimes.asr,
-        maghrib: prayerTimes.maghrib,
-        isha: prayerTimes.isha,
-      });
-    } catch (e) {
-      console.error("Failed to get prayer times", e);
+      setTimes(prayerTimes);
+    } catch (error) {
+      console.error("Failed to get prayer times", error);
     }
   };
 
   useEffect(() => {
-    computeTimes();
+    reload();
   }, []);
 
-  return <PrayerTimesContext.Provider value={{ times, reload: computeTimes }}>{children}</PrayerTimesContext.Provider>;
-};
+  return (
+    <PrayerTimesContext.Provider value={{ times, reload }}>
+      {children}
+    </PrayerTimesContext.Provider>
+  );
+}
 
-// Custom Hook
-export const usePrayerTimes = () => {
+export function usePrayerTimes() {
   const context = useContext(PrayerTimesContext);
-  if (!context) throw new Error("usePrayerTimes must be used inside PrayerTimesProvider");
+  if (!context) {
+    throw new Error("usePrayerTimes must be used inside PrayerTimesProvider");
+  }
   return context;
-};
+}

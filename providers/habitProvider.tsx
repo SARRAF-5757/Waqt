@@ -1,89 +1,40 @@
-import React, { createContext, useState, useContext, useEffect, ReactNode } from "react";
+import React, { createContext, useContext, useEffect, useState } from "react";
 import AsyncStorage from "@react-native-async-storage/async-storage";
-import { getDateKey } from "../constants/Habits";
+import * as Location from "expo-location";
 
-//# Type definitions for habit data and context
-// Each instance is one day's habit completion status
-interface HistoryItem {
-  date: string; // '2025-08-16'
-  statuses: Record<string, boolean>; // { fajr: true, dhuhr: false, ... }
-}
+import { getDateKey } from "@/utils/dateKey";
+import { getStatusesForDate, HabitHistoryItem } from "@/utils/habits";
 
-//! The shape of the context value shared with all components
-interface HistoryContextType {
-  historyData: HistoryItem[]; // All habit data loaded from storage
-  isLoading: boolean; // True while loading from storage
-  updateHabitStatus: (date: string, prayerId: string, completed: boolean) => Promise<void>; // Mark a prayer as done/not done
-  reloadData: () => void; // Reload all data from storage
-}
+export type { HabitHistoryItem };
 
-// The context object (initially undefined)
-const HistoryContext = createContext<HistoryContextType | undefined>(undefined);
+type HabitContextValue = {
+  historyData: HabitHistoryItem[];
+  isLoading: boolean;
+  updateHabitStatus: (date: string, prayerId: string, completed: boolean) => Promise<void>;
+  reloadData: () => Promise<void>;
+};
 
-//# The Provider component: manages state and shares it with children
-export const HabitProvider = ({ children }: { children: ReactNode }) => {
-  // States
-  const [historyData, setHistoryData] = useState<HistoryItem[]>([]);
+const HabitContext = createContext<HabitContextValue | undefined>(undefined);
+
+const DATE_KEY_PATTERN = /^\d{4}-\d{2}-\d{2}$/;
+
+/**
+ * Loads prayer completion history from AsyncStorage and shares it with the app.
+ * Any screen can read historyData or call updateHabitStatus().
+ */
+export function HabitProvider({ children }: { children: React.ReactNode }) {
+  const [historyData, setHistoryData] = useState<HabitHistoryItem[]>([]);
   const [isLoading, setIsLoading] = useState(true);
 
-  // Loads all habit data from AsyncStorage and migrates old keys if needed
   const loadHistoryData = async () => {
     setIsLoading(true);
+
     try {
-      const allKeys = await AsyncStorage.getAllKeys();
-      // Find legacy keys (not date keys)
-      const legacyKeys = [];
-
-      for (let i = 0; i < allKeys.length; ++i) {
-        const key = allKeys[i];
-        if (!/^\d{4}-\d{2}-\d{2}$/.test(key)) {
-          // check if key does not match 'YYYY-MM-DD' format
-          legacyKeys.push(key);
-        }
-      }
-
-      // Migrate legacy keys
-      for (let i = 0; i < legacyKeys.length; ++i) {
-        const oldKey = legacyKeys[i];
-        const rawValue = await AsyncStorage.getItem(oldKey);
-
-        if (rawValue) {
-          const parsedDate = new Date(Date.parse(oldKey));
-
-          if (!isNaN(parsedDate.getTime())) {
-            // if a valid date
-            const newKey = getDateKey(parsedDate); // convert to 'YYYY-MM-DD' format
-            await AsyncStorage.setItem(newKey, rawValue); // save under new key
-            await AsyncStorage.removeItem(oldKey); // remove old key
-          }
-        }
-      }
-
-      // Get keys again after migration
-      const updatedKeys = await AsyncStorage.getAllKeys();
-      // Find date keys
-      const dateKeys = [];
-      for (let i = 0; i < updatedKeys.length; ++i) {
-        const key = updatedKeys[i];
-
-        if (/^\d{4}-\d{2}-\d{2}$/.test(key)) {
-          dateKeys.push(key);
-        }
-      }
-
-      // Get stored items
-      const storedItems = await AsyncStorage.multiGet(dateKeys);
-      // Build loadedHistory array
-      const loadedHistory = [];
-      for (let i = 0; i < storedItems.length; ++i) {
-        const [key, value] = storedItems[i];
-        if (value) {
-          loadedHistory.push({ date: key, statuses: JSON.parse(value) });
-        }
-      }
+      await migrateLegacyStorageKeys();
+      const loadedHistory = await readHistoryFromStorage();
       setHistoryData(loadedHistory);
     } catch (error) {
-      console.error("Failed to load history data from context", error);
+      console.error("Failed to load habit history", error);
     } finally {
       setIsLoading(false);
     }
@@ -93,65 +44,104 @@ export const HabitProvider = ({ children }: { children: ReactNode }) => {
     loadHistoryData();
   }, []);
 
-  // Update the completion status for a specific habit on a specific date
-  // Update state immediately for UI, then save to AsyncStorage
   const updateHabitStatus = async (date: string, prayerId: string, completed: boolean) => {
-    // Find the existing data for the date
-    let dayData: Record<string, boolean> = {};
+    const currentStatuses = getStatusesForDate(historyData, date);
+    const newStatuses = { ...currentStatuses, [prayerId]: completed };
 
-    for (let i = 0; i < historyData.length; ++i) {
-      if (historyData[i].date === date) {
-        dayData = historyData[i].statuses;
-        break;
-      }
-    }
-    const newStatuses = { ...dayData, [prayerId]: completed };
-
-    // Update state immediately for instant UI feedback
     setHistoryData((currentData) => {
-      let existingEntryIndex = -1;
-      for (let i = 0; i < currentData.length; ++i) {
-        if (currentData[i].date === date) {
-          existingEntryIndex = i;
+      const nextData = [...currentData];
+      let entryIndex = -1;
+
+      for (let i = 0; i < nextData.length; i++) {
+        if (nextData[i].date === date) {
+          entryIndex = i;
           break;
         }
       }
-      if (existingEntryIndex > -1) {
-        // Update existing entry
-        const newData = [...currentData];
-        newData[existingEntryIndex] = { date, statuses: newStatuses };
-        return newData;
+
+      if (entryIndex >= 0) {
+        nextData[entryIndex] = { date, statuses: newStatuses };
       } else {
-        // Add new entry
-        return [...currentData, { date, statuses: newStatuses }];
+        nextData.push({ date, statuses: newStatuses });
       }
+
+      return nextData;
     });
 
-    // Save to AsyncStorage
     try {
       await AsyncStorage.setItem(date, JSON.stringify(newStatuses));
     } catch (error) {
-      console.error("Failed to save updated habit status", error);
+      console.error("Failed to save habit status", error);
     }
   };
 
-  //! The value shared with all children via context
-  const value = {
+  const value: HabitContextValue = {
     historyData,
     isLoading,
     updateHabitStatus,
     reloadData: loadHistoryData,
   };
 
-  // The Provider wraps children and makes the context available
-  return <HistoryContext.Provider value={value}>{children}</HistoryContext.Provider>;
-};
+  return <HabitContext.Provider value={value}>{children}</HabitContext.Provider>;
+}
 
-//# Custom hook for easy access to the context in any component
-export const useHabits = () => {
-  const context = useContext(HistoryContext);
-  if (context === undefined) {
-    throw new Error("useHabits must be used within a HabitProvider");
+export function useHabits() {
+  const context = useContext(HabitContext);
+  if (!context) {
+    throw new Error("useHabits must be used inside HabitProvider");
   }
   return context;
-};
+}
+
+async function migrateLegacyStorageKeys() {
+  const allKeys = await AsyncStorage.getAllKeys();
+  const legacyKeys: string[] = [];
+
+  for (let i = 0; i < allKeys.length; i++) {
+    const key = allKeys[i];
+    if (!DATE_KEY_PATTERN.test(key)) {
+      legacyKeys.push(key);
+    }
+  }
+
+  for (let i = 0; i < legacyKeys.length; i++) {
+    const oldKey = legacyKeys[i];
+    const rawValue = await AsyncStorage.getItem(oldKey);
+    if (!rawValue) {
+      continue;
+    }
+
+    const parsedDate = new Date(Date.parse(oldKey));
+    if (isNaN(parsedDate.getTime())) {
+      continue;
+    }
+
+    const newKey = getDateKey(parsedDate);
+    await AsyncStorage.setItem(newKey, rawValue);
+    await AsyncStorage.removeItem(oldKey);
+  }
+}
+
+async function readHistoryFromStorage(): Promise<HabitHistoryItem[]> {
+  const allKeys = await AsyncStorage.getAllKeys();
+  const dateKeys: string[] = [];
+
+  for (let i = 0; i < allKeys.length; i++) {
+    const key = allKeys[i];
+    if (DATE_KEY_PATTERN.test(key)) {
+      dateKeys.push(key);
+    }
+  }
+
+  const storedItems = await AsyncStorage.multiGet(dateKeys);
+  const loadedHistory: HabitHistoryItem[] = [];
+
+  for (let i = 0; i < storedItems.length; i++) {
+    const [date, value] = storedItems[i];
+    if (value) {
+      loadedHistory.push({ date, statuses: JSON.parse(value) });
+    }
+  }
+
+  return loadedHistory;
+}

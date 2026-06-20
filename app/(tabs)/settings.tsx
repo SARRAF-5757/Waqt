@@ -1,202 +1,206 @@
-import React, { useState, useEffect } from "react";
-import { StyleSheet, ScrollView, TouchableOpacity, Platform, TextInput } from "react-native";
+import React, { useEffect, useState } from "react";
+import { StyleSheet, ScrollView, Pressable, Platform, TextInput, View } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import AsyncStorage from "@react-native-async-storage/async-storage";
-import { CustomPicker } from "@/components/CustomPicker";
 
+import { CustomPicker } from "@/components/CustomPicker";
 import { ThemedText } from "@/components/ThemedText";
-import { ThemedView } from "@/components/ThemedView";
+import {
+  CALCULATION_METHOD_OPTIONS,
+  DEFAULT_SETTINGS,
+  MADHAB_OPTIONS,
+  MATERIAL_YOU_KEY,
+  STORAGE_KEYS,
+  THEME_COLOR_OPTIONS,
+} from "@/constants/Settings";
 import { useThemeColors } from "@/hooks/useThemeColors";
 import { useMaterial3ThemeContext } from "@/providers/materialYouProvider";
 import { usePrayerTimes } from "@/providers/prayerTimesProvider";
 
-// Special key to detect Material You mode
-const MATERIAL_YOU_KEY = "MATERIAL_YOU";
-
-// Preset theme colors inspired by Islamic culture and prayer times
-const THEME_COLORS = [
-  { name: "Salah Blue", color: "#4F8EF7" },
-  { name: "Mosque Green", color: "#2E7D0F" },
-  { name: "Dawn Gold", color: "#ffd500" },
-  { name: "Sunset Orange", color: "#ff870f" },
-  { name: "Night Purple", color: "#6750A4" },
-  { name: "Coral Pink", color: "#FF5A5F" },
-];
-
+/**
+ * Settings screen.
+ * Saves user preferences to AsyncStorage and reloads prayer times when needed.
+ */
 export default function SettingsScreen() {
   const insets = useSafeAreaInsets();
-  const themedColors = useThemeColors();
+  const colors = useThemeColors();
   const { updateTheme, resetTheme, currentColor } = useMaterial3ThemeContext();
+  const { reload: reloadPrayerTimes } = usePrayerTimes();
 
-  const [endTimeOffset, setEndTimeOffset] = useState("15");
-  const [calculationMethod, setCalculationMethod] = useState("MoonsightingCommittee");
-  const [madhab, setMadhab] = useState("shafi");
+  const [endTimeOffset, setEndTimeOffset] = useState<string>(DEFAULT_SETTINGS.endTimeOffset);
+  const [calculationMethod, setCalculationMethod] = useState<string>(DEFAULT_SETTINGS.calculationMethod);
+  const [madhab, setMadhab] = useState<string>(DEFAULT_SETTINGS.madhab);
 
   useEffect(() => {
-    AsyncStorage.getItem("endTimeOffset").then((val) => {
-      if (val) setEndTimeOffset(val);
+    AsyncStorage.getItem(STORAGE_KEYS.endTimeOffset).then((value) => {
+      if (value) {
+        setEndTimeOffset(value);
+      }
     });
-    AsyncStorage.getItem("calculationMethod").then((val) => {
-      if (val) setCalculationMethod(val);
+    AsyncStorage.getItem(STORAGE_KEYS.calculationMethod).then((value) => {
+      if (value) {
+        setCalculationMethod(value);
+      }
     });
-    AsyncStorage.getItem("madhab").then((val) => {
-      if (val) setMadhab(val);
+    AsyncStorage.getItem(STORAGE_KEYS.madhab).then((value) => {
+      if (value) {
+        setMadhab(value);
+      }
     });
   }, []);
 
-  const handleOffsetChange = (val: string) => {
-    // only allow numbers
-    const numericVal = val.replace(/[^0-9]/g, "");
-    setEndTimeOffset(numericVal);
-    AsyncStorage.setItem("endTimeOffset", numericVal);
+  const handleOffsetChange = (value: string) => {
+    const numericValue = value.replace(/[^0-9]/g, "");
+    setEndTimeOffset(numericValue);
+    AsyncStorage.setItem(STORAGE_KEYS.endTimeOffset, numericValue);
   };
 
-  const { reload: reloadPrayerTimes } = usePrayerTimes();
-
-  const handleMethodChange = (val: string) => {
-    setCalculationMethod(val);
-    AsyncStorage.setItem("calculationMethod", val).then(() => reloadPrayerTimes());
+  const handleMethodChange = (value: string) => {
+    setCalculationMethod(value);
+    AsyncStorage.setItem(STORAGE_KEYS.calculationMethod, value).then(() => {
+      reloadPrayerTimes();
+    });
   };
 
-  const handleMadhabChange = (val: string) => {
-    setMadhab(val);
-    AsyncStorage.setItem("madhab", val).then(() => reloadPrayerTimes());
+  const handleMadhabChange = (value: string) => {
+    setMadhab(value);
+    AsyncStorage.setItem(STORAGE_KEYS.madhab, value).then(() => {
+      reloadPrayerTimes();
+    });
   };
 
-  // Check if we're currently in Material You mode
+  const isIOS = Platform.OS === "ios";
   const isMaterialYouMode = currentColor === MATERIAL_YOU_KEY;
-
-  // Build list of color option buttons to be rendered
-  const colorOptionButtons = [];
-
-  for (let i = 0; i < THEME_COLORS.length; ++i) {
-    const themeColor = THEME_COLORS[i];
-    const isSelected = !isMaterialYouMode && currentColor === themeColor.color; // color is selected if it matches exactly and we're not in Material You mode
-
-    colorOptionButtons.push(
-      <TouchableOpacity
-        key={themeColor.color}
-        style={[
-          styles.colorOption,
-          {
-            backgroundColor: isSelected ? themedColors.surfaceVariant : (themedColors.surfaceDim ?? themedColors.surfaceBright),
-          },
-        ]}
-        onPress={() => updateTheme(themeColor.color)}
-        activeOpacity={0.7}
-      >
-        <ThemedView style={[styles.colorCircle, { backgroundColor: themeColor.color }]} />
-        <ThemedText
-          style={[
-            styles.colorName,
-            {
-              color: isSelected ? themedColors.onPrimaryContainer : themedColors.onSurfaceVariant,
-            },
-          ]}
-        >
-          {themeColor.name}
-        </ThemedText>
-      </TouchableOpacity>,
-    );
-  }
+  const sectionTitleStyle = isIOS ? styles.iosSectionHeader : styles.androidSectionHeader;
 
   return (
-    <ThemedView style={styles.container}>
-      <ScrollView contentContainerStyle={[styles.contentContainer, { paddingTop: insets.top + 20 }]} showsVerticalScrollIndicator={false}>
-        {/* Header */}
-        <ThemedText style={styles.header}>Settings</ThemedText>
+    <View style={[styles.container, { backgroundColor: colors.background }]}>
+      <ScrollView
+        contentContainerStyle={[styles.contentContainer, { paddingTop: insets.top + 20 }]}
+        showsVerticalScrollIndicator={false}
+      >
+        <ThemedText type="title" style={styles.header}>
+          Settings
+        </ThemedText>
 
-        {/* Notifications Settings Header */}
-        <ThemedText style={[styles.sectionHeader, { color: themedColors.onSurface }]}>Notifications</ThemedText>
-
-        {/* End Time Notification Setting */}
-        <ThemedView style={[styles.settingContainer, { backgroundColor: themedColors.surfaceDim ?? themedColors.surfaceBright }]}>
-          <ThemedText style={[styles.settingLabel, { color: themedColors.onSurfaceVariant }]}>End time offset (minutes before)</ThemedText>
+        <ThemedText style={[sectionTitleStyle, { color: colors.onSurfaceVariant }]}>
+          Notifications
+        </ThemedText>
+        <View style={[styles.card, { backgroundColor: colors.surfaceVariant, borderRadius: isIOS ? 20 : 12 }]}>
+          <ThemedText style={[styles.settingLabel, { color: colors.onSurfaceVariant }]}>
+            End time offset (minutes before)
+          </ThemedText>
           <TextInput
-            style={[styles.textInput, { color: themedColors.onSurface, borderColor: themedColors.outline, backgroundColor: themedColors.surface }]}
+            style={[
+              styles.textInput,
+              isIOS ? styles.iosTextInput : styles.androidTextInput,
+              {
+                color: colors.onSurface,
+                borderColor: colors.outline,
+                backgroundColor: colors.surface,
+              },
+            ]}
             keyboardType="numeric"
             value={endTimeOffset}
             onChangeText={handleOffsetChange}
-            placeholder="15"
-            placeholderTextColor={themedColors.outline}
+            placeholder={DEFAULT_SETTINGS.endTimeOffset}
+            placeholderTextColor={colors.onSurfaceVariant}
           />
-        </ThemedView>
+        </View>
 
-        {/* Prayer Settings Header */}
-        <ThemedText style={[styles.sectionHeader, { color: themedColors.onSurface }]}>Prayer Times</ThemedText>
-
-        <ThemedView style={[styles.settingContainer, { backgroundColor: themedColors.surfaceDim ?? themedColors.surfaceBright }]}>
-          <ThemedText style={[styles.settingLabel, { color: themedColors.onSurfaceVariant }]}>Calculation Method</ThemedText>
+        <ThemedText style={[sectionTitleStyle, { color: colors.onSurfaceVariant }]}>
+          Prayer Times
+        </ThemedText>
+        <View style={[styles.card, { backgroundColor: colors.surfaceVariant, borderRadius: isIOS ? 20 : 12 }]}>
+          <ThemedText style={[styles.settingLabel, { color: colors.onSurfaceVariant }]}>
+            Calculation Method
+          </ThemedText>
           <CustomPicker
             label="Calculation Method"
             selectedValue={calculationMethod}
             onValueChange={handleMethodChange}
-            items={[
-              { label: "Muslim World League", value: "MuslimWorldLeague" },
-              { label: "Egyptian", value: "Egyptian" },
-              { label: "Karachi", value: "Karachi" },
-              { label: "Umm Al-Qura", value: "UmmAlQura" },
-              { label: "Dubai", value: "Dubai" },
-              { label: "Moonsighting Committee", value: "MoonsightingCommittee" },
-              { label: "North America", value: "NorthAmerica" },
-              { label: "Kuwait", value: "Kuwait" },
-              { label: "Qatar", value: "Qatar" },
-              { label: "Singapore", value: "Singapore" },
-              { label: "Tehran", value: "Tehran" },
-              { label: "Turkey", value: "Turkey" },
-              { label: "Other", value: "Other" },
-            ]}
+            items={CALCULATION_METHOD_OPTIONS}
           />
-        </ThemedView>
+        </View>
 
-        <ThemedView style={[styles.settingContainer, { backgroundColor: themedColors.surfaceDim ?? themedColors.surfaceBright }]}>
-          <ThemedText style={[styles.settingLabel, { color: themedColors.onSurfaceVariant }]}>Madhab (Asr Shadow)</ThemedText>
+        <View style={[styles.card, { backgroundColor: colors.surfaceVariant, borderRadius: isIOS ? 20 : 12 }]}>
+          <ThemedText style={[styles.settingLabel, { color: colors.onSurfaceVariant }]}>
+            Madhab (Asr Shadow)
+          </ThemedText>
           <CustomPicker
             label="Madhab (Asr Shadow)"
             selectedValue={madhab}
             onValueChange={handleMadhabChange}
-            items={[
-              { label: "Standard (Shafi/Maliki/Hanbali)", value: "shafi" },
-              { label: "Hanafi", value: "hanafi" },
-            ]}
+            items={MADHAB_OPTIONS}
           />
-        </ThemedView>
+        </View>
 
+        <ThemedText style={[sectionTitleStyle, { color: colors.onSurfaceVariant }]}>Theme</ThemedText>
 
-
-        {/* Theme Settings Header */}
-        <ThemedText style={[styles.sectionHeader, { color: themedColors.onSurface }]}>Theme</ThemedText>
-
-        {/* Material You Button (Only shows up on android) */}
         {Platform.OS === "android" && (
-          <TouchableOpacity
-            style={[
-              styles.materialButton,
+          <Pressable
+            onPress={resetTheme}
+            android_ripple={{ color: colors.primary }}
+            style={({ pressed }) => [
+              styles.themeOption,
+              styles.androidThemeOption,
               {
-                backgroundColor: isMaterialYouMode ? themedColors.surfaceVariant : (themedColors.surfaceDim ?? themedColors.surfaceBright),
+                backgroundColor: isMaterialYouMode ? colors.secondaryContainer : colors.surfaceVariant,
+                opacity: pressed ? 0.85 : 1,
               },
             ]}
-            onPress={resetTheme}
-            activeOpacity={0.7}
           >
-            <ThemedView style={[styles.colorCircle, { backgroundColor: themedColors.primary }]} />
+            <View style={[styles.colorCircle, { backgroundColor: colors.primary }]} />
             <ThemedText
               style={[
                 styles.colorName,
                 {
-                  color: isMaterialYouMode ? themedColors.onPrimaryContainer : themedColors.onSurfaceVariant,
+                  color: isMaterialYouMode ? colors.onSecondaryContainer : colors.onSurfaceVariant,
                 },
               ]}
             >
               Material You
             </ThemedText>
-          </TouchableOpacity>
+          </Pressable>
         )}
 
-        {/* Color Options */}
-        <ThemedView style={styles.colorGrid}>{colorOptionButtons}</ThemedView>
+        <View style={styles.colorGrid}>
+          {THEME_COLOR_OPTIONS.map((themeColor) => {
+            const isSelected = !isMaterialYouMode && currentColor === themeColor.color;
+
+            return (
+              <Pressable
+                key={themeColor.color}
+                onPress={() => updateTheme(themeColor.color)}
+                android_ripple={{ color: themeColor.color }}
+                style={({ pressed }) => [
+                  styles.themeOption,
+                  isIOS ? styles.iosThemeOption : styles.androidThemeOption,
+                  {
+                    backgroundColor: isSelected
+                      ? colors.primaryContainer
+                      : colors.surfaceVariant,
+                    opacity: pressed ? 0.85 : 1,
+                  },
+                ]}
+              >
+                <View style={[styles.colorCircle, { backgroundColor: themeColor.color }]} />
+                <ThemedText
+                  style={[
+                    styles.colorName,
+                    {
+                      color: isSelected ? colors.onSurface : colors.onSurfaceVariant,
+                    },
+                  ]}
+                >
+                  {themeColor.name}
+                </ThemedText>
+              </Pressable>
+            );
+          })}
+        </View>
       </ScrollView>
-    </ThemedView>
+    </View>
   );
 }
 
@@ -206,25 +210,32 @@ const styles = StyleSheet.create({
   },
   contentContainer: {
     padding: 20,
+    paddingBottom: 120,
   },
   header: {
-    fontSize: 30,
-    fontWeight: "bold",
     textAlign: "center",
-    marginBottom: 24,
-    paddingVertical: 6,
+    marginTop: 64,
+    marginBottom: 48,
   },
-  sectionHeader: {
+  iosSectionHeader: {
+    fontSize: 13,
+    fontWeight: "600",
+    textTransform: "uppercase",
+    letterSpacing: 0.6,
+    marginBottom: 8,
+    marginTop: 12,
+    marginLeft: 4,
+  },
+  androidSectionHeader: {
     fontSize: 22,
     fontWeight: "bold",
     marginBottom: 16,
     marginTop: 8,
   },
-  settingContainer: {
+  card: {
     padding: 16,
-    borderRadius: 16,
-    marginBottom: 24,
-    flexDirection: "column",
+    marginBottom: 16,
+    overflow: "hidden",
   },
   settingLabel: {
     fontSize: 16,
@@ -233,50 +244,46 @@ const styles = StyleSheet.create({
   },
   textInput: {
     borderWidth: 1,
-    borderRadius: 8,
     paddingHorizontal: 12,
     paddingVertical: 10,
     fontSize: 16,
+  },
+  iosTextInput: {
+    borderRadius: 12,
+  },
+  androidTextInput: {
+    borderRadius: 8,
   },
   colorGrid: {
     flexDirection: "row",
     flexWrap: "wrap",
     justifyContent: "space-between",
   },
-  colorOption: {
+  themeOption: {
+    alignItems: "center",
+    marginBottom: 16,
+  },
+  iosThemeOption: {
+    width: "48%",
+    borderRadius: 22,
+    padding: 16,
+    overflow: "hidden",
+  },
+  androidThemeOption: {
     width: "48%",
     borderRadius: 16,
     padding: 16,
-    marginBottom: 16,
-    alignItems: "center",
+    elevation: 1,
   },
   colorCircle: {
     width: 40,
     height: 40,
     borderRadius: 20,
     marginBottom: 12,
-    shadowColor: "#000",
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.25,
-    shadowRadius: 4,
-    elevation: 4,
   },
   colorName: {
     fontSize: 16,
     fontWeight: "600",
     textAlign: "center",
-    marginBottom: 4,
-  },
-  colorDescription: {
-    fontSize: 12,
-    textAlign: "center",
-    opacity: 0.7,
-  },
-  materialButton: {
-    width: "100%",
-    borderRadius: 16,
-    padding: 16,
-    marginBottom: 16,
-    alignItems: "center",
   },
 });

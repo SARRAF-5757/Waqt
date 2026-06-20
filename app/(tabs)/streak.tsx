@@ -1,200 +1,227 @@
-import { StyleSheet, ScrollView, ActivityIndicator } from "react-native";
+import React from "react";
+import { StyleSheet, ScrollView, ActivityIndicator, View, Platform } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { subDays, subHours } from "date-fns";
 
-import { ThemedView } from "@/components/ThemedView";
 import { ThemedText } from "@/components/ThemedText";
-import { PRAYER_HABITS, getDateKey } from "@/constants/Habits";
+import { PRAYER_HABITS } from "@/constants/Habits";
 import { useThemeColors } from "@/hooks/useThemeColors";
 import { useHabits } from "@/providers/habitProvider";
+import { getDateKey } from "@/utils/dateKey";
 
-// For each prayer's contribution graph
-const PrayerContributionGraph = ({ prayerId, prayerName }: { prayerId: string; prayerName: string }) => {
+const WEEKDAY_LETTERS = ["S", "M", "T", "W", "T", "F", "S"];
+const DAYS_TO_SHOW = 105;
+
+type DayCell = {
+  date: Date;
+  dateKey: string;
+  isCompleted: boolean;
+};
+
+type PrayerContributionGraphProps = {
+  prayerId: string;
+  prayerName: string;
+};
+
+/**
+ * GitHub-style contribution grid for one prayer.
+ */
+function PrayerContributionGraph({ prayerId, prayerName }: PrayerContributionGraphProps) {
   const { historyData } = useHabits();
   const colors = useThemeColors();
 
-  // Find all dates where this prayer was completed
-  const completedDatesSet = new Set<string>();
-
-  for (let i = 0; i < historyData.length; ++i) {
-    const item = historyData[i];
-    if (item.statuses[prayerId]) {
-      completedDatesSet.add(item.date);
+  // Collect every date where this specific prayer was marked complete.
+  const completedDates = new Set<string>();
+  for (let i = 0; i < historyData.length; i++) {
+    const entry = historyData[i];
+    if (entry.statuses[prayerId]) {
+      completedDates.add(entry.date);
     }
   }
 
-  // Generate however many consecutive date keys going backward from today
-  const filledDays = [];
+  // Build one cell per day for the last 105 days.
+  const dayCells: DayCell[] = [];
   const now = new Date();
 
-  for (let daysBack = 104; daysBack >= 0; daysBack--) {
-    // Calculate the actual calendar date for this many days back
+  for (let daysBack = DAYS_TO_SHOW - 1; daysBack >= 0; daysBack--) {
     const calendarDate = subDays(now, daysBack);
     const dateKey = getDateKey(calendarDate);
 
-    // shift date by 4 hours to display correctly
+    // Shift by 4 hours so weekday labels line up visually in the grid.
     const shiftedDate = subHours(calendarDate, 4);
 
-    filledDays.push({
+    dayCells.push({
       date: shiftedDate,
-      isCompleted: completedDatesSet.has(dateKey), // check if this date is in the completed set
-      dateKey: dateKey,
+      dateKey,
+      isCompleted: completedDates.has(dateKey),
     });
   }
 
-  // Find the first Sunday to start our grid from
-  let firstSunday;
-  for (let i = 0; i < filledDays.length; i++) {
-    if (filledDays[i].date.getDay() === 0) {
-      // Sunday = 0
-      firstSunday = i;
+  // Find the first Sunday so week columns start on Sunday.
+  let firstSundayIndex = 0;
+  for (let i = 0; i < dayCells.length; i++) {
+    if (dayCells[i].date.getDay() === 0) {
+      firstSundayIndex = i;
       break;
     }
   }
-  // If no Sunday found, start from beginning
-  if (firstSunday === undefined) {
-    firstSunday = 0;
-  }
 
-  // Group days into weeks (columns)
-  const weeks = []; // empty array to be filled with week arrays
-  let currentWeek = []; // current week array to be filled with day objects
+  // Split days into week columns of 7 cells each.
+  const weeks: DayCell[][] = [];
+  let currentWeek: DayCell[] = [];
 
-  for (let i = firstSunday; i < filledDays.length; i++) {
-    const day = filledDays[i];
-    currentWeek.push(day);
+  for (let i = firstSundayIndex; i < dayCells.length; i++) {
+    currentWeek.push(dayCells[i]);
 
-    // push into weeks array when 7 days are added
     if (currentWeek.length === 7) {
       weeks.push(currentWeek);
       currentWeek = [];
     }
   }
 
-  // if there's an incomplete week at the end, fill remaining days with empty slots
+  // Pad the final partial week with blank placeholders.
   if (currentWeek.length > 0) {
     while (currentWeek.length < 7) {
       currentWeek.push({
         date: new Date(0),
-        isCompleted: false,
         dateKey: "",
+        isCompleted: false,
       });
     }
     weeks.push(currentWeek);
   }
 
-  // Letters for days of the week
-  const weekDayLetters = ["S", "M", "T", "W", "T", "F", "S"];
+  const isIOS = Platform.OS === "ios";
 
   return (
-    <ThemedView style={styles.graphContainer}>
-      {/* Prayer title */}
-      <ThemedView style={styles.prayerBox} lightColor={colors.surfaceVariant} darkColor={colors.surfaceVariant}>
+    <View style={styles.graphContainer}>
+      <View style={[styles.prayerBox, { backgroundColor: colors.surfaceVariant, borderRadius: isIOS ? 20 : 12 }]}>
         <ThemedText style={styles.prayerHeader}>{prayerName}</ThemedText>
-      </ThemedView>
+      </View>
 
-      {/* Contribution graph */}
-      <ThemedView style={{ width: "100%", alignItems: "center", justifyContent: "center" }}>
-        <ThemedView style={{ flexDirection: "row", alignItems: "flex-start" }}>
-          {/* Weekday letters column */}
-          <ThemedView style={{ marginRight: 1, marginLeft: 7 }}>
-            {weekDayLetters.map((letter, idx) => (
-              <ThemedText key={idx} style={{ height: 18, textAlign: "center", fontSize: 12, marginVertical: 3.9, marginTop: 0 }}>
+      <View style={[styles.graphCardContent, { backgroundColor: colors.surfaceVariant, borderRadius: isIOS ? 20 : 12 }]}>
+        <View style={styles.graphRow}>
+          <View style={styles.weekdayColumn}>
+            {WEEKDAY_LETTERS.map((letter, index) => (
+              <ThemedText key={index} style={styles.weekdayLetter}>
                 {letter}
               </ThemedText>
             ))}
-          </ThemedView>
-          {/* Streak grid */}
-          <ThemedView style={styles.contributionGraph}>
+          </View>
+
+          <View style={styles.contributionGraph}>
             {weeks.map((week, weekIndex) => (
-              <ThemedView key={weekIndex} style={styles.weekColumn}>
+              <View key={weekIndex} style={styles.weekColumn}>
                 {week.map((day, dayIndex) => (
-                  <ThemedView key={dayIndex} style={styles.dayContainer}>
+                  <View key={dayIndex} style={styles.dayContainer}>
                     {day.dateKey ? (
-                      <ThemedView
-                        style={{
-                          width: 16,
-                          height: 16,
-                          margin: 2,
-                          backgroundColor: day.isCompleted ? colors.primary : colors.surfaceVariant,
-                          borderRadius: 4,
-                        }}
+                      <View
+                        style={[
+                          styles.daySquare,
+                          isIOS ? styles.iosDaySquare : styles.androidDaySquare,
+                          {
+                            backgroundColor: day.isCompleted ? colors.primary : colors.surface,
+                          },
+                        ]}
                       />
                     ) : (
-                      <ThemedView style={styles.emptyDay} />
+                      <View style={styles.emptyDay} />
                     )}
-                  </ThemedView>
+                  </View>
                 ))}
-              </ThemedView>
+              </View>
             ))}
-          </ThemedView>
-        </ThemedView>
-      </ThemedView>
-    </ThemedView>
+          </View>
+        </View>
+      </View>
+    </View>
   );
-};
+}
 
-// streak screen
+/**
+ * History screen.
+ * Shows one contribution graph per prayer.
+ */
 export default function StreakScreen() {
   const { isLoading } = useHabits();
   const insets = useSafeAreaInsets();
+  const colors = useThemeColors();
 
   if (isLoading) {
     return (
-      <ThemedView style={[{ paddingTop: insets.top }]}>
+      <View style={[styles.container, { paddingTop: insets.top, justifyContent: "center", alignItems: "center", backgroundColor: colors.background }]}>
         <ActivityIndicator />
-      </ThemedView>
+      </View>
     );
   }
 
   return (
-    <ThemedView style={[styles.container, { paddingTop: insets.top }]}>
+    <View style={[styles.container, { paddingTop: insets.top, backgroundColor: colors.background }]}>
       <ScrollView contentContainerStyle={styles.contentContainer}>
-        <ThemedText style={styles.header}>Streak</ThemedText>
+        <ThemedText type="title" style={styles.header}>
+          Streak
+        </ThemedText>
         {PRAYER_HABITS.map((prayer) => (
           <PrayerContributionGraph key={prayer.id} prayerId={prayer.id} prayerName={prayer.name} />
         ))}
       </ScrollView>
-    </ThemedView>
+    </View>
   );
 }
 
-// Styles
 const styles = StyleSheet.create({
   container: {
     flex: 1,
   },
   contentContainer: {
     padding: 20,
+    paddingBottom: 120,
   },
   header: {
-    fontSize: 30,
-    fontWeight: "bold",
     textAlign: "center",
-    marginBottom: 24,
-    paddingVertical: 6,
+    marginTop: 64,
+    marginBottom: 48,
   },
   graphContainer: {
-    marginBottom: 25,
+    marginBottom: 20,
     alignItems: "center",
   },
   prayerBox: {
-    paddingTop: 10,
-    borderRadius: 20,
-    marginBottom: 15,
-    width: "90%",
+    paddingVertical: 12,
+    paddingHorizontal: 16,
+    alignItems: "center",
+    marginBottom: 12,
+    width: "100%",
   },
   prayerHeader: {
     fontWeight: "600",
-    marginBottom: 15,
     textAlign: "center",
     fontSize: 22,
+  },
+  graphCardContent: {
+    padding: 16,
+    width: "100%",
+  },
+  graphRow: {
+    flexDirection: "row",
+    alignItems: "flex-start",
+  },
+  weekdayColumn: {
+    marginRight: 4,
+    marginLeft: 4,
+  },
+  weekdayLetter: {
+    height: 18,
+    textAlign: "center",
+    fontSize: 12,
+    marginVertical: 3.9,
+    marginTop: 0,
   },
   contributionGraph: {
     flexDirection: "row",
     justifyContent: "center",
     alignItems: "flex-start",
-    paddingHorizontal: 10,
+    flex: 1,
   },
   weekColumn: {
     flexDirection: "column",
@@ -204,6 +231,17 @@ const styles = StyleSheet.create({
     marginVertical: 1,
     alignItems: "center",
     justifyContent: "center",
+  },
+  daySquare: {
+    width: 16,
+    height: 16,
+    margin: 2,
+  },
+  iosDaySquare: {
+    borderRadius: 4,
+  },
+  androidDaySquare: {
+    borderRadius: 2,
   },
   emptyDay: {
     width: 22,
