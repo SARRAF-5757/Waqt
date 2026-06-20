@@ -6,6 +6,7 @@ import { format } from "date-fns";
 import * as Notifications from "expo-notifications";
 import * as Location from "expo-location";
 import * as Adhan from "adhan";
+import AsyncStorage from "@react-native-async-storage/async-storage";
 
 import { ThemedText } from "@/components/ThemedText";
 import { ThemedView } from "@/components/ThemedView";
@@ -84,6 +85,8 @@ export default function Index() {
       };
 
       const now = new Date();
+      const offsetStr = await AsyncStorage.getItem("endTimeOffset");
+      const offsetMinutes = offsetStr ? parseInt(offsetStr, 10) : 15;
 
       // Schedule notifications for the next 10 days to handle prolonged offline usage
       for (let i = 0; i < 10; i++) {
@@ -91,6 +94,7 @@ export default function Index() {
         targetDate.setDate(now.getDate() + i);
 
         const prayerTimes = new Adhan.PrayerTimes(coordinates, targetDate, params);
+        const sunnahTimes = new Adhan.SunnahTimes(prayerTimes);
 
         for (const key of prayerKeys) {
           const time = prayerTimes[key];
@@ -106,6 +110,36 @@ export default function Index() {
                 date: time,
               },
             });
+          }
+
+          let endTime: Date | null = null;
+          if (key === "fajr") {
+            endTime = prayerTimes.sunrise;
+          } else if (key === "dhuhr") {
+            endTime = prayerTimes.asr;
+          } else if (key === "asr") {
+            endTime = prayerTimes.maghrib;
+          } else if (key === "maghrib") {
+            endTime = prayerTimes.isha;
+          } else if (key === "isha") {
+            endTime = sunnahTimes.middleOfTheNight;
+          }
+
+          if (endTime) {
+            const notificationTime = new Date(endTime.getTime() - offsetMinutes * 60000);
+            if (notificationTime > now) {
+              await Notifications.scheduleNotificationAsync({
+                content: {
+                  title: `${prayerNames[key]} time is ending in ${offsetMinutes} minutes`,
+                  body: "",
+                  sound: true,
+                },
+                trigger: {
+                  type: Notifications.SchedulableTriggerInputTypes.DATE,
+                  date: notificationTime,
+                },
+              });
+            }
           }
         }
       }

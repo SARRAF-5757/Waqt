@@ -1,6 +1,7 @@
-import React from "react";
-import { StyleSheet, ScrollView, TouchableOpacity, Platform } from "react-native";
+import React, { useState, useEffect } from "react";
+import { StyleSheet, ScrollView, TouchableOpacity, Platform, TextInput } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
+import AsyncStorage from "@react-native-async-storage/async-storage";
 
 import { ThemedText } from "@/components/ThemedText";
 import { ThemedView } from "@/components/ThemedView";
@@ -24,6 +25,21 @@ export default function SettingsScreen() {
   const insets = useSafeAreaInsets();
   const themedColors = useThemeColors();
   const { updateTheme, resetTheme, currentColor } = useMaterial3ThemeContext();
+
+  const [endTimeOffset, setEndTimeOffset] = useState("15");
+
+  useEffect(() => {
+    AsyncStorage.getItem("endTimeOffset").then((val) => {
+      if (val) setEndTimeOffset(val);
+    });
+  }, []);
+
+  const handleOffsetChange = (val: string) => {
+    // only allow numbers
+    const numericVal = val.replace(/[^0-9]/g, "");
+    setEndTimeOffset(numericVal);
+    AsyncStorage.setItem("endTimeOffset", numericVal);
+  };
 
   // Check if we're currently in Material You mode
   const isMaterialYouMode = currentColor === MATERIAL_YOU_KEY;
@@ -67,6 +83,22 @@ export default function SettingsScreen() {
       <ScrollView contentContainerStyle={[styles.contentContainer, { paddingTop: insets.top + 20 }]} showsVerticalScrollIndicator={false}>
         {/* Header */}
         <ThemedText style={styles.header}>Settings</ThemedText>
+
+        {/* End Time Notification Setting */}
+        <ThemedView style={[styles.settingContainer, { backgroundColor: themedColors.surfaceVariant }]}>
+          <ThemedText style={[styles.settingLabel, { color: themedColors.onSurfaceVariant }]}>End time notification offset (minutes)</ThemedText>
+          <TextInput
+            style={[styles.textInput, { color: themedColors.onSurface, borderColor: themedColors.outline }]}
+            keyboardType="numeric"
+            value={endTimeOffset}
+            onChangeText={handleOffsetChange}
+            placeholder="15"
+            placeholderTextColor={themedColors.outline}
+          />
+        </ThemedView>
+
+        {/* Theme Settings Header */}
+        <ThemedText style={[styles.sectionHeader, { color: themedColors.onSurface }]}>Theme Colors</ThemedText>
 
         {/* Material You Button (Only shows up on android) */}
         {Platform.OS === "android" && (
@@ -114,6 +146,30 @@ const styles = StyleSheet.create({
     textAlign: "center",
     marginBottom: 24,
     paddingVertical: 6,
+  },
+  sectionHeader: {
+    fontSize: 22,
+    fontWeight: "bold",
+    marginBottom: 16,
+    marginTop: 8,
+  },
+  settingContainer: {
+    padding: 16,
+    borderRadius: 16,
+    marginBottom: 24,
+    flexDirection: "column",
+  },
+  settingLabel: {
+    fontSize: 16,
+    fontWeight: "600",
+    marginBottom: 12,
+  },
+  textInput: {
+    borderWidth: 1,
+    borderRadius: 8,
+    paddingHorizontal: 12,
+    paddingVertical: 10,
+    fontSize: 16,
   },
   colorGrid: {
     flexDirection: "row",
