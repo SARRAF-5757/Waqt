@@ -31,7 +31,7 @@ function PrayerContributionGraph({ prayerId, prayerName }: PrayerContributionGra
   //* ----------------------------- JS ----------------------------- *//
   const { historyData } = useHabits();
   const colors = useThemeColors();
-  const isIOS = Platform.OS === 'ios';
+  const isIOS = Platform.OS === "ios";
 
   /**
    * Collect every date where this specific prayer was marked complete.
@@ -66,7 +66,7 @@ function PrayerContributionGraph({ prayerId, prayerName }: PrayerContributionGra
   }
 
   /**
-   * Find the first Sunday in our list of days, 
+   * Find the first Sunday in our list of days,
    * so that our week columns always start on a Sunday.
    */
   let firstSundayIndex = 0;
@@ -116,13 +116,11 @@ function PrayerContributionGraph({ prayerId, prayerName }: PrayerContributionGra
           <View style={styles.weekdayColumn}>
             {WEEKDAY_LETTERS.map((letter, index) => (
               <View key={index} style={styles.weekdayLetterContainer}>
-                <ThemedText style={[styles.weekdayLetter, { color: colors.onSurfaceVariant }]}>
-                  {letter}
-                </ThemedText>
+                <ThemedText style={[styles.weekdayLetter, { color: colors.onSurfaceVariant }]}>{letter}</ThemedText>
               </View>
             ))}
           </View>
-          
+
           {/* row associated with the day */}
           <View style={styles.contributionGraph}>
             {weeks.map((week, weekIndex) => (
@@ -162,7 +160,7 @@ export default function StreakScreen() {
   const { isLoading } = useHabits();
   const insets = useSafeAreaInsets();
   const colors = useThemeColors();
-  const isIOS = Platform.OS === 'ios';
+  const isIOS = Platform.OS === "ios";
 
   //* --------------------------- RETURN --------------------------- *//
   if (isLoading) {

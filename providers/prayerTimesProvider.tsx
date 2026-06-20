@@ -36,10 +36,7 @@ export function PrayerTimesProvider({ children }: { children: React.ReactNode })
       }
 
       const location = await Location.getCurrentPositionAsync({});
-      const prayerTimes = await computeTodayPrayerTimes(
-        location.coords.latitude,
-        location.coords.longitude,
-      );
+      const prayerTimes = await computeTodayPrayerTimes(location.coords.latitude, location.coords.longitude);
 
       setTimes(prayerTimes);
     } catch (error) {
@@ -53,11 +50,7 @@ export function PrayerTimesProvider({ children }: { children: React.ReactNode })
 
   //* --------------------------- RETURN --------------------------- *//
   // Share prayer times with child components
-  return (
-    <PrayerTimesContext.Provider value={{ times, reload }}>
-      {children}
-    </PrayerTimesContext.Provider>
-  );
+  return <PrayerTimesContext.Provider value={{ times, reload }}>{children}</PrayerTimesContext.Provider>;
 }
 
 /**

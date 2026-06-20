@@ -13,10 +13,7 @@ export type PrayerTimesMap = {
  * Calculates prayer times for the current day based on GPS coordinates and
  * saved calculation preferences
  */
-export async function computeTodayPrayerTimes(
-  latitude: number,
-  longitude: number
-): Promise<PrayerTimesMap> {
+export async function computeTodayPrayerTimes(latitude: number, longitude: number): Promise<PrayerTimesMap> {
   const coordinates = new Adhan.Coordinates(latitude, longitude);
 
   const methodStr = (await AsyncStorage.getItem("calculationMethod")) || "MoonsightingCommittee";

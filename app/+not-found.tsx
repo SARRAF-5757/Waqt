@@ -7,7 +7,7 @@ import { ThemedView } from "@/components/ThemedView";
 /**
  * Fallback screen for missing routes.
  */
-export default function NotFoundScreen() {  
+export default function NotFoundScreen() {
   //* --------------------------- RETURN --------------------------- *//
   return (
     <>

@@ -7,7 +7,7 @@ import { createBottomTabNavigator } from "@react-navigation/bottom-tabs";
 import { useThemeColors } from "@/hooks/useThemeColors";
 
 // use non native bottom navigator if on web
-const TabNavigator = Platform.OS === 'web' ? createBottomTabNavigator().Navigator : createNativeBottomTabNavigator().Navigator;
+const TabNavigator = Platform.OS === "web" ? createBottomTabNavigator().Navigator : createNativeBottomTabNavigator().Navigator;
 const Tabs = withLayoutContext(TabNavigator);
 
 /**
@@ -24,8 +24,8 @@ export default function TabLayout() {
         tabBarActiveTintColor: colors.tabIconSelected,
         tabBarInactiveTintColor: colors.onSurfaceVariant,
         headerShown: false,
-        tabBarControllerMode: 'tabBar',
-        tabBarStyle: Platform.OS === 'android' ? { backgroundColor: colors.surfaceDim || colors.surfaceVariant } : undefined,
+        tabBarControllerMode: "tabBar",
+        tabBarStyle: Platform.OS === "android" ? { backgroundColor: colors.surfaceDim || colors.surfaceVariant } : undefined,
       }}
     >
       <Tabs.Screen
@@ -33,8 +33,8 @@ export default function TabLayout() {
         options={{
           title: "Home",
           tabBarIcon: Platform.select({
-            ios: { type: 'sfSymbol', name: 'house' },
-            android: { type: 'drawableResource', name: 'ic_menu_home' },
+            ios: { type: "sfSymbol", name: "house" },
+            android: { type: "drawableResource", name: "ic_menu_home" },
             default: undefined,
           }),
         }}
@@ -44,8 +44,8 @@ export default function TabLayout() {
         options={{
           title: "History",
           tabBarIcon: Platform.select({
-            ios: { type: 'sfSymbol', name: 'chart.bar' },
-            android: { type: 'drawableResource', name: 'ic_menu_recent_history' },
+            ios: { type: "sfSymbol", name: "chart.bar" },
+            android: { type: "drawableResource", name: "ic_menu_recent_history" },
             default: undefined,
           }),
         }}
@@ -55,8 +55,8 @@ export default function TabLayout() {
         options={{
           title: "Settings",
           tabBarIcon: Platform.select({
-            ios: { type: 'sfSymbol', name: 'gearshape' },
-            android: { type: 'drawableResource', name: 'ic_menu_preferences' },
+            ios: { type: "sfSymbol", name: "gearshape" },
+            android: { type: "drawableResource", name: "ic_menu_preferences" },
             default: undefined,
           }),
         }}

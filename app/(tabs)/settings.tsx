@@ -5,14 +5,7 @@ import AsyncStorage from "@react-native-async-storage/async-storage";
 
 import { CustomPicker } from "@/components/CustomPicker";
 import { ThemedText } from "@/components/ThemedText";
-import {
-  CALCULATION_METHOD_OPTIONS,
-  DEFAULT_SETTINGS,
-  MADHAB_OPTIONS,
-  MATERIAL_YOU_KEY,
-  STORAGE_KEYS,
-  THEME_COLOR_OPTIONS,
-} from "@/constants/Settings";
+import { CALCULATION_METHOD_OPTIONS, DEFAULT_SETTINGS, MADHAB_OPTIONS, MATERIAL_YOU_KEY, STORAGE_KEYS, THEME_COLOR_OPTIONS } from "@/constants/Settings";
 import { useThemeColors } from "@/hooks/useThemeColors";
 import { useMaterial3ThemeContext } from "@/providers/materialYouProvider";
 import { usePrayerTimes } from "@/providers/prayerTimesProvider";
@@ -93,23 +86,16 @@ export default function SettingsScreen() {
   //* --------------------------- RETURN --------------------------- *//
   return (
     <View style={[styles.container, { backgroundColor: colors.background }]}>
-      <ScrollView
-        contentContainerStyle={[styles.contentContainer, { paddingTop: insets.top + 20 }]}
-        showsVerticalScrollIndicator={false}
-      >
+      <ScrollView contentContainerStyle={[styles.contentContainer, { paddingTop: insets.top + 20 }]} showsVerticalScrollIndicator={false}>
         <ThemedText type="title" style={[styles.header, isIOS ? { paddingTop: insets.top + 10 } : undefined]}>
           Settings
         </ThemedText>
 
-        <ThemedText style={[sectionTitleStyle, { color: colors.onSurfaceVariant }]}>
-          Notifications
-        </ThemedText>
+        <ThemedText style={[sectionTitleStyle, { color: colors.onSurfaceVariant }]}>Notifications</ThemedText>
 
         {/* Notification Settings */}
         <View style={[styles.card, { backgroundColor: colors.surfaceVariant, borderRadius: isIOS ? 20 : 12 }]}>
-          <ThemedText style={[styles.settingLabel, { color: colors.onSurfaceVariant }]}>
-            Waqt end time reminder (minutes before)
-          </ThemedText>
+          <ThemedText style={[styles.settingLabel, { color: colors.onSurfaceVariant }]}>Waqt end time reminder (minutes before)</ThemedText>
           <TextInput
             style={[
               styles.textInput,
@@ -129,13 +115,9 @@ export default function SettingsScreen() {
         </View>
 
         {/* Calculation Settings */}
-        <ThemedText style={[sectionTitleStyle, { color: colors.onSurfaceVariant }]}>
-          Prayer Times
-        </ThemedText>
+        <ThemedText style={[sectionTitleStyle, { color: colors.onSurfaceVariant }]}>Prayer Times</ThemedText>
         <View style={[styles.card, { backgroundColor: colors.surfaceVariant, borderRadius: isIOS ? 20 : 12 }]}>
-          <ThemedText style={[styles.settingLabel, { color: colors.onSurfaceVariant }]}>
-            Calculation Method
-          </ThemedText>
+          <ThemedText style={[styles.settingLabel, { color: colors.onSurfaceVariant }]}>Calculation Method</ThemedText>
           <CustomPicker
             key={`calc-${currentColor}-${colorScheme}`}
             label="Calculation Method"
@@ -146,9 +128,7 @@ export default function SettingsScreen() {
         </View>
 
         <View style={[styles.card, { backgroundColor: colors.surfaceVariant, borderRadius: isIOS ? 20 : 12 }]}>
-          <ThemedText style={[styles.settingLabel, { color: colors.onSurfaceVariant }]}>
-            Madhab (Asr Shadow)
-          </ThemedText>
+          <ThemedText style={[styles.settingLabel, { color: colors.onSurfaceVariant }]}>Madhab (Asr Shadow)</ThemedText>
           <CustomPicker
             key={`madhab-${currentColor}-${colorScheme}`}
             label="Madhab (Asr Shadow)"
@@ -215,9 +195,7 @@ export default function SettingsScreen() {
                         styles.themeOption,
                         styles.iosThemeOption,
                         {
-                          backgroundColor: isSelected
-                            ? colors.primaryContainer
-                            : colors.surfaceVariant,
+                          backgroundColor: isSelected ? colors.primaryContainer : colors.surfaceVariant,
                           opacity: pressed ? 0.85 : 1,
                         },
                       ]
@@ -225,9 +203,7 @@ export default function SettingsScreen() {
                         styles.themeOption,
                         styles.androidThemeOption,
                         {
-                          backgroundColor: isSelected
-                            ? colors.primaryContainer
-                            : colors.surfaceVariant,
+                          backgroundColor: isSelected ? colors.primaryContainer : colors.surfaceVariant,
                         },
                       ]
                 }

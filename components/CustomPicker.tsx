@@ -1,13 +1,5 @@
 import React, { useState } from "react";
-import {
-  Modal,
-  Pressable,
-  StyleSheet,
-  ScrollView,
-  View,
-  Platform,
-  useColorScheme,
-} from "react-native";
+import { Modal, Pressable, StyleSheet, ScrollView, View, Platform, useColorScheme } from "react-native";
 import { BlurView } from "expo-blur";
 import { Ionicons } from "@expo/vector-icons";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
@@ -38,7 +30,7 @@ export function CustomPicker({ label, selectedValue, onValueChange, items }: Cus
   const colorScheme = useColorScheme();
   const insets = useSafeAreaInsets();
 
-  const isIOS = Platform.OS === 'ios';
+  const isIOS = Platform.OS === "ios";
 
   /**
    * Find the human-readable label for the currently selected value
@@ -82,14 +74,8 @@ export function CustomPicker({ label, selectedValue, onValueChange, items }: Cus
           },
         ]}
       >
-        <Pressable
-          onPress={() => setModalVisible(true)}
-          android_ripple={{ color: colors.primary }}
-          style={[styles.pickerButtonPressable]}
-        >
-          <ThemedText style={[styles.pickerButtonText, { color: colors.onSurface }]}>
-            {selectedLabel}
-          </ThemedText>
+        <Pressable onPress={() => setModalVisible(true)} android_ripple={{ color: colors.primary }} style={[styles.pickerButtonPressable]}>
+          <ThemedText style={[styles.pickerButtonText, { color: colors.onSurface }]}>{selectedLabel}</ThemedText>
           <Ionicons name="chevron-down" size={20} color={colors.onSurfaceVariant} />
         </Pressable>
       </View>
@@ -102,7 +88,7 @@ export function CustomPicker({ label, selectedValue, onValueChange, items }: Cus
 
           {isIOS ? (
             <View style={[styles.iosSheetContainer, { paddingBottom: Math.max(insets.bottom, 12) + 12 }]}>
-              <BlurView intensity={80} tint={colorScheme === 'dark' ? 'dark' : 'light'} style={styles.iosSheetBlur}>
+              <BlurView intensity={80} tint={colorScheme === "dark" ? "dark" : "light"} style={styles.iosSheetBlur}>
                 <View style={[styles.iosSheetContent, { borderColor: colors.outline }]}>
                   <ThemedText style={[styles.modalTitle, { color: colors.onSurface }]}>{label}</ThemedText>
                   {/* List of Options */}
@@ -132,9 +118,7 @@ export function CustomPicker({ label, selectedValue, onValueChange, items }: Cus
                           >
                             {item.label}
                           </ThemedText>
-                          {isSelected && (
-                            <Ionicons name="checkmark" size={20} color={colors.onSecondaryContainer} />
-                          )}
+                          {isSelected && <Ionicons name="checkmark" size={20} color={colors.onSecondaryContainer} />}
                         </Pressable>
                       );
                     })}
@@ -142,8 +126,7 @@ export function CustomPicker({ label, selectedValue, onValueChange, items }: Cus
                 </View>
               </BlurView>
             </View>
-          )
-          : (
+          ) : (
             <View style={styles.androidDialogOverlay}>
               <View
                 style={[
@@ -182,9 +165,7 @@ export function CustomPicker({ label, selectedValue, onValueChange, items }: Cus
                         >
                           {item.label}
                         </ThemedText>
-                        {isSelected && (
-                          <Ionicons name="checkmark" size={20} color={colors.onSecondaryContainer} />
-                        )}
+                        {isSelected && <Ionicons name="checkmark" size={20} color={colors.onSecondaryContainer} />}
                       </Pressable>
                     );
                   })}

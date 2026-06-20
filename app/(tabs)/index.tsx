@@ -1,14 +1,5 @@
 import React, { useEffect } from "react";
-import {
-  StyleSheet,
-  ScrollView,
-  useColorScheme,
-  Image,
-  AppState,
-  View,
-  Pressable,
-  Platform,
-} from "react-native";
+import { StyleSheet, ScrollView, useColorScheme, Image, AppState, View, Pressable, Platform } from "react-native";
 import Checkbox from "expo-checkbox";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { format } from "date-fns";
@@ -31,7 +22,7 @@ configureNotificationHandler();
  */
 export default function HomeScreen() {
   //* ----------------------------- JS ----------------------------- *//
-  
+
   const { historyData, updateHabitStatus } = useHabits();
   const { times } = usePrayerTimes();
   const colors = useThemeColors();
@@ -40,10 +31,10 @@ export default function HomeScreen() {
 
   const todayKey = getDateKey();
   const todayStatuses = getStatusesForDate(historyData, todayKey);
-  const isIOS = Platform.OS === 'ios';
+  const isIOS = Platform.OS === "ios";
 
   /**
-   * Automatically schedule notifications and re-schedule them 
+   * Automatically schedule notifications and re-schedule them
    * whenever the app comes back to the foreground.
    */
   useEffect(() => {
@@ -92,13 +83,11 @@ export default function HomeScreen() {
               style={({ pressed }) => [
                 styles.prayerCard,
                 {
-                  backgroundColor: isCompleted 
-                    ? colors.primaryContainer 
-                    : colors.surfaceDim || colors.surfaceVariant,
+                  backgroundColor: isCompleted ? colors.primaryContainer : colors.surfaceDim || colors.surfaceVariant,
                   opacity: pressed ? 0.8 : 1,
                   borderRadius: isIOS ? 20 : 12,
                 },
-                !isIOS && { elevation: 2 }
+                !isIOS && { elevation: 2 },
               ]}
             >
               <View style={styles.habitRow}>
@@ -108,9 +97,7 @@ export default function HomeScreen() {
                   onValueChange={() => handleTogglePrayer(habit.id)}
                   style={styles.checkbox}
                 />
-                <ThemedText style={[styles.habitName, { color: isCompleted ? colors.onPrimaryContainer : colors.onSurface }]}>
-                  {habit.name}
-                </ThemedText>
+                <ThemedText style={[styles.habitName, { color: isCompleted ? colors.onPrimaryContainer : colors.onSurface }]}>{habit.name}</ThemedText>
                 <View
                   style={[
                     styles.timeContainer,
@@ -119,14 +106,7 @@ export default function HomeScreen() {
                     },
                   ]}
                 >
-                  <ThemedText
-                    style={[
-                      styles.habitTime,
-                      { color: colors.onSurface },
-                    ]}
-                  >
-                    {timeLabel}
-                  </ThemedText>
+                  <ThemedText style={[styles.habitTime, { color: colors.onSurface }]}>{timeLabel}</ThemedText>
                 </View>
               </View>
             </Pressable>
@@ -157,7 +137,7 @@ const styles = StyleSheet.create({
   },
   prayerCard: {
     marginBottom: 16,
-    overflow: 'hidden',
+    overflow: "hidden",
   },
   habitRow: {
     flexDirection: "row",

@@ -11,21 +11,12 @@ export type ThemedTextProps = TextProps & {
 /**
  * Text component that automatically uses the current app theme colors.
  */
-export function ThemedText({
-  style,
-  lightColor,
-  darkColor,
-  type = "default",
-  ...rest
-}: ThemedTextProps) {
+export function ThemedText({ style, lightColor, darkColor, type = "default", ...rest }: ThemedTextProps) {
   //* ----------------------------- JS ----------------------------- *//
   const colorScheme = useColorScheme();
   const colors = useThemeColors();
 
-  const color =
-    colorScheme === "dark"
-      ? darkColor ?? lightColor ?? colors.onSurface
-      : lightColor ?? darkColor ?? colors.onSurface;
+  const color = colorScheme === "dark" ? (darkColor ?? lightColor ?? colors.onSurface) : (lightColor ?? darkColor ?? colors.onSurface);
 
   //* --------------------------- RETURN --------------------------- *//
   // Render a React Native Text with dynamic theme colors

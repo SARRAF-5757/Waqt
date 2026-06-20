@@ -39,7 +39,11 @@ function MaterialYouThemeLayer({
   const [activeColor, setActiveColor] = useState(initialColor);
   const useMaterialYou = activeColor === MATERIAL_YOU_KEY;
 
-  const { theme, updateTheme: libraryUpdateTheme, resetTheme: libraryResetTheme } = useMaterial3Theme({
+  const {
+    theme,
+    updateTheme: libraryUpdateTheme,
+    resetTheme: libraryResetTheme,
+  } = useMaterial3Theme({
     sourceColor: useMaterialYou ? undefined : activeColor,
     fallbackSourceColor,
   });
@@ -64,7 +68,7 @@ function MaterialYouThemeLayer({
     await onMaterialYouSelected();
   };
 
-  // Sync activeColor if initialColor changes from the parent provider 
+  // Sync activeColor if initialColor changes from the parent provider
   // (e.g., if loaded from storage later, though we only mount after load)
   useEffect(() => {
     setActiveColor(initialColor);
@@ -89,10 +93,7 @@ function MaterialYouThemeLayer({
  * Loads the saved theme color from storage and exposes Material 3 colors
  * to the rest of the app
  */
-export function MaterialYouProvider({
-  children,
-  fallbackSourceColor = DEFAULT_SETTINGS.fallbackThemeColor,
-}: MaterialYouProviderProps) {
+export function MaterialYouProvider({ children, fallbackSourceColor = DEFAULT_SETTINGS.fallbackThemeColor }: MaterialYouProviderProps) {
   //* ----------------------------- JS ----------------------------- *//
   const [currentColor, setCurrentColor] = useState<string | null>(null);
   const [isLoading, setIsLoading] = useState(true);

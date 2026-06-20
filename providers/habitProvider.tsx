@@ -90,11 +90,7 @@ export function HabitProvider({ children }: { children: React.ReactNode }) {
 
   //* --------------------------- RETURN --------------------------- *//
   // Share history state with child components
-  return (
-    <HabitContext.Provider value={value}>
-      {children}
-    </HabitContext.Provider>
-  );
+  return <HabitContext.Provider value={value}>{children}</HabitContext.Provider>;
 }
 
 /**

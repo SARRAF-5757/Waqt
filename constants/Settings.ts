@@ -29,12 +29,12 @@ export const CALCULATION_METHOD_OPTIONS = [
   { label: "Qatar", value: "Qatar" },
   { label: "Singapore", value: "Singapore" },
   { label: "Turkey", value: "Turkey" },
-  { label: "Tehran", value: "Tehran" }
+  { label: "Tehran", value: "Tehran" },
 ];
 
 export const MADHAB_OPTIONS = [
   { label: "Shafi/Maliki/Hanbali", value: "shafi" },
-  { label: "Hanafi", value: "hanafi" }
+  { label: "Hanafi", value: "hanafi" },
 ];
 
 export const THEME_COLOR_OPTIONS = [
@@ -46,7 +46,7 @@ export const THEME_COLOR_OPTIONS = [
   { name: "Purple", color: "#AF52DE" },
   { name: "Red", color: "#FF3B30" },
   { name: "Teal", color: "#5AC8FA" },
-  { name: "Yellow", color: "#FFCC00" }
+  { name: "Yellow", color: "#FFCC00" },
 ];
 
 export const MATERIAL_YOU_KEY = "Material You";

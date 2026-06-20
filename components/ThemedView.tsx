@@ -15,14 +15,9 @@ export function ThemedView({ style, lightColor, darkColor, ...otherProps }: Them
   const colorScheme = useColorScheme();
   const colors = useThemeColors();
 
-  const backgroundColor =
-    colorScheme === "dark"
-      ? darkColor ?? lightColor ?? colors.background
-      : lightColor ?? darkColor ?? colors.background;
+  const backgroundColor = colorScheme === "dark" ? (darkColor ?? lightColor ?? colors.background) : (lightColor ?? darkColor ?? colors.background);
 
   //* --------------------------- RETURN --------------------------- *//
   // Render a React Native View with dynamic theme colors
-  return (
-    <View style={[{ backgroundColor }, style]} {...otherProps} />
-  );
+  return <View style={[{ backgroundColor }, style]} {...otherProps} />;
 }
