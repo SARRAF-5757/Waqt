@@ -10,6 +10,7 @@ type HabitContextValue = {
   historyData: HabitHistoryItem[];
   isLoading: boolean;
   updateHabitStatus: (date: string, prayerId: string, completed: boolean) => Promise<void>;
+  deleteAllHistory: () => Promise<void>;
   reloadData: () => Promise<void>;
 };
 
@@ -81,10 +82,36 @@ export function HabitProvider({ children }: { children: React.ReactNode }) {
     }
   };
 
+  /**
+   * Deletes all prayer history records from AsyncStorage and resets state.
+   */
+  const deleteAllHistory = async () => {
+    try {
+      const allKeys = await AsyncStorage.getAllKeys();
+      const dateKeys: string[] = [];
+
+      for (let i = 0; i < allKeys.length; i++) {
+        if (DATE_KEY_PATTERN.test(allKeys[i])) {
+          dateKeys.push(allKeys[i]);
+        }
+      }
+
+      if (dateKeys.length > 0) {
+        await AsyncStorage.multiRemove(dateKeys);
+      }
+      
+      setHistoryData([]);
+    } catch (error) {
+      console.error("Failed to delete habit history", error);
+      throw error;
+    }
+  };
+
   const value: HabitContextValue = {
     historyData,
     isLoading,
     updateHabitStatus,
+    deleteAllHistory,
     reloadData: loadHistoryData,
   };
 

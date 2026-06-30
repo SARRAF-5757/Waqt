@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from "react";
-import { StyleSheet, ScrollView, Pressable, Platform, TextInput, View, useColorScheme } from "react-native";
+import { StyleSheet, ScrollView, Pressable, Platform, TextInput, View, useColorScheme, Alert } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 
@@ -9,6 +9,7 @@ import { CALCULATION_METHOD_OPTIONS, DEFAULT_SETTINGS, MADHAB_OPTIONS, MATERIAL_
 import { useThemeColors } from "@/hooks/useThemeColors";
 import { useMaterial3ThemeContext } from "@/providers/materialYouProvider";
 import { usePrayerTimes } from "@/providers/prayerTimesProvider";
+import { useHabits } from "@/providers/habitProvider";
 
 /**
  * Settings screen
@@ -21,6 +22,7 @@ export default function SettingsScreen() {
   const colorScheme = useColorScheme();
   const { updateTheme, resetTheme, currentColor } = useMaterial3ThemeContext();
   const { reload: reloadPrayerTimes } = usePrayerTimes();
+  const { deleteAllHistory } = useHabits();
 
   const [endTimeOffset, setEndTimeOffset] = useState<string>(DEFAULT_SETTINGS.endTimeOffset);
   const [calculationMethod, setCalculationMethod] = useState<string>(DEFAULT_SETTINGS.calculationMethod);
@@ -77,6 +79,20 @@ export default function SettingsScreen() {
     AsyncStorage.setItem(STORAGE_KEYS.madhab, value).then(() => {
       reloadPrayerTimes();
     });
+  };
+
+  /**
+   * Prompts the user for confirmation before deleting all history.
+   */
+  const handleDeleteAll = () => {
+    Alert.alert(
+      "Delete all records",
+      "Are you sure you want to delete all prayer time history recorded so far? This action cannot be undone.",
+      [
+        { text: "Cancel", style: "cancel" },
+        { text: "Delete", style: "destructive", onPress: () => deleteAllHistory() },
+      ]
+    );
   };
 
   const isIOS = Platform.OS === "ios";
@@ -223,6 +239,25 @@ export default function SettingsScreen() {
             );
           })}
         </View>
+
+        {/* Delete Data Section */}
+        <ThemedText style={[sectionTitleStyle, { color: colors.onSurfaceVariant, marginTop: 32 }]}>⚠️ Danger Zone ⚠️</ThemedText>
+        <Pressable
+          onPress={handleDeleteAll}
+          android_ripple={{ color: colors.error }}
+          style={({ pressed }) => [
+            styles.deleteButton,
+            {
+              backgroundColor: colors.errorContainer,
+              opacity: pressed && isIOS ? 0.7 : 1,
+            },
+          ]}
+        >
+          <ThemedText style={[styles.deleteButtonText, { color: colors.error }]}>
+            DELETE ALL RECORDS
+          </ThemedText>
+        </Pressable>
+
       </ScrollView>
     </View>
   );
@@ -315,5 +350,17 @@ const styles = StyleSheet.create({
     fontSize: 16,
     fontWeight: "600",
     textAlign: "center",
+  },
+  deleteButton: {
+    width: "100%",
+    paddingVertical: 16,
+    borderRadius: 30,
+    alignItems: "center",
+    justifyContent: "center",
+    marginBottom: 20,
+  },
+  deleteButtonText: {
+    fontSize: 16,
+    fontWeight: "bold",
   },
 });
