@@ -25,7 +25,17 @@ export function configureNotificationHandler() {
  * Schedules notifications for the next 10 days based on calculated prayer times
  * and user preferences (like calculation method and warning offset).
  */
+/**
+ * Mutex lock to prevent concurrent executions of setupPrayerNotifications.
+ * This avoids duplicate notifications from being scheduled during app startup
+ * when both useEffect and AppState transitions may trigger it simultaneously.
+ */
+let isScheduling = false;
+
 export const setupPrayerNotifications = async () => {
+  if (isScheduling) return;
+  isScheduling = true;
+
   try {
     let { status: locationStatus } = await Location.requestForegroundPermissionsAsync();
     let { status: notifStatus } = await Notifications.requestPermissionsAsync();
@@ -125,5 +135,7 @@ export const setupPrayerNotifications = async () => {
     }
   } catch (error) {
     console.error("Failed to Schedule Notifications", error);
+  } finally {
+    isScheduling = false;
   }
 };
