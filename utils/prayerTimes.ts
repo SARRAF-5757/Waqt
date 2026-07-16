@@ -3,10 +3,15 @@ import * as Adhan from "adhan";
 
 export type PrayerTimesMap = {
   fajr: Date | undefined;
+  fajrEnd: Date | undefined;
   dhuhr: Date | undefined;
+  dhuhrEnd: Date | undefined;
   asr: Date | undefined;
+  asrEnd: Date | undefined;
   maghrib: Date | undefined;
+  maghribEnd: Date | undefined;
   isha: Date | undefined;
+  ishaEnd: Date | undefined;
 };
 
 /**
@@ -24,12 +29,18 @@ export async function computeTodayPrayerTimes(latitude: number, longitude: numbe
 
   const now = new Date();
   const prayerTimes = new Adhan.PrayerTimes(coordinates, now, params);
+  const sunnahTimes = new Adhan.SunnahTimes(prayerTimes);
 
   return {
     fajr: prayerTimes.fajr,
+    fajrEnd: prayerTimes.sunrise,
     dhuhr: prayerTimes.dhuhr,
+    dhuhrEnd: prayerTimes.asr,
     asr: prayerTimes.asr,
+    asrEnd: prayerTimes.maghrib,
     maghrib: prayerTimes.maghrib,
+    maghribEnd: prayerTimes.isha,
     isha: prayerTimes.isha,
+    ishaEnd: sunnahTimes.middleOfTheNight,
   };
 }

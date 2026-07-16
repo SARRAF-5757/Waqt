@@ -19,10 +19,15 @@ export function PrayerTimesProvider({ children }: { children: React.ReactNode })
   //* ----------------------------- JS ----------------------------- *//
   const [times, setTimes] = useState<PrayerTimesMap>({
     fajr: undefined,
+    fajrEnd: undefined,
     dhuhr: undefined,
+    dhuhrEnd: undefined,
     asr: undefined,
+    asrEnd: undefined,
     maghrib: undefined,
+    maghribEnd: undefined,
     isha: undefined,
+    ishaEnd: undefined,
   });
 
   /**

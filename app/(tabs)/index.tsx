@@ -74,7 +74,17 @@ export default function HomeScreen() {
         {PRAYER_HABITS.map((habit) => {
           const isCompleted = todayStatuses[habit.id] || false;
           const prayerTime = times[habit.id as keyof typeof times];
-          const timeLabel = prayerTime ? format(prayerTime, "h:mm aa ") : "--:--";
+          const endKey = `${habit.id}End` as keyof typeof times;
+          const endTime = times[endKey];
+
+          const formatTimeStr = (date?: Date) => {
+            if (!date) return "--:--";
+            const str = format(date, "h:mm a");
+            return str.length < 8 ? "\u2007" + str : str; // Pad with a space so single digit hours visually align with double digit hours
+          };
+
+          const startTimeLabel = formatTimeStr(prayerTime);
+          const endTimeLabel = formatTimeStr(endTime);
 
           return (
             <Pressable
@@ -98,15 +108,14 @@ export default function HomeScreen() {
                   style={styles.checkbox}
                 />
                 <ThemedText style={[styles.habitName, { color: isCompleted ? colors.onPrimaryContainer : colors.onSurface }]}>{habit.name}</ThemedText>
-                <View
-                  style={[
-                    styles.timeContainer,
-                    {
-                      backgroundColor: colors.surface,
-                    },
-                  ]}
-                >
-                  <ThemedText style={[styles.habitTime, { color: colors.onSurface }]}>{timeLabel}</ThemedText>
+                <View style={styles.timesWrapper}>
+                  <View style={[styles.timeContainer, { backgroundColor: colors.surface }]}>
+                    <ThemedText style={[styles.habitTime, { color: colors.onSurface }]}>{startTimeLabel}</ThemedText>
+                  </View>
+                  <ThemedText style={[styles.timeDash, { color: colors.onSurface }]}>—</ThemedText>
+                  <View style={[styles.timeContainer, { backgroundColor: colors.surface }]}>
+                    <ThemedText style={[styles.habitTime, { color: colors.onSurface }]}>{endTimeLabel}</ThemedText>
+                  </View>
                 </View>
               </View>
             </Pressable>
@@ -154,13 +163,22 @@ const styles = StyleSheet.create({
     fontSize: 18,
     flex: 1,
   },
+  timesWrapper: {
+    flexDirection: "row",
+    alignItems: "center",
+  },
+  timeDash: {
+    marginHorizontal: 5,
+    fontSize: 15,
+    fontWeight: "900",
+  },
   timeContainer: {
-    paddingHorizontal: 10,
+    paddingHorizontal: 8,
     paddingVertical: 4,
     borderRadius: 8,
   },
   habitTime: {
-    fontSize: 16,
+    fontSize: 15,
     fontWeight: "600",
   },
 });
