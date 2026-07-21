@@ -2,6 +2,7 @@ import React, { useEffect, useState } from "react";
 import { StyleSheet, ScrollView, Pressable, Platform, TextInput, View, useColorScheme, Alert } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import AsyncStorage from "@react-native-async-storage/async-storage";
+import Checkbox from "expo-checkbox";
 
 import { CustomPicker } from "@/components/CustomPicker";
 import { ThemedText } from "@/components/ThemedText";
@@ -27,6 +28,8 @@ export default function SettingsScreen() {
   const [endTimeOffset, setEndTimeOffset] = useState<string>(DEFAULT_SETTINGS.endTimeOffset);
   const [calculationMethod, setCalculationMethod] = useState<string>(DEFAULT_SETTINGS.calculationMethod);
   const [madhab, setMadhab] = useState<string>(DEFAULT_SETTINGS.madhab);
+  const [showStartTime, setShowStartTime] = useState<boolean>(DEFAULT_SETTINGS.showStartTime === "true");
+  const [showEndTime, setShowEndTime] = useState<boolean>(DEFAULT_SETTINGS.showEndTime === "true");
 
   /**
    * Load saved settings from AsyncStorage when the screen mounts.
@@ -45,6 +48,16 @@ export default function SettingsScreen() {
     AsyncStorage.getItem(STORAGE_KEYS.madhab).then((value) => {
       if (value) {
         setMadhab(value);
+      }
+    });
+    AsyncStorage.getItem(STORAGE_KEYS.showStartTime).then((value) => {
+      if (value) {
+        setShowStartTime(value === "true");
+      }
+    });
+    AsyncStorage.getItem(STORAGE_KEYS.showEndTime).then((value) => {
+      if (value) {
+        setShowEndTime(value === "true");
       }
     });
   }, []);
@@ -80,6 +93,17 @@ export default function SettingsScreen() {
       reloadPrayerTimes();
     });
   };
+
+  const handleShowStartTimeChange = (value: boolean) => {
+    setShowStartTime(value);
+    AsyncStorage.setItem(STORAGE_KEYS.showStartTime, value ? "true" : "false");
+  };
+
+  const handleShowEndTimeChange = (value: boolean) => {
+    setShowEndTime(value);
+    AsyncStorage.setItem(STORAGE_KEYS.showEndTime, value ? "true" : "false");
+  };
+
 
   /**
    * Prompts the user for confirmation before deleting all history.
@@ -154,8 +178,31 @@ export default function SettingsScreen() {
           />
         </View>
 
-        {/* Theme Settings */}
-        <ThemedText style={[sectionTitleStyle, { color: colors.onSurfaceVariant }]}>Theme</ThemedText>
+        {/* Appearance Settings */}
+        <ThemedText style={[sectionTitleStyle, { color: colors.onSurfaceVariant }]}>Appearance</ThemedText>
+        
+        <View style={[styles.card, { backgroundColor: colors.surfaceVariant, borderRadius: isIOS ? 20 : 12 }]}>
+          <ThemedText style={[styles.settingLabel, { color: colors.onSurfaceVariant }]}>Time Display</ThemedText>
+          <View style={styles.checkboxRow}>
+            <Checkbox
+              color={showStartTime ? colors.primary : colors.onSurfaceVariant}
+              value={showStartTime}
+              onValueChange={handleShowStartTimeChange}
+              style={styles.checkbox}
+            />
+            <ThemedText style={{ color: colors.onSurface }}>Show Starting Time</ThemedText>
+          </View>
+          <View style={[styles.checkboxRow, { marginTop: 12 }]}>
+            <Checkbox
+              color={showEndTime ? colors.primary : colors.onSurfaceVariant}
+              value={showEndTime}
+              onValueChange={handleShowEndTimeChange}
+              style={styles.checkbox}
+            />
+            <ThemedText style={{ color: colors.onSurface }}>Show Ending Time</ThemedText>
+          </View>
+        </View>
+
         {/* Material You theme option (only on android) */}
         {Platform.OS === "android" && (
           <Pressable
@@ -291,6 +338,20 @@ const styles = StyleSheet.create({
     fontWeight: "bold",
     marginBottom: 16,
     marginTop: 8,
+  },
+  historyIcon: {
+    marginLeft: 6,
+    opacity: 0.8,
+  },
+  checkboxRow: {
+    flexDirection: "row",
+    alignItems: "center",
+  },
+  checkbox: {
+    width: 20,
+    height: 20,
+    borderRadius: 6,
+    marginRight: 12,
   },
   card: {
     padding: 16,

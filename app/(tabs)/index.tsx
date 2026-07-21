@@ -1,11 +1,14 @@
-import React, { useEffect } from "react";
+import React, { useEffect, useState, useCallback } from "react";
 import { StyleSheet, ScrollView, useColorScheme, Image, AppState, View, Pressable, Platform } from "react-native";
 import Checkbox from "expo-checkbox";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { format } from "date-fns";
+import { useFocusEffect } from "expo-router";
+import AsyncStorage from "@react-native-async-storage/async-storage";
 
 import { ThemedText } from "@/components/ThemedText";
 import { PRAYER_HABITS } from "@/constants/Habits";
+import { STORAGE_KEYS } from "@/constants/Settings";
 import { useThemeColors } from "@/hooks/useThemeColors";
 import { useHabits } from "@/providers/habitProvider";
 import { usePrayerTimes } from "@/providers/prayerTimesProvider";
@@ -22,6 +25,19 @@ configureNotificationHandler();
  */
 export default function HomeScreen() {
   //* ----------------------------- JS ----------------------------- *//
+  const [showStartTime, setShowStartTime] = useState<boolean>(true);
+  const [showEndTime, setShowEndTime] = useState<boolean>(true);
+
+  useFocusEffect(
+    useCallback(() => {
+      AsyncStorage.getItem(STORAGE_KEYS.showStartTime).then((value) => {
+        if (value !== null) setShowStartTime(value === "true");
+      });
+      AsyncStorage.getItem(STORAGE_KEYS.showEndTime).then((value) => {
+        if (value !== null) setShowEndTime(value === "true");
+      });
+    }, [])
+  );
 
   const { historyData, updateHabitStatus } = useHabits();
   const { times } = usePrayerTimes();
@@ -109,13 +125,19 @@ export default function HomeScreen() {
                 />
                 <ThemedText style={[styles.habitName, { color: isCompleted ? colors.onPrimaryContainer : colors.onSurface }]}>{habit.name}</ThemedText>
                 <View style={styles.timesWrapper}>
-                  <View style={[styles.timeContainer, { backgroundColor: colors.surface }]}>
-                    <ThemedText style={[styles.habitTime, { color: colors.onSurface }]}>{startTimeLabel}</ThemedText>
-                  </View>
-                  <ThemedText style={[styles.timeDash, { color: colors.onSurface }]}>—</ThemedText>
-                  <View style={[styles.timeContainer, { backgroundColor: colors.surface }]}>
-                    <ThemedText style={[styles.habitTime, { color: colors.onSurface }]}>{endTimeLabel}</ThemedText>
-                  </View>
+                  {showStartTime && (
+                    <View style={[styles.timeContainer, { backgroundColor: colors.surface }]}>
+                      <ThemedText style={[styles.habitTime, { color: colors.onSurface }]}>{startTimeLabel}</ThemedText>
+                    </View>
+                  )}
+                  {showStartTime && showEndTime && (
+                    <ThemedText style={[styles.timeDash, { color: colors.onSurface }]}>—</ThemedText>
+                  )}
+                  {showEndTime && (
+                    <View style={[styles.timeContainer, { backgroundColor: colors.surface }]}>
+                      <ThemedText style={[styles.habitTime, { color: colors.onSurface }]}>{endTimeLabel}</ThemedText>
+                    </View>
+                  )}
                 </View>
               </View>
             </Pressable>

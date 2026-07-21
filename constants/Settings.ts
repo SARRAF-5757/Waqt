@@ -8,6 +8,8 @@ export const DEFAULT_SETTINGS = {
   madhab: "shafi",
   themeColor: "#007AFF",
   fallbackThemeColor: "#007AFF",
+  showStartTime: "true",
+  showEndTime: "true",
 };
 
 export const STORAGE_KEYS = {
@@ -15,6 +17,8 @@ export const STORAGE_KEYS = {
   calculationMethod: "calculationMethod",
   madhab: "madhab",
   themeColor: "themeColor",
+  showStartTime: "showStartTime",
+  showEndTime: "showEndTime",
 };
 
 export const CALCULATION_METHOD_OPTIONS = [
@@ -42,7 +46,6 @@ export const THEME_COLOR_OPTIONS = [
   { name: "Green", color: "#34C759" },
   { name: "Indigo", color: "#5856D6" },
   { name: "Orange", color: "#FF9500" },
-  { name: "Pink", color: "#FF2D55" },
   { name: "Purple", color: "#AF52DE" },
   { name: "Red", color: "#FF3B30" },
   { name: "Teal", color: "#5AC8FA" },
