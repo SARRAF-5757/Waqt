@@ -3,6 +3,7 @@ import * as Location from "expo-location";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import { Platform } from "react-native";
 import * as Adhan from "adhan";
+import { getDateKey } from "@/utils/dateKey";
 
 //* ----------------------------- JS ----------------------------- *//
 
@@ -22,18 +23,26 @@ export function configureNotificationHandler() {
 }
 
 /**
- * Schedules notifications for the next 10 days based on calculated prayer times
- * and user preferences (like calculation method and warning offset).
- */
-/**
  * Mutex lock to prevent concurrent executions of setupPrayerNotifications.
  * This avoids duplicate notifications from being scheduled during app startup
  * when both useEffect and AppState transitions may trigger it simultaneously.
  */
 let isScheduling = false;
+/**
+ * Flag to ensure that if the user toggles a prayer while notifications
+ * are currently being scheduled, the function will run again to capture the new state.
+ */
+let needsReschedule = false;
 
+/**
+ * Schedules notifications for the next 10 days based on calculated prayer times
+ * and user preferences (like calculation method and warning offset).
+ */
 export const setupPrayerNotifications = async () => {
-  if (isScheduling) return;
+  if (isScheduling) {
+    needsReschedule = true;
+    return;
+  }
   isScheduling = true;
 
   try {
@@ -83,10 +92,19 @@ export const setupPrayerNotifications = async () => {
       const targetDate = new Date();
       targetDate.setDate(now.getDate() + i);
 
+      const dateKey = getDateKey(targetDate);
+      const statusesStr = await AsyncStorage.getItem(dateKey);
+      const statuses = statusesStr ? JSON.parse(statusesStr) : {};
+
       const prayerTimes = new Adhan.PrayerTimes(coordinates, targetDate, params);
       const sunnahTimes = new Adhan.SunnahTimes(prayerTimes);
 
       for (const key of prayerKeys) {
+        // Skip scheduling both start and end notifications if the prayer is already completed for the day
+        if (statuses[key]) {
+          continue;
+        }
+
         const time = prayerTimes[key];
         if (time && time > now) {
           await Notifications.scheduleNotificationAsync({
@@ -137,5 +155,9 @@ export const setupPrayerNotifications = async () => {
     console.error("Failed to Schedule Notifications", error);
   } finally {
     isScheduling = false;
+    if (needsReschedule) {
+      needsReschedule = false;
+      setupPrayerNotifications();
+    }
   }
 };

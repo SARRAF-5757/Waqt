@@ -25,9 +25,13 @@ configureNotificationHandler();
  */
 export default function HomeScreen() {
   //* ----------------------------- JS ----------------------------- *//
+  // Settings for controlling which prayer times are visually rendered
   const [showStartTime, setShowStartTime] = useState<boolean>(true);
   const [showEndTime, setShowEndTime] = useState<boolean>(true);
 
+  /**
+   * Re-fetches the user's display preferences each time the tab comes into focus.
+   */
   useFocusEffect(
     useCallback(() => {
       AsyncStorage.getItem(STORAGE_KEYS.showStartTime).then((value) => {
@@ -36,7 +40,7 @@ export default function HomeScreen() {
       AsyncStorage.getItem(STORAGE_KEYS.showEndTime).then((value) => {
         if (value !== null) setShowEndTime(value === "true");
       });
-    }, [])
+    }, []),
   );
 
   const { historyData, updateHabitStatus } = useHabits();
@@ -69,11 +73,14 @@ export default function HomeScreen() {
 
   /**
    * Toggles the completion status of a prayer for today.
+   * Re-runs setupPrayerNotifications so any newly completed prayers
+   * get their scheduled reminders immediately cancelled.
    * @param prayerId - The unique ID of the prayer (e.g. "fajr")
    */
-  const handleTogglePrayer = (prayerId: string) => {
+  const handleTogglePrayer = async (prayerId: string) => {
     const newValue = !todayStatuses[prayerId];
-    updateHabitStatus(todayKey, prayerId, newValue);
+    await updateHabitStatus(todayKey, prayerId, newValue);
+    setupPrayerNotifications();
   };
 
   const logoSource = colorScheme === "dark" ? require("@/assets/images/icons/splash-icon-light.png") : require("@/assets/images/icons/splash-icon-dark.png");
@@ -93,10 +100,13 @@ export default function HomeScreen() {
           const endKey = `${habit.id}End` as keyof typeof times;
           const endTime = times[endKey];
 
+          /**
+           * Formats a given Date to "h:mm a" but ensures perfect visual alignment.
+           */
           const formatTimeStr = (date?: Date) => {
             if (!date) return "--:--";
             const str = format(date, "h:mm a");
-            return str.length < 8 ? "\u2007" + str : str; // Pad with a space so single digit hours visually align with double digit hours
+            return str.length < 8 ? "\u2007" + str : str;
           };
 
           const startTimeLabel = formatTimeStr(prayerTime);
@@ -130,9 +140,7 @@ export default function HomeScreen() {
                       <ThemedText style={[styles.habitTime, { color: colors.onSurface }]}>{startTimeLabel}</ThemedText>
                     </View>
                   )}
-                  {showStartTime && showEndTime && (
-                    <ThemedText style={[styles.timeDash, { color: colors.onSurface }]}>—</ThemedText>
-                  )}
+                  {showStartTime && showEndTime && <ThemedText style={[styles.timeDash, { color: colors.onSurface }]}>—</ThemedText>}
                   {showEndTime && (
                     <View style={[styles.timeContainer, { backgroundColor: colors.surface }]}>
                       <ThemedText style={[styles.habitTime, { color: colors.onSurface }]}>{endTimeLabel}</ThemedText>

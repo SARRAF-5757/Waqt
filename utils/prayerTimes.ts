@@ -1,6 +1,9 @@
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import * as Adhan from "adhan";
 
+/**
+ * Holds the starting time and ending time for each daily prayer.
+ */
 export type PrayerTimesMap = {
   fajr: Date | undefined;
   fajrEnd: Date | undefined;

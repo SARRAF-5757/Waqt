@@ -1,7 +1,16 @@
 import { format, subMinutes } from "date-fns";
 
+/**
+ * Exact time of the day Fajr starts- used to
+ * offset the day boundaries to allow changes to
+ * the day's prayers until Fajr.
+ */
 let currentFajrCutoffMinutes = 0;
 
+/**
+ * Updates the Fajr cutoff time globally.
+ * Called automatically by the prayerTimesProvider when times are loaded.
+ */
 export function setFajrCutoff(fajrTime: Date | undefined) {
   if (fajrTime) {
     currentFajrCutoffMinutes = fajrTime.getHours() * 60 + fajrTime.getMinutes();

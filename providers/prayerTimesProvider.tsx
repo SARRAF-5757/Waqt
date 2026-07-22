@@ -44,6 +44,7 @@ export function PrayerTimesProvider({ children }: { children: React.ReactNode })
       const location = await Location.getCurrentPositionAsync({});
       const prayerTimes = await computeTodayPrayerTimes(location.coords.latitude, location.coords.longitude);
 
+      // Synchronize the daily habit time cutoff to match Fajr time instead of midnight
       setFajrCutoff(prayerTimes.fajr);
       setTimes(prayerTimes);
     } catch (error) {

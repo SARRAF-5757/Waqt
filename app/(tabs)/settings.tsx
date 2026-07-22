@@ -94,11 +94,17 @@ export default function SettingsScreen() {
     });
   };
 
+  /**
+   * Toggles the display of the prayer's starting time on the home screen
+   */
   const handleShowStartTimeChange = (value: boolean) => {
     setShowStartTime(value);
     AsyncStorage.setItem(STORAGE_KEYS.showStartTime, value ? "true" : "false");
   };
 
+  /**
+   * Toggles the display of the prayer's ending time on the home screen
+   */
   const handleShowEndTimeChange = (value: boolean) => {
     setShowEndTime(value);
     AsyncStorage.setItem(STORAGE_KEYS.showEndTime, value ? "true" : "false");
