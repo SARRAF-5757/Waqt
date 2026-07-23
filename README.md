@@ -15,13 +15,13 @@ The motivation behind this app comes from my own struggle with procrastination. 
   <img src="images/homePageDark.png" alt="Home Page Dark" width="20%" />
   <img src="images/historyPageDark.png" alt="History Page Dark" width="20%" />
   <img src="images/settingsPageDark.png" alt="Settings Page Dark" width="20%" />
+  <img src="images/settingsPage2.png" alt="Settings Page Light" width="20%" />
 </p>
 
 <h3 align="center">Light Mode</h3>
 <p align="center">
   <img src="images/homePageLight.png" alt="Home Page Light" width="20%" />
   <img src="images/historyPageLight.png" alt="History Page Light" width="20%" />
-  <img src="images/settingsPageLight.png" alt="Settings Page Light" width="20%" />
 </p>
 
 ## Features Checklist
@@ -42,38 +42,6 @@ The motivation behind this app comes from my own struggle with procrastination. 
 - [x] Delete data button
 - [ ] Export history as spreadsheet file
 - [ ] Widgets
-
-### Installation
-
-#### <u>Android</u>
-
-1. Get the APK file from [Releases](https://github.com/SARRAF-5757/Waqt/releases)
-2. Install : )
-
-#### <u>IOS</u>
-
-(Until (and if) I post it on the App Store)
-
-1. Clone this repository:
-
-   ```sh
-   git clone https://github.com/SARRAF-5757/Waqt.git
-   cd Waqt
-   ```
-
-2. Install dependencies:
-
-   ```sh
-   npm install
-   ```
-
-3. Start the Expo development server:
-
-   ```sh
-   npx expo start
-   ```
-
-4. Scan the QR code with the Expo Go app on your phone, or run on an emulator.
 
 ## Known Issues
 
