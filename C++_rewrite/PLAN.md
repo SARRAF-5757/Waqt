@@ -111,16 +111,9 @@ Implement in C++. Outcome must match established prayer-time conventions for eac
 |----------|------------|
 | Muslim World League | `MuslimWorldLeague` |
 | Egyptian General Authority of Survey | `Egyptian` |
-| University of Islamic Sciences, Karachi | `Karachi` |
 | Umm Al-Qura University, Makkah | `UmmAlQura` |
-| Dubai | `Dubai` |
 | Moonsighting Committee Worldwide | `MoonsightingCommittee` *(default)* |
 | Islamic Society of North America (ISNA) | `NorthAmerica` |
-| Kuwait | `Kuwait` |
-| Qatar | `Qatar` |
-| Singapore | `Singapore` |
-| Turkey | `Turkey` |
-| Tehran | `Tehran` |
 
 #### Madhab (Asr shadow)
 
@@ -363,7 +356,106 @@ Not in the current app; do not block v1 on these:
 
 ## 8. Development Milestones
 
-1. **C++ Core** — Storage, Fajr-shift dates, prayer math (all methods + middle of night), notification schedule generator. **GoogleTest** with fixture coordinates/dates.
-2. **JNI + OS** — Bridge, location, AlarmManager scheduling to platform limit.
-3. **Compose UI** — Tab shell, three screens, theming per §4.
-4. **Acceptance** — Verify against **this document’s outcomes** (behavior, copy, layout spec). Optional visual check against the old app screenshots for design reference — not a requirement to share code or architecture with the old project.
+This project will follow a **Minimum Viable Product (MVP) route** to ensure the core architecture and data flow can be reviewed and understood easily before adding visual complexity.
+
+1. **Iteration 1 (The MVP Core):** 
+   * **C++ Core & Storage:** Implement basic prayer math, Fajr-shift dates, and SQLite persistence.
+   * **JNI Bridge & OS Integrations:** Setup the translation layer to communicate between C++ and Kotlin. Hook up location and basic AlarmManager scheduling.
+   * **Bare Minimum Compose UI:** Create a functional but deliberately unstyled (ugly) UI. The goal is to keep the Kotlin code as simple as possible to clearly demonstrate the information flow across the JNI boundary.
+2. **Review & Green Light:** Development pauses. The developer/user will review the codebase, commit all changes, and confirm understanding of the information flow before giving the green flag to proceed.
+3. **Iteration 2 (Polish & Features):**
+   * Implement all remaining features (advanced calculation methods, middle of the night, etc.).
+   * Apply full styling, theming, custom colors, and precise UI alignment as specified in §4.
+   * Final acceptance and visual check.
+
+## 9. Technical Implementation Plan
+
+### 9.1 Technologies & Libraries
+
+#### C++ Core Technologies
+*   **Language Standard:** C++20 (provides `std::chrono` calendars, `std::format`, and concepts for cleaner abstraction).
+*   **Build System:** CMake, tightly integrated with the Android NDK (Ninja build).
+*   **Time Calculation Library:** 
+    *   *Research Findings:* While there are C/C++ libraries like `arabeyes-org/ITL` (C) and `abodehq/Pray-Times` (C++ port), they lack modern C++20 `std::chrono` idioms and often miss "middle of the night" calculations. 
+    *   *Decision:* **Directly port the core astronomical algorithms from BatoulApps `Adhan` to C++20**. BatoulApps is the industry gold standard used by iOS/Android apps, based on Jean Meeus's *Astronomical Algorithms*. A C++ port will ensure perfect accuracy, support for middle-of-the-night math, and native integration with `std::chrono::system_clock`.
+*   **Persistence:** **SQLite via SQLiteCpp** (a smart, lightweight C++ wrapper for SQLite3) or standard `nlohmann/json` (if keeping it single-file). Given the need for querying streak history (e.g., lookup by `YYYY-MM-DD` and prayer type), **SQLiteCpp** is the best choice to avoid loading huge JSON blobs into memory.
+*   **Testing:** **GoogleTest (GTest)** for unit testing prayer times against known JSON fixtures.
+
+#### Android & Jetpack Compose Technologies
+*   **Language:** Kotlin 1.9+
+*   **UI Framework:** Jetpack Compose (Material 3).
+*   **Architecture:** MVVM (Model-View-ViewModel) utilizing `ViewModel` and `StateFlow` to reactively update the UI based on JNI callbacks or polling.
+*   **Asynchronous Processing:** Kotlin Coroutines (`viewModelScope`) for querying the JNI bridge off the main thread.
+*   **Background Tasks & Notifications:** `AlarmManager` for precise scheduling. Android 12+ requires `SCHEDULE_EXACT_ALARM` permissions. We'll use `BroadcastReceiver` to handle the alarm triggers and push native Notifications.
+*   **JNI Bridge:** Standard JNI with `extern "C"` blocks in C++ and `external fun` declarations in a Kotlin `WaqtNativeBridge` object. Avoid overhead by passing simple primitive arrays or data class mapping.
+
+### 9.2 File Structure
+
+```text
+Waqt/
+├── app/
+│   ├── src/
+│   │   ├── main/
+│   │   │   ├── java/com/waqt/
+│   │   │   │   ├── MainActivity.kt                # Compose entry point, setup permissions
+│   │   │   │   ├── WaqtApp.kt                     # Application class for global state (e.g. creating notification channels)
+│   │   │   │   ├── bridge/
+│   │   │   │   │   ├── WaqtNativeBridge.kt        # JNI `external fun` bindings
+│   │   │   │   │   └── NativeModels.kt            # Kotlin Data classes mirroring C++ responses (e.g. PrayerTimes)
+│   │   │   │   ├── notifications/
+│   │   │   │   │   ├── AlarmReceiver.kt           # BroadcastReceiver that fires when AlarmManager triggers
+│   │   │   │   │   └── NotificationScheduler.kt   # Logic to map C++ timestamps to AlarmManager intents
+│   │   │   │   ├── ui/
+│   │   │   │   │   ├── theme/                     # Material 3 Theme, Typography, Colors
+│   │   │   │   │   ├── viewmodels/
+│   │   │   │   │   │   ├── HomeViewModel.kt       # StateFlow for today's prayers, handles toggle events
+│   │   │   │   │   │   ├── StreakViewModel.kt     # StateFlow for grid rendering
+│   │   │   │   │   │   └── SettingsViewModel.kt   # Exposes preferences to Compose
+│   │   │   │   │   └── screens/
+│   │   │   │   │       ├── HomeScreen.kt          # UI for daily tracking
+│   │   │   │   │       ├── StreakScreen.kt        # UI for 105-day grid
+│   │   │   │   │       └── SettingsScreen.kt      # UI for preferences
+│   │   │   ├── cpp/
+│   │   │   │   ├── CMakeLists.txt                 # NDK build instructions
+│   │   │   │   ├── bridge/
+│   │   │   │   │   └── jni_bindings.cpp           # JNI export functions wrapping Core logic
+│   │   │   │   ├── core/
+│   │   │   │   │   ├── AstronomicalMath.hpp/.cpp  # Julian date math, solar declination, transit
+│   │   │   │   │   ├── PrayerCalculator.hpp/.cpp  # Calculates specific times (Fajr, Dhuhr, etc.)
+│   │   │   │   │   ├── WaqtEngine.hpp/.cpp        # Main controller: handles Fajr-shift date logic & notifications
+│   │   │   │   │   └── Models.hpp                 # Structs (e.g., Coordinates, TimeWindow, Prefs)
+│   │   │   │   └── storage/
+│   │   │   │       └── Database.hpp/.cpp          # SQLiteCpp wrappers to store/load history and prefs
+│   │   └── test/
+│   │       └── cpp/                               # GoogleTest fixtures verifying prayer math
+```
+
+### 9.3 Core Functions & Data Flow
+
+#### 1. Astronomical & Prayer Calculation (`PrayerCalculator.cpp`)
+*   `calculateSolarTransit(date, lng)`: Determines the sun's highest point.
+*   `calculateTimeForAngle(angle, date, lat)`: Core Meeus algorithm returning hours from transit. Used for Fajr (e.g., -18°), Maghrib, and Isha.
+*   `calculateAsr(madhab, date, lat)`: Shadow length math (shadow ratio 1 for Shafi, 2 for Hanafi).
+*   `calculateMiddleOfTheNight(maghrib, nextFajr)`: Exact midpoint formula.
+*   *Data Types:* Internal math uses double-precision floats for Julian Days; output is strongly typed into `std::chrono::system_clock::time_point`.
+
+#### 2. The Engine & Fajr-Shift Logic (`WaqtEngine.cpp`)
+*   `getDateKey(system_time_point)`: 
+    *   *Logic:* Calculates today's Fajr based on current coordinates. If `system_time_point < Fajr`, subtracts 1 day from the calendar date. Returns a formatted `std::string` like "2025-10-25".
+*   `getPrayerTimesForDay(date_key)`:
+    *   *Logic:* Returns a struct of the 5 prayer time windows for the requested date.
+*   `generateNotificationSchedule()`:
+    *   *Logic:* Evaluates the current time, fetches today's and tomorrow's `PrayerTimes`, checks `Database::isPrayerCompleted(date, prayer)`, and outputs a `std::vector<NotificationIntent>` containing timestamps and string titles.
+
+#### 3. Storage (`Database.cpp`)
+*   `upsertPrayerStatus(date_key, prayer_id, bool is_completed)`: Uses SQLite `INSERT OR REPLACE` onto a `history` table with composite primary key `(date_key, prayer_id)`.
+*   `getStreakData(prayer_id, start_date, end_date)`: Runs a `SELECT` returning a list of booleans representing the past 105 days for the grid view.
+
+#### 4. The JNI Bridge (`jni_bindings.cpp`)
+*   `Java_com_waqt_bridge_WaqtNativeBridge_getHomeState(JNIEnv* env, jobject obj, jlong timestamp)`: Calls `WaqtEngine` to get current times and completion status, returns a serialized byte array or Kotlin object.
+*   `Java_com_waqt_bridge_WaqtNativeBridge_togglePrayer(JNIEnv* env, jobject obj, jstring prayer_id, jboolean status)`: Triggers a Database update, then forces `generateNotificationSchedule()`, returning the updated notification schedule to Kotlin so `AlarmManager` can be refreshed immediately.
+
+#### 5. Compose UI & State (`HomeViewModel.kt` & `HomeScreen.kt`)
+*   The `ViewModel` launches a coroutine every minute (via `delay(60000)`) or on `onResume` to poll `WaqtNativeBridge.getHomeState(currentTime)`.
+*   The state is exposed as a `StateFlow<HomeViewState>`.
+*   `HomeScreen` collects this state and lays out the rows. Toggling a checkbox triggers `viewModel.togglePrayer(id)`, which calls JNI, updates SQLite, recalculates alarms, and refreshes the UI state in one reactive cycle.
