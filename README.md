@@ -30,14 +30,16 @@ The motivation behind this app comes from my own struggle with procrastination. 
 - [x] Material You dynamic theming (for Android only) and custom color selection
 - [x] No internet access required, all data is stored locally
 - [x] _Waqt_ and location-based prayer notifications
-- [ ] Smart _Waqt_ expiring notifications
+- [x] Smart _Waqt_ expiring notifications
+- [x] Customizable calculation methods
 - [ ] More advanced score system to take _kaza_ prayers into account
 - [ ] More ways to represent your history data (Bar charts, Heatmaps, Month view, Year view, etc)
 - [ ] Ability to keep track of prayer data for as long or delete until a specific date
-- [ ] Custom reminder & "custom reminder offset until prayer time expires" option in settings
-- [ ] Make the app prettier
+- [x] Custom reminder & "custom reminder offset until prayer time expires" option in settings
+- [x] Make the app prettier
 - [ ] Incorporate haptics to UI elements
 - [ ] Backup/Restore data functionality
+- [x] Delete data button
 - [ ] Export history as spreadsheet file
 - [ ] Widgets
 
