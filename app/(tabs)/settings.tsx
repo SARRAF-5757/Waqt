@@ -1,16 +1,18 @@
 import React, { useEffect, useState } from "react";
-import { StyleSheet, ScrollView, Pressable, Platform, TextInput, View, useColorScheme, Alert } from "react-native";
+import { StyleSheet, ScrollView, Pressable, TextInput, View, useColorScheme, Alert } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import Checkbox from "expo-checkbox";
+import { Host } from "@expo/ui";
+import { AlertDialog, Text, TextButton, Checkbox as JetpackCheckbox, MultiChoiceSegmentedButtonRow, SegmentedButton } from "@expo/ui/jetpack-compose";
 
 import { CustomPicker } from "@/components/CustomPicker";
 import { ThemedText } from "@/components/ThemedText";
 import { CALCULATION_METHOD_OPTIONS, DEFAULT_SETTINGS, MADHAB_OPTIONS, MATERIAL_YOU_KEY, STORAGE_KEYS, THEME_COLOR_OPTIONS } from "@/constants/Settings";
 import { useThemeColors } from "@/hooks/useThemeColors";
 import { useMaterial3ThemeContext } from "@/providers/materialYouProvider";
-import { usePrayerTimes } from "@/providers/prayerTimesProvider";
 import { useHabits } from "@/providers/habitProvider";
+import { usePrayerTimes } from "@/providers/prayerTimesProvider";
 
 /**
  * Settings screen
@@ -111,41 +113,36 @@ export default function SettingsScreen() {
   };
 
 
+  const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false);
+
   /**
    * Prompts the user for confirmation before deleting all history.
    */
   const handleDeleteAll = () => {
-    Alert.alert(
-      "Delete all records",
-      "Are you sure you want to delete all prayer time history recorded so far? This action cannot be undone.",
-      [
-        { text: "Cancel", style: "cancel" },
-        { text: "Delete", style: "destructive", onPress: () => deleteAllHistory() },
-      ]
-    );
+    setIsDeleteDialogOpen(true);
   };
 
-  const isIOS = Platform.OS === "ios";
   const isMaterialYouMode = currentColor === MATERIAL_YOU_KEY;
-  const sectionTitleStyle = isIOS ? styles.iosSectionHeader : styles.androidSectionHeader;
+  const sectionTitleStyle = styles.sectionHeader;
 
   //* --------------------------- RETURN --------------------------- *//
   return (
     <View style={[styles.container, { backgroundColor: colors.background }]}>
       <ScrollView contentContainerStyle={[styles.contentContainer, { paddingTop: insets.top + 20 }]} showsVerticalScrollIndicator={false}>
-        <ThemedText type="title" style={[styles.header, isIOS ? { paddingTop: insets.top + 10 } : undefined]}>
+        {/* Main Title */}
+        <ThemedText type="title" style={styles.header}>
           Settings
         </ThemedText>
 
         <ThemedText style={[sectionTitleStyle, { color: colors.onSurfaceVariant }]}>Notifications</ThemedText>
 
         {/* Notification Settings */}
-        <View style={[styles.card, { backgroundColor: colors.surfaceVariant, borderRadius: isIOS ? 20 : 12 }]}>
+        <View style={[styles.card, { backgroundColor: colors.surfaceContainer, borderRadius: 12 }]}>
           <ThemedText style={[styles.settingLabel, { color: colors.onSurfaceVariant }]}>Waqt end time reminder (minutes before)</ThemedText>
           <TextInput
             style={[
               styles.textInput,
-              isIOS ? styles.iosTextInput : styles.androidTextInput,
+              styles.androidTextInput,
               {
                 color: colors.onSurface,
                 borderColor: colors.outline,
@@ -162,7 +159,7 @@ export default function SettingsScreen() {
 
         {/* Calculation Settings */}
         <ThemedText style={[sectionTitleStyle, { color: colors.onSurfaceVariant }]}>Prayer Times</ThemedText>
-        <View style={[styles.card, { backgroundColor: colors.surfaceVariant, borderRadius: isIOS ? 20 : 12 }]}>
+        <View style={[styles.card, { backgroundColor: colors.surfaceContainer, borderRadius: 12 }]}>
           <ThemedText style={[styles.settingLabel, { color: colors.onSurfaceVariant }]}>Calculation Method</ThemedText>
           <CustomPicker
             key={`calc-${currentColor}-${colorScheme}`}
@@ -173,7 +170,7 @@ export default function SettingsScreen() {
           />
         </View>
 
-        <View style={[styles.card, { backgroundColor: colors.surfaceVariant, borderRadius: isIOS ? 20 : 12 }]}>
+        <View style={[styles.card, { backgroundColor: colors.surfaceContainer, borderRadius: 12 }]}>
           <ThemedText style={[styles.settingLabel, { color: colors.onSurfaceVariant }]}>Madhab (Asr Shadow)</ThemedText>
           <CustomPicker
             key={`madhab-${currentColor}-${colorScheme}`}
@@ -187,66 +184,61 @@ export default function SettingsScreen() {
         {/* Appearance Settings */}
         <ThemedText style={[sectionTitleStyle, { color: colors.onSurfaceVariant }]}>Appearance</ThemedText>
         
-        <View style={[styles.card, { backgroundColor: colors.surfaceVariant, borderRadius: isIOS ? 20 : 12 }]}>
-          <ThemedText style={[styles.settingLabel, { color: colors.onSurfaceVariant }]}>Time Display</ThemedText>
-          <View style={styles.checkboxRow}>
-            <Checkbox
-              color={showStartTime ? colors.primary : colors.onSurfaceVariant}
-              value={showStartTime}
-              onValueChange={handleShowStartTimeChange}
-              style={styles.checkbox}
-            />
-            <ThemedText style={{ color: colors.onSurface }}>Show Starting Time</ThemedText>
-          </View>
-          <View style={[styles.checkboxRow, { marginTop: 12 }]}>
-            <Checkbox
-              color={showEndTime ? colors.primary : colors.onSurfaceVariant}
-              value={showEndTime}
-              onValueChange={handleShowEndTimeChange}
-              style={styles.checkbox}
-            />
-            <ThemedText style={{ color: colors.onSurface }}>Show Ending Time</ThemedText>
-          </View>
+        <View style={[styles.card, { backgroundColor: colors.surfaceContainer, borderRadius: 12 }]}>
+          <ThemedText style={[styles.settingLabel, { color: colors.onSurfaceVariant, marginBottom: 16 }]}>Time Display</ThemedText>
+          <Host matchContents={{ vertical: true }} style={{ width: "100%", marginTop: 8, marginBottom: 8 }}>
+            <MultiChoiceSegmentedButtonRow modifiers={[{ $type: "fillMaxWidth" }]}>
+              <SegmentedButton
+                checked={showStartTime}
+                onCheckedChange={handleShowStartTimeChange}
+                colors={{
+                  activeContainerColor: colors.secondaryContainer,
+                  activeContentColor: colors.onSecondaryContainer,
+                  inactiveContainerColor: colors.surface,
+                  inactiveContentColor: colors.onSurface,
+                }}
+              >
+                <SegmentedButton.Label>
+                  <Text color={showStartTime ? colors.onSecondaryContainer : colors.onSurface}>Start Time</Text>
+                </SegmentedButton.Label>
+              </SegmentedButton>
+              <SegmentedButton
+                checked={showEndTime}
+                onCheckedChange={handleShowEndTimeChange}
+                colors={{
+                  activeContainerColor: colors.secondaryContainer,
+                  activeContentColor: colors.onSecondaryContainer,
+                  inactiveContainerColor: colors.surface,
+                  inactiveContentColor: colors.onSurface,
+                }}
+              >
+                <SegmentedButton.Label>
+                  <Text color={showEndTime ? colors.onSecondaryContainer : colors.onSurface}>End Time</Text>
+                </SegmentedButton.Label>
+              </SegmentedButton>
+            </MultiChoiceSegmentedButtonRow>
+          </Host>
         </View>
 
-        {/* Material You theme option (only on android) */}
-        {Platform.OS === "android" && (
-          <Pressable
-            key={`material-you-${currentColor}-${colorScheme}`}
-            onPress={resetTheme}
-            android_ripple={{ color: colors.primary }}
-            style={({ pressed }) =>
-              isIOS
-                ? [
-                    styles.themeOption,
-                    styles.materialYouThemeOption,
-                    {
-                      backgroundColor: isMaterialYouMode ? colors.secondaryContainer : colors.surfaceVariant,
-                      opacity: pressed ? 0.85 : 1,
-                    },
-                  ]
-                : [
-                    styles.themeOption,
-                    styles.materialYouThemeOption,
-                    {
-                      backgroundColor: isMaterialYouMode ? colors.secondaryContainer : colors.surfaceVariant,
-                    },
-                  ]
-            }
-          >
-            <View style={[styles.colorCircle, { backgroundColor: colors.primary }]} />
-            <ThemedText
-              style={[
-                styles.colorName,
-                {
-                  color: isMaterialYouMode ? colors.onSecondaryContainer : colors.onSurfaceVariant,
-                },
+        {/* Material You theme option - Native dynamic coloring */}
+        <View style={[styles.themeOptionContainer, { width: "100%", backgroundColor: isMaterialYouMode ? colors.secondaryContainer : colors.surfaceContainer }]}>
+          <View style={styles.themeOptionRippleClipper}>
+            <Pressable
+              key={`material-you-${currentColor}-${colorScheme}`}
+              onPress={resetTheme}
+              android_ripple={{ color: colors.primary }}
+              style={({ pressed }) => [
+                styles.themeOptionInner,
+                { opacity: pressed ? 0.85 : 1 },
               ]}
             >
-              Material You
-            </ThemedText>
-          </Pressable>
-        )}
+              <View style={[styles.colorCircle, { backgroundColor: colors.primary }]} />
+              <ThemedText style={[styles.colorName, { color: isMaterialYouMode ? colors.onSecondaryContainer : colors.onSurfaceVariant }]}>
+                Material You
+              </ThemedText>
+            </Pressable>
+          </View>
+        </View>
 
         {/* Loop through and render the rest of the color options */}
         <View style={styles.colorGrid} key={`grid-${currentColor}-${colorScheme}`}>
@@ -254,41 +246,24 @@ export default function SettingsScreen() {
             const isSelected = !isMaterialYouMode && currentColor === themeColor.color;
 
             return (
-              <Pressable
-                key={themeColor.color}
-                onPress={() => updateTheme(themeColor.color)}
-                android_ripple={{ color: themeColor.color }}
-                style={({ pressed }) =>
-                  isIOS
-                    ? [
-                        styles.themeOption,
-                        styles.iosThemeOption,
-                        {
-                          backgroundColor: isSelected ? colors.primaryContainer : colors.surfaceVariant,
-                          opacity: pressed ? 0.85 : 1,
-                        },
-                      ]
-                    : [
-                        styles.themeOption,
-                        styles.androidThemeOption,
-                        {
-                          backgroundColor: isSelected ? colors.primaryContainer : colors.surfaceVariant,
-                        },
-                      ]
-                }
-              >
-                <View style={[styles.colorCircle, { backgroundColor: themeColor.color }]} />
-                <ThemedText
-                  style={[
-                    styles.colorName,
-                    {
-                      color: isSelected ? colors.onSurface : colors.onSurfaceVariant,
-                    },
-                  ]}
-                >
-                  {themeColor.name}
-                </ThemedText>
-              </Pressable>
+              <View key={`container-${themeColor.color}`} style={[styles.themeOptionContainer, { width: "48%", backgroundColor: isSelected ? colors.primaryContainer : colors.surfaceContainer }]}>
+                <View style={styles.themeOptionRippleClipper}>
+                  <Pressable
+                    key={themeColor.color}
+                    onPress={() => updateTheme(themeColor.color)}
+                    android_ripple={{ color: themeColor.color }}
+                    style={({ pressed }) => [
+                      styles.themeOptionInner,
+                      { opacity: pressed ? 0.85 : 1 },
+                    ]}
+                  >
+                    <View style={[styles.colorCircle, { backgroundColor: themeColor.color }]} />
+                    <ThemedText style={[styles.colorName, { color: isSelected ? colors.onSurface : colors.onSurfaceVariant }]}>
+                      {themeColor.name}
+                    </ThemedText>
+                  </Pressable>
+                </View>
+              </View>
             );
           })}
         </View>
@@ -302,7 +277,7 @@ export default function SettingsScreen() {
             styles.deleteButton,
             {
               backgroundColor: colors.errorContainer,
-              opacity: pressed && isIOS ? 0.7 : 1,
+              opacity: pressed ? 0.7 : 1,
             },
           ]}
         >
@@ -312,6 +287,34 @@ export default function SettingsScreen() {
         </Pressable>
 
       </ScrollView>
+
+      {isDeleteDialogOpen && (
+        <Host matchContents seedColor={currentColor === MATERIAL_YOU_KEY ? undefined : currentColor}>
+          <AlertDialog onDismissRequest={() => setIsDeleteDialogOpen(false)}>
+            <AlertDialog.Title>
+              <Text>Delete all records</Text>
+            </AlertDialog.Title>
+            <AlertDialog.Text>
+              <Text>Are you sure you want to delete all prayer time history recorded so far? This action cannot be undone.</Text>
+            </AlertDialog.Text>
+            <AlertDialog.DismissButton>
+              <TextButton onClick={() => setIsDeleteDialogOpen(false)}>
+                <Text>Cancel</Text>
+              </TextButton>
+            </AlertDialog.DismissButton>
+            <AlertDialog.ConfirmButton>
+              <TextButton
+                onClick={() => {
+                  setIsDeleteDialogOpen(false);
+                  deleteAllHistory();
+                }}
+              >
+                <Text color={colors.error}>Delete</Text>
+              </TextButton>
+            </AlertDialog.ConfirmButton>
+          </AlertDialog>
+        </Host>
+      )}
     </View>
   );
 }
@@ -330,16 +333,7 @@ const styles = StyleSheet.create({
     marginTop: 18,
     marginBottom: 42,
   },
-  iosSectionHeader: {
-    fontSize: 13,
-    fontWeight: "600",
-    textTransform: "uppercase",
-    letterSpacing: 0.6,
-    marginBottom: 8,
-    marginTop: 12,
-    marginLeft: 4,
-  },
-  androidSectionHeader: {
+  sectionHeader: {
     fontSize: 22,
     fontWeight: "bold",
     marginBottom: 16,
@@ -374,9 +368,6 @@ const styles = StyleSheet.create({
     paddingVertical: 10,
     fontSize: 16,
   },
-  iosTextInput: {
-    borderRadius: 12,
-  },
   androidTextInput: {
     borderRadius: 8,
   },
@@ -385,27 +376,18 @@ const styles = StyleSheet.create({
     flexWrap: "wrap",
     justifyContent: "space-between",
   },
-  themeOption: {
-    alignItems: "center",
+  themeOptionContainer: {
+    borderRadius: 16,
+    elevation: 1,
     marginBottom: 16,
   },
-  iosThemeOption: {
-    width: "48%",
-    borderRadius: 22,
-    padding: 16,
+  themeOptionRippleClipper: {
+    borderRadius: 16,
     overflow: "hidden",
   },
-  androidThemeOption: {
-    width: "48%",
-    borderRadius: 16,
+  themeOptionInner: {
+    alignItems: "center",
     padding: 16,
-    elevation: 1,
-  },
-  materialYouThemeOption: {
-    width: "100%",
-    borderRadius: 16,
-    padding: 16,
-    elevation: 1,
   },
   colorCircle: {
     width: 40,

@@ -10,8 +10,7 @@ import { useEffect } from "react";
 import { useFonts } from "expo-font";
 import * as SplashScreen from "expo-splash-screen";
 import { SafeAreaProvider } from "react-native-safe-area-context";
-import { DarkTheme, DefaultTheme, ThemeProvider } from "@react-navigation/native";
-import { Stack } from "expo-router";
+import { Stack, DarkTheme, DefaultTheme, ThemeProvider } from "expo-router";
 import "react-native-reanimated";
 
 import { useColorScheme } from "react-native";

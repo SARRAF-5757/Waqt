@@ -1,6 +1,7 @@
 import React, { useEffect, useState, useCallback } from "react";
-import { StyleSheet, ScrollView, useColorScheme, Image, AppState, View, Pressable, Platform } from "react-native";
-import Checkbox from "expo-checkbox";
+import { StyleSheet, ScrollView, useColorScheme, Image, AppState, View, Pressable } from "react-native";
+import { Host } from "@expo/ui";
+import { Checkbox as JetpackCheckbox } from "@expo/ui/jetpack-compose";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { format } from "date-fns";
 import { useFocusEffect } from "expo-router";
@@ -51,7 +52,6 @@ export default function HomeScreen() {
 
   const todayKey = getDateKey();
   const todayStatuses = getStatusesForDate(historyData, todayKey);
-  const isIOS = Platform.OS === "ios";
 
   /**
    * Automatically schedule notifications and re-schedule them
@@ -89,7 +89,8 @@ export default function HomeScreen() {
   return (
     <View style={[styles.container, { backgroundColor: colors.background }]}>
       <ScrollView contentContainerStyle={styles.contentContainer}>
-        <View style={[styles.headerContainer, isIOS ? { paddingTop: insets.top + 10 } : undefined]}>
+        {/* Header containing the app logo */}
+        <View style={styles.headerContainer}>
           <Image source={logoSource} style={styles.logo} resizeMode="contain" />
         </View>
 
@@ -119,20 +120,31 @@ export default function HomeScreen() {
               style={({ pressed }) => [
                 styles.prayerCard,
                 {
-                  backgroundColor: isCompleted ? colors.primaryContainer : colors.surfaceDim || colors.surfaceVariant,
+                  backgroundColor: isCompleted ? colors.primaryContainer : colors.surfaceContainer,
                   opacity: pressed ? 0.8 : 1,
-                  borderRadius: isIOS ? 20 : 12,
+                  borderRadius: 12,
+                  elevation: 2,
                 },
-                !isIOS && { elevation: 2 },
               ]}
             >
               <View style={styles.habitRow}>
-                <Checkbox
-                  color={isCompleted ? colors.primary : colors.onSurfaceVariant}
-                  value={isCompleted}
-                  onValueChange={() => handleTogglePrayer(habit.id)}
-                  style={styles.checkbox}
-                />
+                {/* 
+                  Native Android Jetpack Compose Checkbox. 
+                  Wrapped in Host with matchContents to allow Compose view to size correctly.
+                  Negative margin offsets the built-in 48x48dp minimum touch target spacing in Compose.
+                */}
+                <View style={{ marginHorizontal: -12 }}>
+                  <Host matchContents>
+                    <JetpackCheckbox
+                      value={isCompleted}
+                      onCheckedChange={() => handleTogglePrayer(habit.id)}
+                      colors={{
+                        checkedColor: colors.primary,
+                        uncheckedColor: colors.onSurfaceVariant,
+                      }}
+                    />
+                  </Host>
+                </View>
                 <ThemedText style={[styles.habitName, { color: isCompleted ? colors.onPrimaryContainer : colors.onSurface }]}>{habit.name}</ThemedText>
                 <View style={styles.timesWrapper}>
                   {showStartTime && (
@@ -181,7 +193,8 @@ const styles = StyleSheet.create({
   habitRow: {
     flexDirection: "row",
     alignItems: "center",
-    padding: 16,
+    paddingVertical: 8,
+    paddingHorizontal: 16,
   },
   checkbox: {
     width: 24,

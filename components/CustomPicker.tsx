@@ -1,11 +1,9 @@
-import React, { useState } from "react";
-import { Modal, Pressable, StyleSheet, ScrollView, View, Platform, useColorScheme } from "react-native";
-import { BlurView } from "expo-blur";
-import { Ionicons } from "@expo/vector-icons";
-import { useSafeAreaInsets } from "react-native-safe-area-context";
-
-import { ThemedText } from "@/components/ThemedText";
+import React from "react";
+import { View } from "react-native";
+import { Picker, Host } from "@expo/ui";
 import { useThemeColors } from "@/hooks/useThemeColors";
+import { useMaterial3ThemeContext } from "@/providers/materialYouProvider";
+import { MATERIAL_YOU_KEY } from "@/constants/Settings";
 
 export type PickerItem = {
   label: string;
@@ -20,244 +18,25 @@ type CustomPickerProps = {
 };
 
 /**
- * Dropdown picker used on the Settings screen
- * iOS opens a blurred sheet. Android opens a Material-style dialog card
+ * Dropdown picker wrapper using @expo/ui (Jetpack Compose backend).
+ *
+ * Note: @expo/ui's Picker ignores most React Native styling props
+ * natively on Android. We apply standard styling here via 'style'
+ * so it matches other text inputs, and use 'width: 100%' so it spans edges.
  */
-export function CustomPicker({ label, selectedValue, onValueChange, items }: CustomPickerProps) {
-  //* ----------------------------- JS ----------------------------- *//
-  const [modalVisible, setModalVisible] = useState(false);
+export function CustomPicker({ selectedValue, onValueChange, items }: CustomPickerProps) {
   const colors = useThemeColors();
-  const colorScheme = useColorScheme();
-  const insets = useSafeAreaInsets();
+  const { currentColor } = useMaterial3ThemeContext();
 
-  const isIOS = Platform.OS === "ios";
-
-  /**
-   * Find the human-readable label for the currently selected value
-   * We iterate through the items array to find the matching value
-   */
-  let selectedLabel = "Select...";
-  for (let i = 0; i < items.length; i++) {
-    if (items[i].value === selectedValue) {
-      selectedLabel = items[i].label;
-      break;
-    }
-  }
-
-  /**
-   * Closes the picker modal.
-   */
-  const closeModal = () => {
-    setModalVisible(false);
-  };
-
-  /**
-   * Called when the user taps an option in the list.
-   * Updates the value and closes the modal.
-   */
-  const handleSelect = (value: string) => {
-    onValueChange(value);
-    closeModal();
-  };
-
-  //* --------------------------- RETURN --------------------------- *//
   return (
-    <>
-      {/* Picker Button */}
-      <View
-        style={[
-          styles.pickerButtonWrapper,
-          isIOS ? styles.iosPickerButton : styles.androidPickerButton,
-          {
-            borderColor: colors.outline,
-            backgroundColor: colors.surface,
-          },
-        ]}
-      >
-        <Pressable onPress={() => setModalVisible(true)} android_ripple={{ color: colors.primary }} style={[styles.pickerButtonPressable]}>
-          <ThemedText style={[styles.pickerButtonText, { color: colors.onSurface }]}>{selectedLabel}</ThemedText>
-          <Ionicons name="chevron-down" size={20} color={colors.onSurfaceVariant} />
-        </Pressable>
-      </View>
-
-      {/* Dropdown Modal */}
-      <Modal animationType={isIOS ? "slide" : "fade"} transparent visible={modalVisible} onRequestClose={closeModal}>
-        <View style={styles.modalOverlay}>
-          {/* Modal Backdrop */}
-          <Pressable style={styles.modalBackdrop} onPress={closeModal} />
-
-          {isIOS ? (
-            <View style={[styles.iosSheetContainer, { paddingBottom: Math.max(insets.bottom, 12) + 12 }]}>
-              <BlurView intensity={80} tint={colorScheme === "dark" ? "dark" : "light"} style={styles.iosSheetBlur}>
-                <View style={[styles.iosSheetContent, { borderColor: colors.outline }]}>
-                  <ThemedText style={[styles.modalTitle, { color: colors.onSurface }]}>{label}</ThemedText>
-                  {/* List of Options */}
-                  <ScrollView style={styles.scrollContainer} showsVerticalScrollIndicator={false}>
-                    {items.map((item) => {
-                      const isSelected = item.value === selectedValue;
-                      return (
-                        <Pressable
-                          key={item.value}
-                          onPress={() => handleSelect(item.value)}
-                          style={({ pressed }) => [
-                            styles.itemButton,
-                            {
-                              backgroundColor: isSelected ? colors.secondaryContainer : "transparent",
-                              opacity: pressed ? 0.75 : 1,
-                            },
-                          ]}
-                        >
-                          <ThemedText
-                            style={[
-                              styles.itemText,
-                              {
-                                color: isSelected ? colors.onSecondaryContainer : colors.onSurface,
-                                fontWeight: isSelected ? "600" : "400",
-                              },
-                            ]}
-                          >
-                            {item.label}
-                          </ThemedText>
-                          {isSelected && <Ionicons name="checkmark" size={20} color={colors.onSecondaryContainer} />}
-                        </Pressable>
-                      );
-                    })}
-                  </ScrollView>
-                </View>
-              </BlurView>
-            </View>
-          ) : (
-            <View style={styles.androidDialogOverlay}>
-              <View
-                style={[
-                  styles.androidDialogContent,
-                  {
-                    backgroundColor: colors.surfaceContainerHigh || colors.surface,
-                    elevation: 6,
-                  },
-                ]}
-              >
-                <ThemedText style={[styles.modalTitle, { color: colors.onSurface }]}>{label}</ThemedText>
-                {/* List of Options */}
-                <ScrollView style={styles.scrollContainer} showsVerticalScrollIndicator={false}>
-                  {items.map((item) => {
-                    const isSelected = item.value === selectedValue;
-                    return (
-                      <Pressable
-                        key={item.value}
-                        onPress={() => handleSelect(item.value)}
-                        android_ripple={{ color: colors.primary }}
-                        style={[
-                          styles.itemButton,
-                          {
-                            backgroundColor: isSelected ? colors.secondaryContainer : "transparent",
-                          },
-                        ]}
-                      >
-                        <ThemedText
-                          style={[
-                            styles.itemText,
-                            {
-                              color: isSelected ? colors.onSecondaryContainer : colors.onSurface,
-                              fontWeight: isSelected ? "600" : "400",
-                            },
-                          ]}
-                        >
-                          {item.label}
-                        </ThemedText>
-                        {isSelected && <Ionicons name="checkmark" size={20} color={colors.onSecondaryContainer} />}
-                      </Pressable>
-                    );
-                  })}
-                </ScrollView>
-              </View>
-            </View>
-          )}
-        </View>
-      </Modal>
-    </>
+    <View style={{ width: "100%", marginTop: 8 }}>
+      <Host seedColor={currentColor === MATERIAL_YOU_KEY ? undefined : currentColor} style={{ flex: 1, minHeight: 50 }}>
+        <Picker selectedValue={selectedValue} onValueChange={onValueChange} appearance="menu">
+          {items.map((item) => (
+            <Picker.Item key={item.value} label={item.label} value={item.value} />
+          ))}
+        </Picker>
+      </Host>
+    </View>
   );
 }
-
-//* --------------------------- STYLING --------------------------- *//
-const styles = StyleSheet.create({
-  pickerButtonWrapper: {
-    marginTop: 8,
-    overflow: "hidden",
-  },
-  pickerButtonPressable: {
-    flexDirection: "row",
-    alignItems: "center",
-    justifyContent: "space-between",
-    paddingHorizontal: 16,
-    paddingVertical: 14,
-  },
-  iosPickerButton: {
-    borderRadius: 12,
-  },
-  androidPickerButton: {
-    borderRadius: 16,
-  },
-  pickerButtonText: {
-    fontSize: 16,
-    flex: 1,
-    paddingRight: 8,
-  },
-  modalOverlay: {
-    flex: 1,
-    justifyContent: "flex-end",
-  },
-  modalBackdrop: {
-    ...StyleSheet.absoluteFillObject,
-    backgroundColor: "rgba(0,0,0,0.35)",
-  },
-  iosSheetContainer: {
-    padding: 12,
-    maxHeight: "80%",
-  },
-  iosSheetBlur: {
-    borderRadius: 24,
-    overflow: "hidden",
-    flexShrink: 1,
-  },
-  iosSheetContent: {
-    borderRadius: 24,
-    padding: 20,
-    flexShrink: 1,
-  },
-  androidDialogOverlay: {
-    ...StyleSheet.absoluteFillObject,
-    justifyContent: "center",
-    alignItems: "center",
-    padding: 20,
-  },
-  androidDialogContent: {
-    width: "100%",
-    maxHeight: "80%",
-    borderRadius: 28,
-    padding: 20,
-  },
-  modalTitle: {
-    fontSize: 20,
-    fontWeight: "bold",
-    marginBottom: 16,
-    textAlign: "center",
-  },
-  scrollContainer: {
-    width: "100%",
-  },
-  itemButton: {
-    flexDirection: "row",
-    alignItems: "center",
-    justifyContent: "space-between",
-    paddingVertical: 16,
-    paddingHorizontal: 16,
-    borderRadius: 12,
-    marginBottom: 4,
-  },
-  itemText: {
-    fontSize: 16,
-    flex: 1,
-    paddingRight: 8,
-  },
-});

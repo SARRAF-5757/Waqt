@@ -1,14 +1,7 @@
 import React from "react";
-import { Platform } from "react-native";
-import { withLayoutContext } from "expo-router";
-import { createNativeBottomTabNavigator } from "@react-navigation/bottom-tabs/unstable";
-import { createBottomTabNavigator } from "@react-navigation/bottom-tabs";
+import { NativeTabs } from "expo-router/unstable-native-tabs";
 
 import { useThemeColors } from "@/hooks/useThemeColors";
-
-// use non native bottom navigator if on web
-const TabNavigator = Platform.OS === "web" ? createBottomTabNavigator().Navigator : createNativeBottomTabNavigator().Navigator;
-const Tabs = withLayoutContext(TabNavigator);
 
 /**
  * Bottom tab navigation shared by Home, History, and Settings.
@@ -19,48 +12,27 @@ export default function TabLayout() {
 
   //* --------------------------- RETURN --------------------------- *//
   return (
-    <Tabs
-      screenOptions={{
-        tabBarActiveTintColor: colors.tabIconSelected,
-        tabBarInactiveTintColor: colors.onSurfaceVariant,
-        headerShown: false,
-        tabBarControllerMode: "tabBar",
-        tabBarStyle: Platform.OS === "android" ? { backgroundColor: colors.surfaceDim || colors.surfaceVariant } : undefined,
-      }}
+    <NativeTabs
+      tintColor={colors.tabIconSelected}
+      indicatorColor={colors.secondaryContainer}
+      iconColor={{ default: colors.onSurfaceVariant, selected: colors.onSecondaryContainer }}
+      labelStyle={{ default: { color: colors.onSurfaceVariant }, selected: { color: colors.onSurface } }}
+      backgroundColor={colors.surfaceContainer}
     >
-      <Tabs.Screen
-        name="index"
-        options={{
-          title: "Home",
-          tabBarIcon: Platform.select({
-            ios: { type: "sfSymbol", name: "house" },
-            android: { type: "drawableResource", name: "ic_menu_home" },
-            default: undefined,
-          }),
-        }}
-      />
-      <Tabs.Screen
-        name="streak"
-        options={{
-          title: "History",
-          tabBarIcon: Platform.select({
-            ios: { type: "sfSymbol", name: "chart.bar" },
-            android: { type: "drawableResource", name: "ic_menu_recent_history" },
-            default: undefined,
-          }),
-        }}
-      />
-      <Tabs.Screen
-        name="settings"
-        options={{
-          title: "Settings",
-          tabBarIcon: Platform.select({
-            ios: { type: "sfSymbol", name: "gearshape" },
-            android: { type: "drawableResource", name: "ic_menu_preferences" },
-            default: undefined,
-          }),
-        }}
-      />
-    </Tabs>
+      <NativeTabs.Trigger name="index">
+        <NativeTabs.Trigger.Icon drawable="ic_menu_home" />
+        <NativeTabs.Trigger.Label>Home</NativeTabs.Trigger.Label>
+      </NativeTabs.Trigger>
+      
+      <NativeTabs.Trigger name="streak">
+        <NativeTabs.Trigger.Icon drawable="ic_menu_recent_history" />
+        <NativeTabs.Trigger.Label>History</NativeTabs.Trigger.Label>
+      </NativeTabs.Trigger>
+      
+      <NativeTabs.Trigger name="settings">
+        <NativeTabs.Trigger.Icon drawable="ic_menu_preferences" />
+        <NativeTabs.Trigger.Label>Settings</NativeTabs.Trigger.Label>
+      </NativeTabs.Trigger>
+    </NativeTabs>
   );
 }

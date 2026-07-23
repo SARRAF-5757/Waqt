@@ -1,5 +1,5 @@
 import React from "react";
-import { StyleSheet, ScrollView, ActivityIndicator, View, Platform } from "react-native";
+import { StyleSheet, ScrollView, ActivityIndicator, View } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { subDays, subHours } from "date-fns";
 
@@ -31,7 +31,6 @@ function PrayerContributionGraph({ prayerId, prayerName }: PrayerContributionGra
   //* ----------------------------- JS ----------------------------- *//
   const { historyData } = useHabits();
   const colors = useThemeColors();
-  const isIOS = Platform.OS === "ios";
 
   /**
    * Collect every date where this specific prayer was marked complete.
@@ -108,7 +107,7 @@ function PrayerContributionGraph({ prayerId, prayerName }: PrayerContributionGra
   //* --------------------------- RETURN --------------------------- *//
   return (
     <View style={styles.prayerBox}>
-      <View style={[styles.graphCardContent, { backgroundColor: colors.surfaceVariant, borderRadius: isIOS ? 20 : 12 }]}>
+      <View style={[styles.graphCardContent, { backgroundColor: colors.surfaceContainer, borderRadius: 12 }]}>
         <ThemedText style={styles.prayerHeader}>{prayerName}</ThemedText>
         {/* render row by row */}
         <View style={styles.graphRow}>
@@ -159,7 +158,6 @@ export default function StreakScreen() {
   const { isLoading } = useHabits();
   const insets = useSafeAreaInsets();
   const colors = useThemeColors();
-  const isIOS = Platform.OS === "ios";
 
   //* --------------------------- RETURN --------------------------- *//
   if (isLoading) {
@@ -173,7 +171,8 @@ export default function StreakScreen() {
   return (
     <View style={[styles.container, { paddingTop: insets.top, backgroundColor: colors.background }]}>
       <ScrollView contentContainerStyle={styles.contentContainer}>
-        <ThemedText type="title" style={[styles.header, isIOS ? { paddingTop: insets.top + 10 } : undefined]}>
+        {/* Screen title */}
+        <ThemedText type="title" style={styles.header}>
           Streak
         </ThemedText>
         {PRAYER_HABITS.map((prayer) => (

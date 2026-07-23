@@ -1,4 +1,4 @@
-import { Text, type TextProps, StyleSheet, Platform, useColorScheme } from "react-native";
+import { Text, type TextProps, StyleSheet, useColorScheme } from "react-native";
 
 import { useThemeColors } from "@/hooks/useThemeColors";
 
@@ -48,9 +48,9 @@ const styles = StyleSheet.create({
     fontWeight: "600",
   },
   title: {
-    fontSize: Platform.OS === "ios" ? 34 : 30,
+    fontSize: 30,
     fontWeight: "bold",
-    lineHeight: Platform.OS === "ios" ? 40 : 32,
+    lineHeight: 32,
   },
   subtitle: {
     fontSize: 20,

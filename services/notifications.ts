@@ -1,7 +1,12 @@
-import * as Notifications from "expo-notifications";
+// import * as Notifications from "expo-notifications";
+let Notifications: any;
+try {
+  Notifications = require("expo-notifications");
+} catch (e) {
+  console.warn("expo-notifications not available in this environment.");
+}
 import * as Location from "expo-location";
 import AsyncStorage from "@react-native-async-storage/async-storage";
-import { Platform } from "react-native";
 import * as Adhan from "adhan";
 import { getDateKey } from "@/utils/dateKey";
 
@@ -11,6 +16,7 @@ import { getDateKey } from "@/utils/dateKey";
  * Configures how the app displays notifications when it is in the foreground.
  */
 export function configureNotificationHandler() {
+  if (!Notifications) return;
   Notifications.setNotificationHandler({
     handleNotification: async () => ({
       shouldShowAlert: true,
@@ -47,6 +53,8 @@ export const setupPrayerNotifications = async () => {
 
   try {
     let { status: locationStatus } = await Location.requestForegroundPermissionsAsync();
+    
+    if (!Notifications) return;
     let { status: notifStatus } = await Notifications.requestPermissionsAsync();
 
     if (locationStatus !== "granted" || notifStatus !== "granted") {
@@ -65,13 +73,12 @@ export const setupPrayerNotifications = async () => {
     const params = (Adhan.CalculationMethod as any)[methodStr]();
     params.madhab = madhabStr === "hanafi" ? Adhan.Madhab.Hanafi : Adhan.Madhab.Shafi;
 
-    if (Platform.OS === "android") {
-      await Notifications.setNotificationChannelAsync("default", {
-        name: "default",
-        importance: Notifications.AndroidImportance.DEFAULT,
-        vibrationPattern: [0, 250, 250, 250],
-      });
-    }
+    // Create the notification channel required for Android
+    await Notifications.setNotificationChannelAsync("default", {
+      name: "default",
+      importance: Notifications.AndroidImportance.DEFAULT,
+      vibrationPattern: [0, 250, 250, 250],
+    });
 
     await Notifications.cancelAllScheduledNotificationsAsync();
 

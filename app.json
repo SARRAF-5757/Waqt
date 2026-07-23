@@ -2,7 +2,7 @@
   "expo": {
     "name": "Waqt",
     "slug": "Waqt",
-    "version": "1.0.0",
+    "version": "1.1.0",
     "orientation": "portrait",
     "icon": "./assets/images/icons/adaptive-icon.png",
     "scheme": "myapp",
@@ -63,7 +63,8 @@
         }
       ],
       "expo-web-browser",
-      "expo-font"
+      "expo-font",
+      "expo-status-bar"
     ],
     "experiments": {
       "typedRoutes": true
