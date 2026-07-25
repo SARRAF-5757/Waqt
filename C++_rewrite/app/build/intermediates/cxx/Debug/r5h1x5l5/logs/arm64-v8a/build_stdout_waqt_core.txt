@@ -1,0 +1,3 @@
+ninja: Entering directory `/Users/sarraf-temp/Coding/Waqt/C++_rewrite/app/.cxx/Debug/r5h1x5l5/arm64-v8a'
+[1/2] Building CXX object CMakeFiles/waqt_core.dir/bridge/jni_bindings.cpp.o
+[2/2] Linking CXX shared library /Users/sarraf-temp/Coding/Waqt/C++_rewrite/app/build/intermediates/cxx/Debug/r5h1x5l5/obj/arm64-v8a/libwaqt_core.so

@@ -1,0 +1,7 @@
+com.waqt.app-updated_navigation_xml-0 /Users/sarraf-temp/Coding/Waqt/C++_rewrite/app/build/generated/updated_navigation_xml/debug
+com.waqt.app-packageDebugResources-1 /Users/sarraf-temp/Coding/Waqt/C++_rewrite/app/build/intermediates/incremental/debug/packageDebugResources/merged.dir
+com.waqt.app-packageDebugResources-2 /Users/sarraf-temp/Coding/Waqt/C++_rewrite/app/build/intermediates/incremental/debug/packageDebugResources/stripped.dir
+com.waqt.app-debug-3 /Users/sarraf-temp/Coding/Waqt/C++_rewrite/app/build/intermediates/merged_res/debug/mergeDebugResources
+com.waqt.app-debug-4 /Users/sarraf-temp/Coding/Waqt/C++_rewrite/app/src/debug/res
+com.waqt.app-main-5 /Users/sarraf-temp/Coding/Waqt/C++_rewrite/app/src/main/res
+gradleHome-0 /Users/sarraf-temp/.gradle

@@ -1,0 +1,10 @@
+ninja: Entering directory `/Users/sarraf-temp/Coding/Waqt/C++_rewrite/app/.cxx/Debug/r5h1x5l5/x86'
+[1/9] Building CXX object CMakeFiles/waqt_core.dir/core/AstronomicalMath.cpp.o
+[2/9] Building CXX object CMakeFiles/waqt_core.dir/core/FajrShiftDate.cpp.o
+[3/9] Building CXX object CMakeFiles/waqt_core.dir/core/PrayerCalculator.cpp.o
+[4/9] Building CXX object CMakeFiles/waqt_core.dir/core/WaqtEngine.cpp.o
+[5/9] Building CXX object CMakeFiles/waqt_core.dir/bridge/jni_bindings.cpp.o
+[6/9] Building CXX object CMakeFiles/waqt_core.dir/core/NotificationGenerator.cpp.o
+[7/9] Building CXX object CMakeFiles/waqt_core.dir/storage/Database.cpp.o
+[8/9] Building C object CMakeFiles/waqt_core.dir/storage/sqlite3.c.o
+[9/9] Linking CXX shared library /Users/sarraf-temp/Coding/Waqt/C++_rewrite/app/build/intermediates/cxx/Debug/r5h1x5l5/obj/x86/libwaqt_core.so

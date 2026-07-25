@@ -1,0 +1,6 @@
+- [x] Remove `org.jetbrains.kotlin.android` from root `build.gradle.kts`
+- [x] Remove `id("org.jetbrains.kotlin.android")` from `app/build.gradle.kts`
+- [x] Migrate `kotlinOptions` to built-in AGP 9.0 support
+- [x] Run Gradle sync to verify fix (Success)
+- [x] Verify Kotlin compilation (Success)
+- [x] Verify C++ compilation (Success)

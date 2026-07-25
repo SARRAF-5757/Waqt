@@ -1,0 +1,3 @@
+/Users/sarraf-temp/Coding/Waqt/C++_rewrite/app/.cxx/Debug/r5h1x5l5/arm64-v8a/CMakeFiles/waqt_core.dir
+/Users/sarraf-temp/Coding/Waqt/C++_rewrite/app/.cxx/Debug/r5h1x5l5/arm64-v8a/CMakeFiles/edit_cache.dir
+/Users/sarraf-temp/Coding/Waqt/C++_rewrite/app/.cxx/Debug/r5h1x5l5/arm64-v8a/CMakeFiles/rebuild_cache.dir

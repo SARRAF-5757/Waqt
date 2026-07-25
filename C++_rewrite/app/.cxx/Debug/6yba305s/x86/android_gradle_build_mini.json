@@ -1,0 +1,27 @@
+{
+  "buildFiles": [
+    "/Users/sarraf-temp/Coding/Waqt/C++_rewrite/app/src/main/cpp/CMakeLists.txt"
+  ],
+  "cleanCommandsComponents": [
+    [
+      "/Users/sarraf-temp/Library/Android/sdk/cmake/3.22.1/bin/ninja",
+      "-C",
+      "/Users/sarraf-temp/Coding/Waqt/C++_rewrite/app/.cxx/Debug/6yba305s/x86",
+      "clean"
+    ]
+  ],
+  "buildTargetsCommandComponents": [
+    "/Users/sarraf-temp/Library/Android/sdk/cmake/3.22.1/bin/ninja",
+    "-C",
+    "/Users/sarraf-temp/Coding/Waqt/C++_rewrite/app/.cxx/Debug/6yba305s/x86",
+    "{LIST_OF_TARGETS_TO_BUILD}"
+  ],
+  "libraries": {
+    "waqt_core::@6890427a1f51a3e7e1df": {
+      "artifactName": "waqt_core",
+      "abi": "x86",
+      "output": "/Users/sarraf-temp/Coding/Waqt/C++_rewrite/app/build/intermediates/cxx/Debug/6yba305s/obj/x86/libwaqt_core.so",
+      "runtimeFiles": []
+    }
+  }
+}

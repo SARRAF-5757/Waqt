@@ -1,0 +1,18 @@
+[
+    {
+        "merged": "com.waqt.app-debug-50:/drawable_ic_notification.png.flat",
+        "source": "com.waqt.app-main-52:/drawable/ic_notification.png"
+    },
+    {
+        "merged": "com.waqt.app-debug-50:/drawable_splash_icon_light.png.flat",
+        "source": "com.waqt.app-main-52:/drawable/splash_icon_light.png"
+    },
+    {
+        "merged": "com.waqt.app-debug-50:/drawable_splash_icon_dark.png.flat",
+        "source": "com.waqt.app-main-52:/drawable/splash_icon_dark.png"
+    },
+    {
+        "merged": "com.waqt.app-debug-50:/drawable_ic_launcher_foreground.png.flat",
+        "source": "com.waqt.app-main-52:/drawable/ic_launcher_foreground.png"
+    }
+]

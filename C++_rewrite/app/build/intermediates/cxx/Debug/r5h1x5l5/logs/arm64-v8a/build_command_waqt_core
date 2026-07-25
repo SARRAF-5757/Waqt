@@ -1,0 +1,4 @@
+/Users/sarraf-temp/Library/Android/sdk/cmake/3.22.1/bin/ninja \
+  -C \
+  /Users/sarraf-temp/Coding/Waqt/C++_rewrite/app/.cxx/Debug/r5h1x5l5/arm64-v8a \
+  waqt_core
