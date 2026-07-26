@@ -9,6 +9,7 @@ import android.os.Build
 import android.os.Bundle
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
+import androidx.activity.enableEdgeToEdge
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.activity.viewModels
 import androidx.compose.runtime.collectAsState
@@ -46,9 +47,10 @@ class MainActivity : ComponentActivity() {
      * RME:
      * Reads: SavedInstanceState, permissions state.
      * Modifies: UI window content and location updates.
-     * Effects: Requests runtime permissions, updates location, and launches Compose UI theme wrapper.
+     * Effects: Enables edge-to-edge drawing, requests runtime permissions, updates location, and launches Compose UI theme wrapper.
      */
     override fun onCreate(savedInstanceState: Bundle?) {
+        enableEdgeToEdge()
         super.onCreate(savedInstanceState)
 
         requestRuntimePermissions()

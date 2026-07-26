@@ -1,8 +1,11 @@
 /**
- * File Role: Bottom Navigation bar and tab screen routing setup for Jetpack Compose.
+ * File Role: Bottom Navigation bar and tab screen routing setup for Jetpack Compose with edge-to-edge support.
  */
 package com.waqt.ui.navigation
 
+import androidx.compose.foundation.layout.WindowInsets
+import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.navigationBars
 import androidx.compose.foundation.layout.padding
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.DateRange
@@ -35,7 +38,7 @@ sealed class Screen(val route: String, val title: String, val icon: ImageVector)
  * RME:
  * Reads: `HomeViewModel`, `StreakViewModel`, `SettingsViewModel`.
  * Modifies: NavHost navigation backstack state.
- * Effects: Renders App Scaffold with Bottom Navigation Bar and active screen composable.
+ * Effects: Renders App Scaffold with edge-to-edge background, Bottom Navigation Bar, and active screen composable.
  */
 @Composable
 fun AppNavigation(
@@ -47,9 +50,12 @@ fun AppNavigation(
     val items = listOf(Screen.Home, Screen.History, Screen.Settings)
 
     Scaffold(
+        containerColor = MaterialTheme.colorScheme.background,
+        contentWindowInsets = WindowInsets(0, 0, 0, 0),
         bottomBar = {
             NavigationBar(
-                containerColor = MaterialTheme.colorScheme.surfaceContainer
+                containerColor = MaterialTheme.colorScheme.surfaceContainer,
+                windowInsets = WindowInsets.navigationBars
             ) {
                 val navBackStackEntry by navController.currentBackStackEntryAsState()
                 val currentRoute = navBackStackEntry?.destination?.route
@@ -85,7 +91,9 @@ fun AppNavigation(
         NavHost(
             navController = navController,
             startDestination = Screen.Home.route,
-            modifier = Modifier.padding(innerPadding)
+            modifier = Modifier
+                .fillMaxSize()
+                .padding(innerPadding)
         ) {
             composable(Screen.Home.route) {
                 HomeScreen(viewModel = homeViewModel)
