@@ -67,6 +67,9 @@ fun AppNavigation(
                         selected = currentRoute == screen.route,
                         onClick = {
                             if (currentRoute != screen.route) {
+                                if (screen == Screen.History) {
+                                    streakViewModel.loadStreakData()
+                                }
                                 navController.navigate(screen.route) {
                                     popUpTo(navController.graph.findStartDestination().id) {
                                         saveState = true
