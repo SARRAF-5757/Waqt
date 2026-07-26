@@ -7,7 +7,7 @@
 extern "C" {
 
 JNIEXPORT jboolean JNICALL
-Java_com_waqt_bridge_WaqtNativeBridge_nativeInitialize(JNIEnv* env, jobject /*thiz*/, jstring dbPath) {
+Java_io_github_sarraf5757_waqt_bridge_WaqtNativeBridge_nativeInitialize(JNIEnv* env, jobject /*thiz*/, jstring dbPath) {
     if (!dbPath) return JNI_FALSE;
     const char* pathStr = env->GetStringUTFChars(dbPath, nullptr);
     std::string path(pathStr ? pathStr : "");
@@ -17,18 +17,18 @@ Java_com_waqt_bridge_WaqtNativeBridge_nativeInitialize(JNIEnv* env, jobject /*th
 }
 
 JNIEXPORT void JNICALL
-Java_com_waqt_bridge_WaqtNativeBridge_nativeUpdateLocation(JNIEnv* /*env*/, jobject /*thiz*/, jdouble lat, jdouble lng) {
+Java_io_github_sarraf5757_waqt_bridge_WaqtNativeBridge_nativeUpdateLocation(JNIEnv* /*env*/, jobject /*thiz*/, jdouble lat, jdouble lng) {
     waqt::WaqtEngine::getInstance().setLocation(lat, lng);
 }
 
 JNIEXPORT jobject JNICALL
-Java_com_waqt_bridge_WaqtNativeBridge_nativeGetHomeState(JNIEnv* env, jobject /*thiz*/, jlong nowSec) {
+Java_io_github_sarraf5757_waqt_bridge_WaqtNativeBridge_nativeGetHomeState(JNIEnv* env, jobject /*thiz*/, jlong nowSec) {
     auto& engine = waqt::WaqtEngine::getInstance();
     waqt::PrayerTimesMap times = engine.getTodayPrayerTimes(nowSec);
     waqt::DayPrayerStatus status = engine.getTodayStatuses(nowSec);
     waqt::PreferenceSettings prefs = engine.getPreferences();
 
-    jclass homeStateClass = env->FindClass("com/waqt/bridge/NativeModels$HomeState");
+    jclass homeStateClass = env->FindClass("io/github/sarraf5757/waqt/bridge/NativeModels$HomeState");
     if (!homeStateClass) return nullptr;
 
     jmethodID constructor = env->GetMethodID(homeStateClass, "<init>", "(Ljava/lang/String;ZZZZZJJJJJJJJJJZZ)V");
@@ -63,7 +63,7 @@ Java_com_waqt_bridge_WaqtNativeBridge_nativeGetHomeState(JNIEnv* env, jobject /*
 }
 
 JNIEXPORT jboolean JNICALL
-Java_com_waqt_bridge_WaqtNativeBridge_nativeTogglePrayer(
+Java_io_github_sarraf5757_waqt_bridge_WaqtNativeBridge_nativeTogglePrayer(
     JNIEnv* env, jobject /*thiz*/, jstring dateKey, jstring prayerId, jboolean completed
 ) {
     if (!dateKey || !prayerId) return JNI_FALSE;
@@ -83,10 +83,10 @@ Java_com_waqt_bridge_WaqtNativeBridge_nativeTogglePrayer(
 }
 
 JNIEXPORT jobject JNICALL
-Java_com_waqt_bridge_WaqtNativeBridge_nativeGetPreferences(JNIEnv* env, jobject /*thiz*/) {
+Java_io_github_sarraf5757_waqt_bridge_WaqtNativeBridge_nativeGetPreferences(JNIEnv* env, jobject /*thiz*/) {
     waqt::PreferenceSettings prefs = waqt::WaqtEngine::getInstance().getPreferences();
 
-    jclass prefsClass = env->FindClass("com/waqt/bridge/NativeModels$PreferenceSettings");
+    jclass prefsClass = env->FindClass("io/github/sarraf5757/waqt/bridge/NativeModels$PreferenceSettings");
     if (!prefsClass) return nullptr;
 
     jmethodID constructor = env->GetMethodID(prefsClass, "<init>", "(ZZLjava/lang/String;Ljava/lang/String;Ljava/lang/String;IDDZ)V");
@@ -114,7 +114,7 @@ Java_com_waqt_bridge_WaqtNativeBridge_nativeGetPreferences(JNIEnv* env, jobject 
 }
 
 JNIEXPORT void JNICALL
-Java_com_waqt_bridge_WaqtNativeBridge_nativeUpdatePreference(
+Java_io_github_sarraf5757_waqt_bridge_WaqtNativeBridge_nativeUpdatePreference(
     JNIEnv* env, jobject /*thiz*/, jstring key, jstring value
 ) {
     if (!key || !value) return;
@@ -131,20 +131,20 @@ Java_com_waqt_bridge_WaqtNativeBridge_nativeUpdatePreference(
 }
 
 JNIEXPORT void JNICALL
-Java_com_waqt_bridge_WaqtNativeBridge_nativeDeleteAllHistory(JNIEnv* /*env*/, jobject /*thiz*/) {
+Java_io_github_sarraf5757_waqt_bridge_WaqtNativeBridge_nativeDeleteAllHistory(JNIEnv* /*env*/, jobject /*thiz*/) {
     waqt::WaqtEngine::getInstance().deleteAllHistory();
 }
 
 JNIEXPORT jobject JNICALL
-Java_com_waqt_bridge_WaqtNativeBridge_nativeGetStreakData(JNIEnv* env, jobject /*thiz*/, jlong nowSec) {
+Java_io_github_sarraf5757_waqt_bridge_WaqtNativeBridge_nativeGetStreakData(JNIEnv* env, jobject /*thiz*/, jlong nowSec) {
     waqt::StreakGridData gridData = waqt::WaqtEngine::getInstance().getStreakData(nowSec);
 
-    jclass streakDataClass = env->FindClass("com/waqt/bridge/NativeModels$StreakGridData");
-    jclass streakItemClass = env->FindClass("com/waqt/bridge/NativeModels$PrayerStreak");
+    jclass streakDataClass = env->FindClass("io/github/sarraf5757/waqt/bridge/NativeModels$StreakGridData");
+    jclass streakItemClass = env->FindClass("io/github/sarraf5757/waqt/bridge/NativeModels$PrayerStreak");
     if (!streakDataClass || !streakItemClass) return nullptr;
 
     jmethodID streakItemCons = env->GetMethodID(streakItemClass, "<init>", "(Ljava/lang/String;[Z)V");
-    jmethodID streakDataCons = env->GetMethodID(streakDataClass, "<init>", "(I[Lcom/waqt/bridge/NativeModels$PrayerStreak;)V");
+    jmethodID streakDataCons = env->GetMethodID(streakDataClass, "<init>", "(I[Lio/github/sarraf5757/waqt/bridge/NativeModels$PrayerStreak;)V");
     if (!streakItemCons || !streakDataCons) return nullptr;
 
     jobjectArray streaksArr = env->NewObjectArray(gridData.streaks.size(), streakItemClass, nullptr);
@@ -172,10 +172,10 @@ Java_com_waqt_bridge_WaqtNativeBridge_nativeGetStreakData(JNIEnv* env, jobject /
 }
 
 JNIEXPORT jobjectArray JNICALL
-Java_com_waqt_bridge_WaqtNativeBridge_nativeGetNotificationSchedule(JNIEnv* env, jobject /*thiz*/, jlong nowSec) {
+Java_io_github_sarraf5757_waqt_bridge_WaqtNativeBridge_nativeGetNotificationSchedule(JNIEnv* env, jobject /*thiz*/, jlong nowSec) {
     auto intents = waqt::WaqtEngine::getInstance().getNotificationSchedule(nowSec);
 
-    jclass intentClass = env->FindClass("com/waqt/bridge/NativeModels$NotificationIntent");
+    jclass intentClass = env->FindClass("io/github/sarraf5757/waqt/bridge/NativeModels$NotificationIntent");
     if (!intentClass) return nullptr;
 
     jmethodID constructor = env->GetMethodID(intentClass, "<init>", "(Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;J)V");

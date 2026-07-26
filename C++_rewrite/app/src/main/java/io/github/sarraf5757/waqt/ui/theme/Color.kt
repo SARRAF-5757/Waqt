@@ -1,7 +1,7 @@
 /**
  * File Role: Defines visual color tokens, fallback palettes, and accent options for Material 3.
  */
-package com.waqt.ui.theme
+package io.github.sarraf5757.waqt.ui.theme
 
 import androidx.compose.ui.graphics.Color
 

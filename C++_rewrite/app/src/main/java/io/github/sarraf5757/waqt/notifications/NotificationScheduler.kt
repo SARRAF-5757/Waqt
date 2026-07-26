@@ -1,7 +1,7 @@
 /**
  * File Role: Manages Android system notification channels and schedules exact alarm notifications using AlarmManager.
  */
-package com.waqt.notifications
+package io.github.sarraf5757.waqt.notifications
 
 import android.app.AlarmManager
 import android.app.NotificationChannel
@@ -10,7 +10,7 @@ import android.app.PendingIntent
 import android.content.Context
 import android.content.Intent
 import android.os.Build
-import com.waqt.bridge.WaqtNativeBridge
+import io.github.sarraf5757.waqt.bridge.WaqtNativeBridge
 
 object NotificationScheduler {
 

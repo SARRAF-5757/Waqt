@@ -1,7 +1,7 @@
 /**
  * File Role: Streak/History screen UI rendering 5 GitHub-style 105-day contribution grids for each prayer.
  */
-package com.waqt.ui.screens
+package io.github.sarraf5757.waqt.ui.screens
 
 import androidx.compose.foundation.background
 import androidx.compose.foundation.horizontalScroll
@@ -21,8 +21,8 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import com.waqt.bridge.NativeModels
-import com.waqt.ui.viewmodels.StreakViewModel
+import io.github.sarraf5757.waqt.bridge.NativeModels
+import io.github.sarraf5757.waqt.ui.viewmodels.StreakViewModel
 
 private val WEEKDAY_LETTERS = listOf("S", "M", "T", "W", "T", "F", "S")
 private val PRAYER_NAMES = mapOf(

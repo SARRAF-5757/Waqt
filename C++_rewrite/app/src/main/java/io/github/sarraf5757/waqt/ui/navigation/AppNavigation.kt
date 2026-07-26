@@ -1,8 +1,12 @@
 /**
  * File Role: Bottom Navigation bar and tab screen routing setup for Jetpack Compose with edge-to-edge support.
  */
-package com.waqt.ui.navigation
+package io.github.sarraf5757.waqt.ui.navigation
 
+import androidx.compose.animation.AnimatedContentTransitionScope
+import androidx.compose.animation.core.Spring
+import androidx.compose.animation.core.spring
+import androidx.compose.animation.core.tween
 import androidx.compose.foundation.layout.WindowInsets
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.navigationBars
@@ -16,17 +20,19 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.vector.ImageVector
+import androidx.compose.ui.unit.IntOffset
+import androidx.navigation.NavBackStackEntry
 import androidx.navigation.NavGraph.Companion.findStartDestination
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.currentBackStackEntryAsState
 import androidx.navigation.compose.rememberNavController
-import com.waqt.ui.screens.HomeScreen
-import com.waqt.ui.screens.SettingsScreen
-import com.waqt.ui.screens.StreakScreen
-import com.waqt.ui.viewmodels.HomeViewModel
-import com.waqt.ui.viewmodels.SettingsViewModel
-import com.waqt.ui.viewmodels.StreakViewModel
+import io.github.sarraf5757.waqt.ui.screens.HomeScreen
+import io.github.sarraf5757.waqt.ui.screens.SettingsScreen
+import io.github.sarraf5757.waqt.ui.screens.StreakScreen
+import io.github.sarraf5757.waqt.ui.viewmodels.HomeViewModel
+import io.github.sarraf5757.waqt.ui.viewmodels.SettingsViewModel
+import io.github.sarraf5757.waqt.ui.viewmodels.StreakViewModel
 
 sealed class Screen(val route: String, val title: String, val icon: ImageVector) {
     object Home : Screen("home", "Home", Icons.Default.Home)
@@ -90,12 +96,30 @@ fun AppNavigation(
             }
         }
     ) { innerPadding ->
+        val routeOrder = listOf(Screen.Home.route, Screen.History.route, Screen.Settings.route)
+
+        // Helper for snappy side-scrolling direction.
+        fun slideDirection(scope: AnimatedContentTransitionScope<NavBackStackEntry>) =
+            if (routeOrder.indexOf(scope.targetState.destination.route) > routeOrder.indexOf(scope.initialState.destination.route))
+                AnimatedContentTransitionScope.SlideDirection.Left else AnimatedContentTransitionScope.SlideDirection.Right
+
+        // Animation Toggle: Switch between fast (tween) and bouncy (spring)
+        // val navAnimationSpec = tween<IntOffset>(150)
+        val navAnimationSpec = spring<IntOffset>(
+            dampingRatio = Spring.DampingRatioLowBouncy,
+            stiffness = Spring.StiffnessMedium
+        )
+
         NavHost(
             navController = navController,
             startDestination = Screen.Home.route,
             modifier = Modifier
                 .fillMaxSize()
-                .padding(innerPadding)
+                .padding(innerPadding),
+            enterTransition = { slideIntoContainer(slideDirection(this), navAnimationSpec) },
+            exitTransition = { slideOutOfContainer(slideDirection(this), navAnimationSpec) },
+            popEnterTransition = { slideIntoContainer(slideDirection(this), navAnimationSpec) },
+            popExitTransition = { slideOutOfContainer(slideDirection(this), navAnimationSpec) }
         ) {
             composable(Screen.Home.route) {
                 HomeScreen(viewModel = homeViewModel)

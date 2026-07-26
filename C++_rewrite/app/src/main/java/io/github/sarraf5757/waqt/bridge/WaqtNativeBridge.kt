@@ -1,7 +1,7 @@
 /**
  * File Role: JNI Bridge singleton providing native C++ calls to Kotlin code.
  */
-package com.waqt.bridge
+package io.github.sarraf5757.waqt.bridge
 
 import android.content.Context
 import java.io.File

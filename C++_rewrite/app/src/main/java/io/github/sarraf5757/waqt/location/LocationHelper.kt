@@ -1,7 +1,7 @@
 /**
  * File Role: Manages Android foreground location permissions and updates C++ core with device coordinates.
  */
-package com.waqt.location
+package io.github.sarraf5757.waqt.location
 
 import android.annotation.SuppressLint
 import android.content.Context
@@ -10,7 +10,7 @@ import android.location.Location
 import android.location.LocationListener
 import android.location.LocationManager
 import androidx.core.content.ContextCompat
-import com.waqt.bridge.WaqtNativeBridge
+import io.github.sarraf5757.waqt.bridge.WaqtNativeBridge
 
 object LocationHelper {
 

@@ -1,7 +1,7 @@
 /**
  * File Role: BroadcastReceiver that catches ACTION_BOOT_COMPLETED to reschedule prayer notifications when device reboots.
  */
-package com.waqt.notifications
+package io.github.sarraf5757.waqt.notifications
 
 import android.content.BroadcastReceiver
 import android.content.Context

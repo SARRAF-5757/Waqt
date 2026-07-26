@@ -1,13 +1,13 @@
 /**
  * File Role: ViewModel managing the 105-day prayer streak grid data.
  */
-package com.waqt.ui.viewmodels
+package io.github.sarraf5757.waqt.ui.viewmodels
 
 import android.app.Application
 import androidx.lifecycle.AndroidViewModel
 import androidx.lifecycle.viewModelScope
-import com.waqt.bridge.NativeModels
-import com.waqt.bridge.WaqtNativeBridge
+import io.github.sarraf5757.waqt.bridge.NativeModels
+import io.github.sarraf5757.waqt.bridge.WaqtNativeBridge
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow

@@ -1,7 +1,7 @@
 /**
  * File Role: Configures Jetpack Compose Material 3 Theme with dynamic color and custom accent options.
  */
-package com.waqt.ui.theme
+package io.github.sarraf5757.waqt.ui.theme
 
 import android.os.Build
 import androidx.compose.foundation.isSystemInDarkTheme

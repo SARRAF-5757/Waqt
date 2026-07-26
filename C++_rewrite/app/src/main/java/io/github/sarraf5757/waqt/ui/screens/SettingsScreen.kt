@@ -1,7 +1,7 @@
 /**
  * File Role: Settings screen UI displaying preferences, calculation pickers, appearance controls, and danger zone.
  */
-package com.waqt.ui.screens
+package io.github.sarraf5757.waqt.ui.screens
 
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
@@ -23,8 +23,8 @@ import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import com.waqt.ui.theme.THEME_ACCENT_OPTIONS
-import com.waqt.ui.viewmodels.SettingsViewModel
+import io.github.sarraf5757.waqt.ui.theme.THEME_ACCENT_OPTIONS
+import io.github.sarraf5757.waqt.ui.viewmodels.SettingsViewModel
 
 val CALCULATION_METHODS = listOf(
     "MoonsightingCommittee" to "Moonsighting Committee Worldwide",

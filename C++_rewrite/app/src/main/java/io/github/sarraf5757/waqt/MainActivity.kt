@@ -1,7 +1,7 @@
 /**
  * File Role: Main ComponentActivity initializing location/notification permissions and host for Jetpack Compose UI.
  */
-package com.waqt
+package io.github.sarraf5757.waqt
 
 import android.Manifest
 import android.content.pm.PackageManager
@@ -15,14 +15,14 @@ import androidx.activity.viewModels
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.core.content.ContextCompat
-import com.waqt.bridge.WaqtNativeBridge
-import com.waqt.location.LocationHelper
-import com.waqt.notifications.NotificationScheduler
-import com.waqt.ui.navigation.AppNavigation
-import com.waqt.ui.theme.WaqtTheme
-import com.waqt.ui.viewmodels.HomeViewModel
-import com.waqt.ui.viewmodels.SettingsViewModel
-import com.waqt.ui.viewmodels.StreakViewModel
+import io.github.sarraf5757.waqt.bridge.WaqtNativeBridge
+import io.github.sarraf5757.waqt.location.LocationHelper
+import io.github.sarraf5757.waqt.notifications.NotificationScheduler
+import io.github.sarraf5757.waqt.ui.navigation.AppNavigation
+import io.github.sarraf5757.waqt.ui.theme.WaqtTheme
+import io.github.sarraf5757.waqt.ui.viewmodels.HomeViewModel
+import io.github.sarraf5757.waqt.ui.viewmodels.SettingsViewModel
+import io.github.sarraf5757.waqt.ui.viewmodels.StreakViewModel
 
 class MainActivity : ComponentActivity() {
 

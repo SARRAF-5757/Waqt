@@ -1,7 +1,7 @@
 /**
  * File Role: Home screen UI displaying today's 5 daily prayer cards with checkboxes and start/end time pills.
  */
-package com.waqt.ui.screens
+package io.github.sarraf5757.waqt.ui.screens
 
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.isSystemInDarkTheme
@@ -21,8 +21,8 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import com.waqt.R
-import com.waqt.ui.viewmodels.HomeViewModel
+import io.github.sarraf5757.waqt.R
+import io.github.sarraf5757.waqt.ui.viewmodels.HomeViewModel
 import java.text.SimpleDateFormat
 import java.util.*
 

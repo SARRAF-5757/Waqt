@@ -1,11 +1,11 @@
 /**
  * File Role: Application class handling global initialization of C++ native core engine and notification channels.
  */
-package com.waqt
+package io.github.sarraf5757.waqt
 
 import android.app.Application
-import com.waqt.bridge.WaqtNativeBridge
-import com.waqt.notifications.NotificationScheduler
+import io.github.sarraf5757.waqt.bridge.WaqtNativeBridge
+import io.github.sarraf5757.waqt.notifications.NotificationScheduler
 
 class WaqtApp : Application() {
 

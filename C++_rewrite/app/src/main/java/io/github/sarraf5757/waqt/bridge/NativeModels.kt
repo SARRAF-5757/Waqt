@@ -1,7 +1,7 @@
 /**
  * File Role: Data models mirroring C++ core structures passed over the JNI boundary.
  */
-package com.waqt.bridge
+package io.github.sarraf5757.waqt.bridge
 
 class NativeModels {
 

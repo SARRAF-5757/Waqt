@@ -1,7 +1,7 @@
 /**
  * File Role: BroadcastReceiver that catches scheduled AlarmManager intents and displays system status bar notifications.
  */
-package com.waqt.notifications
+package io.github.sarraf5757.waqt.notifications
 
 import android.app.PendingIntent
 import android.content.BroadcastReceiver
@@ -10,8 +10,8 @@ import android.content.Intent
 import android.media.RingtoneManager
 import androidx.core.app.NotificationCompat
 import androidx.core.app.NotificationManagerCompat
-import com.waqt.MainActivity
-import com.waqt.R
+import io.github.sarraf5757.waqt.MainActivity
+import io.github.sarraf5757.waqt.R
 
 class AlarmReceiver : BroadcastReceiver() {
 
