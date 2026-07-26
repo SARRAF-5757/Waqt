@@ -1,3 +1,0 @@
-/Users/sarraf-temp/Coding/Waqt/C++_rewrite/app/.cxx/Debug/r5h1x5l5/armeabi-v7a/CMakeFiles/waqt_core.dir
-/Users/sarraf-temp/Coding/Waqt/C++_rewrite/app/.cxx/Debug/r5h1x5l5/armeabi-v7a/CMakeFiles/edit_cache.dir
-/Users/sarraf-temp/Coding/Waqt/C++_rewrite/app/.cxx/Debug/r5h1x5l5/armeabi-v7a/CMakeFiles/rebuild_cache.dir

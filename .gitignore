@@ -25,6 +25,8 @@ Thumbs.db
 *.swo
 *~
 .history/
+.artifacts/
+**/.artifacts/
 
 # ------------------------------------------------------------------------------
 # 2. React Native & Expo App (Root Level)
@@ -63,6 +65,7 @@ tsconfig.tsbuildinfo
 # Gradle Build Outputs & Cache
 .gradle/
 **/build/
+/C++_rewrite/app/build
 **/bin/
 
 # Compiled Java / Kotlin Bytecode & Android DEX
