@@ -68,7 +68,7 @@ fun SettingsScreen(viewModel: SettingsViewModel) {
             .padding(bottom = 120.dp),
         horizontalAlignment = Alignment.Start
     ) {
-        Spacer(modifier = Modifier.height(20.dp))
+        Spacer(modifier = Modifier.height(26.dp))
 
         // Title
         Text(
@@ -79,6 +79,8 @@ fun SettingsScreen(viewModel: SettingsViewModel) {
                 .fillMaxWidth()
                 .padding(vertical = 18.dp)
         )
+
+        Spacer(modifier = Modifier.height(20.dp))
 
         // Section: Notifications
         SectionHeader(text = "Notifications")

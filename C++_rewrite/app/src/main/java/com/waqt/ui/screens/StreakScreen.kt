@@ -68,7 +68,7 @@ fun StreakScreen(viewModel: StreakViewModel) {
             .padding(bottom = 120.dp),
         horizontalAlignment = Alignment.CenterHorizontally
     ) {
-        Spacer(modifier = Modifier.height(20.dp))
+        Spacer(modifier = Modifier.height(26.dp))
 
         // Screen title "Streak"
         Text(
@@ -80,7 +80,7 @@ fun StreakScreen(viewModel: StreakViewModel) {
                 .padding(vertical = 18.dp)
         )
 
-        Spacer(modifier = Modifier.height(16.dp))
+        Spacer(modifier = Modifier.height(20.dp))
 
         // 5 Prayer Contribution Graphs
         data.streaks.forEach { prayerStreak ->

@@ -79,7 +79,7 @@ fun HomeScreen(viewModel: HomeViewModel) {
             .padding(bottom = 120.dp),
         horizontalAlignment = Alignment.CenterHorizontally
     ) {
-        Spacer(modifier = Modifier.height(60.dp))
+        Spacer(modifier = Modifier.height(26.dp))
 
         // Centered brand logo ~180x180dp
         Image(
@@ -88,7 +88,7 @@ fun HomeScreen(viewModel: HomeViewModel) {
             modifier = Modifier.size(180.dp)
         )
 
-        Spacer(modifier = Modifier.height(36.dp))
+        Spacer(modifier = Modifier.height(26.dp))
 
         // Render 5 daily prayer cards
         prayers.forEach { prayer ->
