@@ -1,6 +1,5 @@
-/**
- * File Role: BroadcastReceiver that catches scheduled AlarmManager intents and displays system status bar notifications.
- */
+// Handles scheduled alarm intents to trigger prayer notifications
+
 package io.github.sarraf5757.waqt.notifications
 
 import android.app.PendingIntent
@@ -14,12 +13,8 @@ import io.github.sarraf5757.waqt.MainActivity
 import io.github.sarraf5757.waqt.R
 
 class AlarmReceiver : BroadcastReceiver() {
-
     /**
-     * RME:
-     * Reads: Intent extras (title, body, notification ID).
-     * Modifies: Status bar notification shade.
-     * Effects: Posts system notification with vibration and sound.
+     * Posts system notification with vibration and sound
      */
     override fun onReceive(context: Context, intent: Intent) {
         val notificationId = intent.getIntExtra("NOTIFICATION_ID", 0)

@@ -1,6 +1,5 @@
-/**
- * File Role: Main ComponentActivity initializing location/notification permissions and host for Jetpack Compose UI.
- */
+// Main activity hosting the UI and handling runtime permissions
+
 package io.github.sarraf5757.waqt
 
 import android.Manifest
@@ -25,11 +24,14 @@ import io.github.sarraf5757.waqt.ui.viewmodels.SettingsViewModel
 import io.github.sarraf5757.waqt.ui.viewmodels.StreakViewModel
 
 class MainActivity : ComponentActivity() {
-
+    // ViewModels are the "State Owners" for each screen
     private val homeViewModel: HomeViewModel by viewModels()
     private val streakViewModel: StreakViewModel by viewModels()
     private val settingsViewModel: SettingsViewModel by viewModels()
 
+    /**
+\     * PERMISSIONS: Handles the asynchronous callback from the OS when the user accepts/denies permissions
+     */
     private val permissionLauncher = registerForActivityResult(
         ActivityResultContracts.RequestMultiplePermissions()
     ) { permissions ->
@@ -44,10 +46,7 @@ class MainActivity : ComponentActivity() {
     }
 
     /**
-     * RME:
-     * Reads: SavedInstanceState, permissions state.
-     * Modifies: UI window content and location updates.
-     * Effects: Enables edge-to-edge drawing, requests runtime permissions, updates location, and launches Compose UI theme wrapper.
+     * Called when the window is first allocated
      */
     override fun onCreate(savedInstanceState: Bundle?) {
         enableEdgeToEdge()
@@ -57,6 +56,7 @@ class MainActivity : ComponentActivity() {
         LocationHelper.updateDeviceLocation(this)
         NotificationScheduler.scheduleNotifications(this)
 
+        // Main loop - builds the UI tree
         setContent {
             val prefsState by settingsViewModel.prefs.collectAsState()
             val themeColor = prefsState?.themeColor ?: "Material You"
@@ -72,10 +72,7 @@ class MainActivity : ComponentActivity() {
     }
 
     /**
-     * RME:
-     * Reads: App lifecycle resume event.
-     * Modifies: UI State.
-     * Effects: Refreshes location and home state whenever app comes to foreground.
+     * Called everytime the app is brought back to the foreground
      */
     override fun onResume() {
         super.onResume()
@@ -84,6 +81,9 @@ class MainActivity : ComponentActivity() {
         NotificationScheduler.scheduleNotifications(this)
     }
 
+    /**
+     * Checks and requests permissions
+     */
     private fun requestRuntimePermissions() {
         val permissionsToRequest = mutableListOf<String>()
 

@@ -1,3 +1,5 @@
+// Utility to handle dates with a custom cutoff for Fajr
+
 #ifndef WAQT_FAJR_SHIFT_DATE_HPP
 #define WAQT_FAJR_SHIFT_DATE_HPP
 

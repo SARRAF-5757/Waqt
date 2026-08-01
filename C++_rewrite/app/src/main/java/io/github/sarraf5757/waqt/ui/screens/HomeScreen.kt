@@ -1,6 +1,5 @@
-/**
- * File Role: Home screen UI displaying today's 5 daily prayer cards with checkboxes and start/end time pills.
- */
+// Home screen UI displaying prayer times task list
+
 package io.github.sarraf5757.waqt.ui.screens
 
 import androidx.compose.foundation.Image
@@ -17,60 +16,35 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.res.painterResource
+import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import io.github.sarraf5757.waqt.R
+import io.github.sarraf5757.waqt.bridge.NativeModels
 import io.github.sarraf5757.waqt.ui.viewmodels.HomeViewModel
-import java.text.SimpleDateFormat
-import java.util.*
-
-data class PrayerCardModel(
-    val id: String,
-    val name: String,
-    val isCompleted: Boolean,
-    val startSec: Long,
-    val endSec: Long
-)
 
 /**
- * RME:
- * Reads: `HomeViewModel` StateFlow `homeState` and system dark mode.
- * Modifies: None.
- * Effects: Renders today's prayer list layout with brand header and interactive prayer cards.
+ * Collects the state from the C++ core via the ViewModel
  */
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun HomeScreen(viewModel: HomeViewModel) {
+    // This line tells Compose to re-run this function whenever the C++ state changes.
     val homeState by viewModel.homeState.collectAsState()
     val isDark = isSystemInDarkTheme()
 
     val logoRes = if (isDark) R.drawable.splash_icon_light else R.drawable.splash_icon_dark
 
     val state = homeState
-
-    val prayers = if (state != null) {
-        listOf(
-            PrayerCardModel("fajr", "Fajr", state.fajrCompleted, state.fajrStartSec, state.fajrEndSec),
-            PrayerCardModel("dhuhr", "Dhuhr", state.dhuhrCompleted, state.dhuhrStartSec, state.dhuhrEndSec),
-            PrayerCardModel("asr", "Asr", state.asrCompleted, state.asrStartSec, state.asrEndSec),
-            PrayerCardModel("maghrib", "Maghrib", state.maghribCompleted, state.maghribStartSec, state.maghribEndSec),
-            PrayerCardModel("isha", "Isha", state.ishaCompleted, state.ishaStartSec, state.ishaEndSec)
-        )
-    } else {
-        listOf(
-            PrayerCardModel("fajr", "Fajr", false, 0, 0),
-            PrayerCardModel("dhuhr", "Dhuhr", false, 0, 0),
-            PrayerCardModel("asr", "Asr", false, 0, 0),
-            PrayerCardModel("maghrib", "Maghrib", false, 0, 0),
-            PrayerCardModel("isha", "Isha", false, 0, 0)
-        )
-    }
+    // Get the list of prayer objects constructed by C++.
+    val prayers = state?.prayers ?: emptyArray()
 
     val showStartTime = state?.showStartTime ?: true
     val showEndTime = state?.showEndTime ?: true
 
+    // Describe the UI layout (Vertical Column of items)
     Column(
         modifier = Modifier
             .fillMaxSize()
@@ -81,7 +55,7 @@ fun HomeScreen(viewModel: HomeViewModel) {
     ) {
         Spacer(modifier = Modifier.height(26.dp))
 
-        // Centered brand logo ~180x180dp
+        // Brand logo
         Image(
             painter = painterResource(id = logoRes),
             contentDescription = "Waqt Logo",
@@ -90,7 +64,7 @@ fun HomeScreen(viewModel: HomeViewModel) {
 
         Spacer(modifier = Modifier.height(26.dp))
 
-        // Render 5 daily prayer cards
+        // Render each prayer card. Note that names and times are already formatted by C++.
         prayers.forEach { prayer ->
             PrayerCardRow(
                 prayer = prayer,
@@ -104,29 +78,17 @@ fun HomeScreen(viewModel: HomeViewModel) {
 }
 
 /**
- * RME:
- * Reads: `PrayerCardModel`, showStartTime, showEndTime flags.
- * Modifies: None.
- * Effects: Invokes `onToggle` callback when prayer card row is clicked.
+ * Invokes `onToggle` callback when prayer card row is clicked
  */
 @Composable
 fun PrayerCardRow(
-    prayer: PrayerCardModel,
+    prayer: NativeModels.UIPrayerItem,
     showStartTime: Boolean,
     showEndTime: Boolean,
     onToggle: () -> Unit
 ) {
     val cardBg = if (prayer.isCompleted) MaterialTheme.colorScheme.primaryContainer else MaterialTheme.colorScheme.surfaceContainer
     val cardContentColor = if (prayer.isCompleted) MaterialTheme.colorScheme.onPrimaryContainer else MaterialTheme.colorScheme.onSurface
-
-    fun formatTime(sec: Long): String {
-        if (sec <= 0) return "--:--"
-        val sdf = SimpleDateFormat("h:mm a", Locale.getDefault())
-        return sdf.format(Date(sec * 1000L))
-    }
-
-    val startTimeStr = formatTime(prayer.startSec)
-    val endTimeStr = formatTime(prayer.endSec)
 
     Card(
         onClick = onToggle,
@@ -136,7 +98,7 @@ fun PrayerCardRow(
             containerColor = cardBg,
             contentColor = cardContentColor
         ),
-        elevation = CardDefaults.cardElevation(defaultElevation = 2.dp)
+        elevation = CardDefaults.cardElevation(defaultElevation = 0.dp)
     ) {
         Row(
             modifier = Modifier
@@ -163,7 +125,7 @@ fun PrayerCardRow(
 
             Row(verticalAlignment = Alignment.CenterVertically) {
                 if (showStartTime) {
-                    TimePill(timeStr = startTimeStr)
+                    TimePill(timeStr = prayer.startTimeStr)
                 }
                 if (showStartTime && showEndTime) {
                     Text(
@@ -172,7 +134,7 @@ fun PrayerCardRow(
                     )
                 }
                 if (showEndTime) {
-                    TimePill(timeStr = endTimeStr)
+                    TimePill(timeStr = prayer.endTimeStr)
                 }
             }
         }
@@ -180,21 +142,22 @@ fun PrayerCardRow(
 }
 
 /**
- * RME:
- * Reads: Formatted time string.
- * Modifies: None.
- * Effects: Renders styled time pill container.
+ * Renders styled time pill container
  */
 @Composable
 fun TimePill(timeStr: String) {
     Surface(
         shape = RoundedCornerShape(8.dp),
-        color = MaterialTheme.colorScheme.surface,
+        color = MaterialTheme.colorScheme.background,
         modifier = Modifier.clip(RoundedCornerShape(8.dp))
     ) {
         Text(
             text = timeStr,
-            style = MaterialTheme.typography.labelMedium.copy(fontSize = 15.sp, fontWeight = FontWeight.SemiBold),
+            style = MaterialTheme.typography.labelMedium.copy(
+                fontSize = 15.sp,
+                fontWeight = FontWeight.SemiBold,
+                fontFamily = FontFamily.Monospace
+            ),
             color = MaterialTheme.colorScheme.onSurface,
             modifier = Modifier.padding(horizontal = 8.dp, vertical = 4.dp),
             textAlign = TextAlign.Center

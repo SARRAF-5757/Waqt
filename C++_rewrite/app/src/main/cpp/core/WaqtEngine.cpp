@@ -1,3 +1,5 @@
+// Main engine class coordinating calculations and data flow
+
 #include "WaqtEngine.hpp"
 #include "PrayerCalculator.hpp"
 #include "FajrShiftDate.hpp"
@@ -6,15 +8,24 @@
 
 namespace waqt {
 
+/**
+ * Get the singleton of WaqtEngine
+ */
 WaqtEngine& WaqtEngine::getInstance() {
     static WaqtEngine instance;
     return instance;
 }
 
+/**
+ * Initializes the engine and opens the SQLite database at the given path
+ */
 bool WaqtEngine::initialize(const std::string& dbPath) {
     return m_database.open(dbPath);
 }
 
+/**
+ * Updates the geographic coordinates and saves them to preferences
+ */
 void WaqtEngine::setLocation(double latitude, double longitude) {
     PreferenceSettings prefs = m_database.getPreferences();
     prefs.latitude = latitude;
@@ -23,14 +34,23 @@ void WaqtEngine::setLocation(double latitude, double longitude) {
     m_database.savePreferences(prefs);
 }
 
+/**
+ * Retrieves the current user preference settings from the database
+ */
 PreferenceSettings WaqtEngine::getPreferences() {
     return m_database.getPreferences();
 }
 
+/**
+ * Updates a single preference value in the database
+ */
 void WaqtEngine::updatePreference(const std::string& key, const std::string& value) {
     m_database.setPreference(key, value);
 }
 
+/**
+ * Calculates start/end times for the 5 prayers for the day
+ */
 PrayerTimesMap WaqtEngine::getTodayPrayerTimes(int64_t nowUnixTimestampSec) {
     PreferenceSettings prefs = m_database.getPreferences();
     if (!prefs.hasLocation) {
@@ -39,7 +59,8 @@ PrayerTimesMap WaqtEngine::getTodayPrayerTimes(int64_t nowUnixTimestampSec) {
 
     std::time_t t = static_cast<std::time_t>(nowUnixTimestampSec);
     std::tm* localTm = std::localtime(&t);
-    if (!localTm) return PrayerTimesMap{};
+    if (!localTm)
+        return PrayerTimesMap{};
 
     int year = localTm->tm_year + 1900;
     int month = localTm->tm_mon + 1;
@@ -56,6 +77,9 @@ PrayerTimesMap WaqtEngine::getTodayPrayerTimes(int64_t nowUnixTimestampSec) {
     return map;
 }
 
+/**
+ * Returns the completion status for each prayer today
+ */
 DayPrayerStatus WaqtEngine::getTodayStatuses(int64_t nowUnixTimestampSec) {
     // Ensure Fajr cutoff is refreshed
     getTodayPrayerTimes(nowUnixTimestampSec);
@@ -63,24 +87,98 @@ DayPrayerStatus WaqtEngine::getTodayStatuses(int64_t nowUnixTimestampSec) {
     return m_database.getStatusesForDate(todayKey);
 }
 
+static std::string formatTime(int64_t timestamp) {
+    if (timestamp <= 0)
+        return "--:--";
+    std::time_t t = static_cast<std::time_t>(timestamp);
+    std::tm* localTm = std::localtime(&t);
+    if (!localTm)
+        return "--:--";
+    char buffer[16];
+    // Format: "h:mm AM/PM"
+    std::strftime(buffer, sizeof(buffer), "%l:%M %p", localTm);
+    return std::string(buffer);
+}
+
+/**
+ * Generates a ready-to-display state for the Home UI
+ */
+UIHomeState WaqtEngine::getUIHomeState(int64_t nowUnixTimestampSec) {
+    PrayerTimesMap times = getTodayPrayerTimes(nowUnixTimestampSec);
+    DayPrayerStatus status = getTodayStatuses(nowUnixTimestampSec);
+    PreferenceSettings prefs = m_database.getPreferences();
+
+    UIHomeState uiState;
+    uiState.dateKey = status.dateKey;
+    uiState.showStartTime = prefs.showStartTime;
+    uiState.showEndTime = prefs.showEndTime;
+
+    // Iterate through the global source of truth for prayer names.
+    for (const auto& name : PRAYER_NAMES) {
+        UIPrayerItem item;
+        item.id = name;
+        item.name = name;
+
+        // Map the raw C++ timestamps and status bits to the UI item.
+        if (name == "Fajr") {
+            item.startTimeStr = formatTime(times.fajr);
+            item.endTimeStr = formatTime(times.fajrEnd);
+            item.isCompleted = status.fajr;
+        } else if (name == "Dhuhr") {
+            item.startTimeStr = formatTime(times.dhuhr);
+            item.endTimeStr = formatTime(times.dhuhrEnd);
+            item.isCompleted = status.dhuhr;
+        } else if (name == "Asr") {
+            item.startTimeStr = formatTime(times.asr);
+            item.endTimeStr = formatTime(times.asrEnd);
+            item.isCompleted = status.asr;
+        } else if (name == "Maghrib") {
+            item.startTimeStr = formatTime(times.maghrib);
+            item.endTimeStr = formatTime(times.maghribEnd);
+            item.isCompleted = status.maghrib;
+        } else if (name == "Isha") {
+            item.startTimeStr = formatTime(times.isha);
+            item.endTimeStr = formatTime(times.ishaEnd);
+            item.isCompleted = status.isha;
+        }
+
+        uiState.prayers.push_back(item);
+    }
+
+    return uiState;
+}
+
+/**
+ * Toggles a prayer's completion status in the history database
+ */
 bool WaqtEngine::togglePrayerStatus(const std::string& dateKey, const std::string& prayerId, bool completed) {
     m_database.setPrayerCompleted(dateKey, prayerId, completed);
     return completed;
 }
 
+/**
+ * Returns a 105-day completion grid used to render the GitHub-style streak graphs
+ */
 StreakGridData WaqtEngine::getStreakData(int64_t nowUnixTimestampSec) {
     getTodayPrayerTimes(nowUnixTimestampSec);
     std::string todayKey = FajrShiftDate::getDateKey(nowUnixTimestampSec);
     return m_database.getStreakData(todayKey);
 }
 
+/**
+ * Wipes all prayer completion history from the database
+ */
 void WaqtEngine::deleteAllHistory() {
     m_database.deleteAllHistory();
 }
 
+/**
+ * Generates a sorted list of upcoming prayer and end-time warning notifications
+ */
 std::vector<NotificationIntent> WaqtEngine::getNotificationSchedule(int64_t nowUnixTimestampSec) {
     PreferenceSettings prefs = m_database.getPreferences();
-    if (!prefs.hasLocation) return {};
+    if (!prefs.hasLocation)
+        return {};
 
     CalculationMethod method = PrayerCalculator::parseCalculationMethod(prefs.calculationMethod);
     Madhab madhab = PrayerCalculator::parseMadhab(prefs.madhab);

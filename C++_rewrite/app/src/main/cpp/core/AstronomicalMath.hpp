@@ -1,10 +1,12 @@
+// Astronomical and trigonometric utilities for prayer calculations
+
 #ifndef WAQT_ASTRONOMICAL_MATH_HPP
 #define WAQT_ASTRONOMICAL_MATH_HPP
 
 namespace waqt {
 
 /**
- * Astronomical and Trigonometric utilities based on Jean Meeus' Astronomical Algorithms.
+ * Astronomical and Trigonometric utilities based on Jean Meeus' Astronomical Algorithms
  */
 class AstronomicalMath {
 public:

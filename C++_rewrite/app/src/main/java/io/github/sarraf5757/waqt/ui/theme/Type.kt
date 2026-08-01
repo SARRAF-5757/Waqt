@@ -1,6 +1,5 @@
-/**
- * File Role: Defines Material 3 Typography styling for the application.
- */
+// Defines typography styling for the application
+
 package io.github.sarraf5757.waqt.ui.theme
 
 import androidx.compose.material3.Typography

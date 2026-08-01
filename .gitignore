@@ -122,6 +122,7 @@ Makefile
 *.pch
 
 # Test Executables & Temporary Binary Runners
+/C++_rewrite/app/src/test
 test_waqt_cpp
 a.out
 *.exe

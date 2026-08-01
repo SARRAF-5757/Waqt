@@ -1,6 +1,5 @@
-/**
- * File Role: Streak/History screen UI rendering 5 GitHub-style 105-day contribution grids for each prayer.
- */
+// Streak screen UI showing historical prayer contribution grids
+
 package io.github.sarraf5757.waqt.ui.screens
 
 import androidx.compose.foundation.background
@@ -25,19 +24,9 @@ import io.github.sarraf5757.waqt.bridge.NativeModels
 import io.github.sarraf5757.waqt.ui.viewmodels.StreakViewModel
 
 private val WEEKDAY_LETTERS = listOf("S", "M", "T", "W", "T", "F", "S")
-private val PRAYER_NAMES = mapOf(
-    "fajr" to "Fajr",
-    "dhuhr" to "Dhuhr",
-    "asr" to "Asr",
-    "maghrib" to "Maghrib",
-    "isha" to "Isha"
-)
 
 /**
- * RME:
- * Reads: `StreakViewModel` state (`streakData`, `isLoading`).
- * Modifies: None.
- * Effects: Renders History tab with centered "Streak" title and 5 contribution grid cards.
+ * Renders History tab with centered "Streak" title and 5 contribution grid cards
  */
 @Composable
 fun StreakScreen(viewModel: StreakViewModel) {
@@ -84,18 +73,14 @@ fun StreakScreen(viewModel: StreakViewModel) {
 
         // 5 Prayer Contribution Graphs
         data.streaks.forEach { prayerStreak ->
-            val pName = PRAYER_NAMES[prayerStreak.prayerId] ?: prayerStreak.prayerId
-            PrayerContributionCard(prayerName = pName, gridData = prayerStreak.completionGrid)
+            PrayerContributionCard(prayerName = prayerStreak.prayerId, gridData = prayerStreak.completionGrid)
             Spacer(modifier = Modifier.height(20.dp))
         }
     }
 }
 
 /**
- * RME:
- * Reads: Prayer name and 105-element boolean completion array.
- * Modifies: None.
- * Effects: Renders card container with weekday indicators and 7x15 grid of day cells.
+ * Renders card container with weekday indicators and 7x15 grid of day cells
  */
 @Composable
 fun PrayerContributionCard(prayerName: String, gridData: BooleanArray) {

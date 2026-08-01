@@ -1,3 +1,5 @@
+// Data models for the Waqt engine
+
 #ifndef WAQT_MODELS_HPP
 #define WAQT_MODELS_HPP
 
@@ -10,7 +12,7 @@
 namespace waqt {
 
 /**
- * Geographic coordinates representation.
+ * Geographic coordinates representation
  */
 struct Coordinates {
     double latitude{0.0};
@@ -18,7 +20,7 @@ struct Coordinates {
 };
 
 /**
- * Standard Islamic calculation methods.
+ * Standard Prayer calculation methods
  */
 enum class CalculationMethod {
     MoonsightingCommittee,
@@ -36,21 +38,21 @@ enum class CalculationMethod {
 };
 
 /**
- * Madhab rules for Asr shadow ratio calculation.
+ * Methods for Asr shadow ratio calculation depending on Madhab
  */
 enum class Madhab {
-    Shafi,  // Shadow factor 1 (Shafi, Maliki, Hanbali)
-    Hanafi  // Shadow factor 2
+    Shafi,  // (Shafi, Maliki, and Hanbali)
+    Hanafi
 };
 
 /**
- * User settings stored in persistence layer.
+ * User settings stored in persistence layer
  */
 struct PreferenceSettings {
     bool showStartTime{true};
     bool showEndTime{true};
-    std::string calculationMethod{"MoonsightingCommittee"};
-    std::string madhab{"shafi"};
+    std::string calculationMethod{"NorthAmerica"};
+    std::string madhab{"hanafi"};
     std::string themeColor{"#007AFF"};
     int endTimeOffset{15};
     double latitude{0.0};
@@ -59,7 +61,7 @@ struct PreferenceSettings {
 };
 
 /**
- * Start and end time points for the 5 daily prayers (in UNIX timestamp seconds).
+ * Start and end time points for all 5 prayers (in UNIX timestamp seconds)
  */
 struct PrayerTimesMap {
     int64_t fajr{0};
@@ -76,7 +78,7 @@ struct PrayerTimesMap {
 };
 
 /**
- * Represents a scheduled notification item.
+ * Represents a scheduled notification item
  */
 struct NotificationIntent {
     std::string id;
@@ -86,7 +88,7 @@ struct NotificationIntent {
 };
 
 /**
- * Daily prayer completion status for a specific dateKey (YYYY-MM-DD).
+ * Daily prayer completion status for a specific dateKey
  */
 struct DayPrayerStatus {
     std::string dateKey;
@@ -98,16 +100,42 @@ struct DayPrayerStatus {
 };
 
 /**
- * 105-day contribution streak data for each prayer.
+ * 105-day contribution streak data for each prayer
  */
 struct PrayerStreak {
     std::string prayerId;
-    std::vector<bool> completionGrid; // 105 elements (false/true)
+    std::vector<bool> completionGrid;
 };
 
 struct StreakGridData {
     int totalDays{105};
     std::vector<PrayerStreak> streaks;
+};
+
+/**
+ * Prayer Names (also used as Identifiers)
+ */
+inline const std::vector<std::string> PRAYER_NAMES = {"Fajr", "Dhuhr", "Asr", "Maghrib", "Isha"};
+
+/**
+ * UI representation of a single prayer card
+ */
+struct UIPrayerItem {
+    std::string id;
+    std::string name;
+    std::string startTimeStr;
+    std::string endTimeStr;
+    bool isCompleted{false};
+};
+
+/**
+ * Full state required for the Home Screen UI
+ */
+struct UIHomeState {
+    std::string dateKey;
+    std::vector<UIPrayerItem> prayers;
+    bool showStartTime{true};
+    bool showEndTime{true};
 };
 
 } // namespace waqt

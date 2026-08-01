@@ -1,3 +1,5 @@
+// Logic for calculating prayer times based on location and date
+
 #ifndef WAQT_PRAYER_CALCULATOR_HPP
 #define WAQT_PRAYER_CALCULATOR_HPP
 
@@ -14,7 +16,9 @@ public:
         Madhab madhab = Madhab::Shafi
     );
 
+    // Maps the CalculationMethod variable from string reading
     static CalculationMethod parseCalculationMethod(const std::string& methodStr);
+    // Maps string readings to the Madhab variable
     static Madhab parseMadhab(const std::string& madhabStr);
 };
 

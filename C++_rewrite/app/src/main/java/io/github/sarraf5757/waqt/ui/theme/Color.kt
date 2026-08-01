@@ -1,30 +1,30 @@
-/**
- * File Role: Defines visual color tokens, fallback palettes, and accent options for Material 3.
- */
+// Defines visual color tokens and palettes for the application theme
+
 package io.github.sarraf5757.waqt.ui.theme
 
 import androidx.compose.ui.graphics.Color
 
-val LightPrimary = Color(0xFF4F8EF7)
-val LightBackground = Color(0xFFFFFFFF)
+// Base Neutral Backgrounds
+val ColorDarkBase = Color(0xFF050505)
+val ColorLightBase = Color(0xFFFCFCFC)
+
+// Neutral "On" Colors (Light Mode)
 val LightOnBackground = Color(0xFF11181C)
-val LightSurfaceContainer = Color(0xFFF2F2F7)
-val LightSurface = Color(0xFFFFFFFF)
 val LightOnSurface = Color(0xFF11181C)
 val LightOnSurfaceVariant = Color(0xFF687076)
 
-val DarkPrimary = Color(0xFF85B1FF)
-val DarkBackground = Color(0xFF151718)
+// Neutral "On" Colors (Dark Mode)
 val DarkOnBackground = Color(0xFFECEDEE)
-val DarkSurfaceContainer = Color(0xFF1C1C1E)
-val DarkSurface = Color(0xFF151718)
 val DarkOnSurface = Color(0xFFECEDEE)
 val DarkOnSurfaceVariant = Color(0xFF9BA1A6)
+
+// Default Accent Colors (blue)
+val ColorPrimaryDefault = Color(0xFF007AFF)
 
 data class ThemeColorOption(
     val name: String,
     val hexString: String,
-    val color: Color
+    val color: Color,
 )
 
 val THEME_ACCENT_OPTIONS = listOf(

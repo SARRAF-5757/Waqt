@@ -1,3 +1,5 @@
+// Logic for generating upcoming prayer notifications
+
 #include "NotificationGenerator.hpp"
 #include "PrayerCalculator.hpp"
 #include "FajrShiftDate.hpp"
@@ -5,19 +7,6 @@
 #include <ctime>
 
 namespace waqt {
-
-struct PrayerMeta {
-    std::string id;
-    std::string name;
-};
-
-static const std::vector<PrayerMeta> PRAYERS = {
-    {"fajr", "Fajr"},
-    {"dhuhr", "Dhuhr"},
-    {"asr", "Asr"},
-    {"maghrib", "Maghrib"},
-    {"isha", "Isha"}
-};
 
 std::vector<NotificationIntent> NotificationGenerator::generateSchedule(
     int64_t nowUnixTimestampSec,
@@ -33,7 +22,8 @@ std::vector<NotificationIntent> NotificationGenerator::generateSchedule(
         int64_t targetTimeSec = nowUnixTimestampSec + (static_cast<int64_t>(dayOffset) * 86400LL);
         std::time_t targetTime = static_cast<std::time_t>(targetTimeSec);
         std::tm* localTm = std::localtime(&targetTime);
-        if (!localTm) continue;
+        if (!localTm)
+            continue;
 
         int year = localTm->tm_year + 1900;
         int month = localTm->tm_mon + 1;
@@ -42,28 +32,30 @@ std::vector<NotificationIntent> NotificationGenerator::generateSchedule(
         PrayerTimesMap prayerMap = PrayerCalculator::calculatePrayerTimes(year, month, day, latitude, longitude, method, madhab);
         std::string dateKey = FajrShiftDate::getDateKey(targetTimeSec);
 
-        for (const auto& p : PRAYERS) {
-            // Skip scheduling notifications if completed
-            if (db.isPrayerCompleted(dateKey, p.id)) {
+        // Iterate through all prayers using the centralized naming standard.
+        for (const auto& name : PRAYER_NAMES) {
+            // Skip scheduling notifications if the prayer is already marked as completed.
+            if (db.isPrayerCompleted(dateKey, name)) {
                 continue;
             }
 
             int64_t startTime = 0;
             int64_t endTime = 0;
 
-            if (p.id == "fajr") {
+            // Map the centralized name to the correct timestamp in the prayer map.
+            if (name == "Fajr") {
                 startTime = prayerMap.fajr;
                 endTime = prayerMap.fajrEnd;
-            } else if (p.id == "dhuhr") {
+            } else if (name == "Dhuhr") {
                 startTime = prayerMap.dhuhr;
                 endTime = prayerMap.dhuhrEnd;
-            } else if (p.id == "asr") {
+            } else if (name == "Asr") {
                 startTime = prayerMap.asr;
                 endTime = prayerMap.asrEnd;
-            } else if (p.id == "maghrib") {
+            } else if (name == "Maghrib") {
                 startTime = prayerMap.maghrib;
                 endTime = prayerMap.maghribEnd;
-            } else if (p.id == "isha") {
+            } else if (name == "Isha") {
                 startTime = prayerMap.isha;
                 endTime = prayerMap.ishaEnd;
             }
@@ -71,8 +63,8 @@ std::vector<NotificationIntent> NotificationGenerator::generateSchedule(
             // Start notification
             if (startTime > nowUnixTimestampSec) {
                 NotificationIntent startNotif;
-                startNotif.id = dateKey + "_" + p.id + "_start";
-                startNotif.title = "It's time for " + p.name;
+                startNotif.id = dateKey + "_" + name + "_start";
+                startNotif.title = "It's time for " + name;
                 startNotif.body = "";
                 startNotif.triggerTimestampSec = startTime;
                 schedule.push_back(startNotif);
@@ -83,8 +75,8 @@ std::vector<NotificationIntent> NotificationGenerator::generateSchedule(
                 int64_t endWarnTime = endTime - (static_cast<int64_t>(offsetMinutes) * 60LL);
                 if (endWarnTime > nowUnixTimestampSec) {
                     NotificationIntent endNotif;
-                    endNotif.id = dateKey + "_" + p.id + "_end";
-                    endNotif.title = p.name + " time is ending in " + std::to_string(offsetMinutes) + " minutes";
+                    endNotif.id = dateKey + "_" + name + "_end";
+                    endNotif.title = name + " time is ending in " + std::to_string(offsetMinutes) + " minutes";
                     endNotif.body = "";
                     endNotif.triggerTimestampSec = endWarnTime;
                     schedule.push_back(endNotif);

@@ -1,6 +1,5 @@
-/**
- * File Role: BroadcastReceiver that catches ACTION_BOOT_COMPLETED to reschedule prayer notifications when device reboots.
- */
+// Reschedules prayer notifications upon device boot
+
 package io.github.sarraf5757.waqt.notifications
 
 import android.content.BroadcastReceiver
@@ -10,10 +9,7 @@ import android.content.Intent
 class BootReceiver : BroadcastReceiver() {
 
     /**
-     * RME:
-     * Reads: Device boot action.
-     * Modifies: AlarmManager state.
-     * Effects: Reschedules all active prayer notifications upon device system boot.
+     * Reschedules all active prayer notifications upon device system boot
      */
     override fun onReceive(context: Context, intent: Intent) {
         if (intent.action == Intent.ACTION_BOOT_COMPLETED) {

@@ -1,11 +1,10 @@
-/**
- * File Role: Settings screen UI displaying preferences, calculation pickers, appearance controls, and danger zone.
- */
+// Settings screen UI for preferences and calculation controls
+
 package io.github.sarraf5757.waqt.ui.screens
 
+import android.os.Build
 import androidx.compose.foundation.background
-import androidx.compose.foundation.border
-import androidx.compose.foundation.clickable
+import androidx.compose.foundation.isSystemInDarkTheme
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.CircleShape
@@ -17,7 +16,7 @@ import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
-import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.text.style.TextAlign
@@ -47,18 +46,16 @@ val MADHAB_OPTIONS = listOf(
 )
 
 /**
- * RME:
- * Reads: `SettingsViewModel` preferences state.
- * Modifies: None.
- * Effects: Renders Settings screen layout with interactive controls and delete dialog.
+ * Renders Settings screen layout with interactive controls and delete dialog
  */
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun SettingsScreen(viewModel: SettingsViewModel) {
     val prefs by viewModel.prefs.collectAsState()
     var showDeleteDialog by remember { mutableStateOf(false) }
-
     val settings = prefs ?: return
+    val context = LocalContext.current
+    val darkTheme = isSystemInDarkTheme()
 
     Column(
         modifier = Modifier
@@ -170,40 +167,49 @@ fun SettingsScreen(viewModel: SettingsViewModel) {
 
         Spacer(modifier = Modifier.height(16.dp))
 
-        // Material You option
+        // Colors
         val isMaterialYou = settings.themeColor == "Material You"
-        Card(
-            onClick = { viewModel.updateThemeColor("Material You") },
-            modifier = Modifier.fillMaxWidth(),
-            shape = RoundedCornerShape(16.dp),
-            colors = CardDefaults.cardColors(
-                containerColor = if (isMaterialYou) MaterialTheme.colorScheme.secondaryContainer else MaterialTheme.colorScheme.surfaceContainer
-            )
-        ) {
-            Row(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .padding(16.dp),
-                verticalAlignment = Alignment.CenterVertically
+
+        // Material You - hidden on unsupported systems
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) {
+            val materialYouPrimary = if (darkTheme) dynamicDarkColorScheme(context).primary else dynamicLightColorScheme(context).primary
+
+            Spacer(modifier = Modifier.height(16.dp))
+
+            Card(
+                onClick = { viewModel.updateThemeColor("Material You") },
+                modifier = Modifier.fillMaxWidth(),
+                shape = RoundedCornerShape(16.dp),
+                colors = CardDefaults.cardColors(
+                    containerColor = if (isMaterialYou) MaterialTheme.colorScheme.primaryContainer else MaterialTheme.colorScheme.surfaceContainer
+                )
             ) {
-                Box(
+                Column(
                     modifier = Modifier
-                        .size(40.dp)
-                        .clip(CircleShape)
-                        .background(MaterialTheme.colorScheme.primary)
-                )
-                Spacer(modifier = Modifier.width(16.dp))
-                Text(
-                    text = "Material You",
-                    style = MaterialTheme.typography.bodyMedium.copy(fontSize = 16.sp, fontWeight = FontWeight.Bold),
-                    color = if (isMaterialYou) MaterialTheme.colorScheme.onSecondaryContainer else MaterialTheme.colorScheme.onSurfaceVariant
-                )
+                        .fillMaxWidth()
+                        .padding(16.dp),
+                    horizontalAlignment = Alignment.CenterHorizontally
+                ) {
+                    Box(
+                        modifier = Modifier
+                            .size(40.dp)
+                            .clip(CircleShape)
+                            .background(materialYouPrimary)
+                    )
+                    Spacer(modifier = Modifier.height(12.dp))
+                    Text(
+                        text = "Material You",
+                        style = MaterialTheme.typography.bodyMedium.copy(fontWeight = FontWeight.Bold),
+                        color = if (isMaterialYou) MaterialTheme.colorScheme.onSurface else MaterialTheme.colorScheme.onSurfaceVariant,
+                        textAlign = TextAlign.Center
+                    )
+                }
             }
         }
 
-        Spacer(modifier = Modifier.height(16.dp))
+        Spacer(modifier = Modifier.height(12.dp))
 
-        // 8 Custom Accent Colors Grid (2 Columns)
+        // Custom Colors Grid
         val chunkedColors = THEME_ACCENT_OPTIONS.chunked(2)
         chunkedColors.forEach { rowColors ->
             Row(
@@ -242,6 +248,9 @@ fun SettingsScreen(viewModel: SettingsViewModel) {
                         }
                     }
                 }
+                if (rowColors.size == 1) {
+                    Spacer(modifier = Modifier.weight(1f))
+                }
             }
             Spacer(modifier = Modifier.height(12.dp))
         }
@@ -249,7 +258,9 @@ fun SettingsScreen(viewModel: SettingsViewModel) {
         Spacer(modifier = Modifier.height(32.dp))
 
         // Section: Danger Zone
-        SectionHeader(text = "⚠️ Danger Zone ⚠️")
+        SectionHeader(text = "Danger Zone")
+        Spacer(modifier = Modifier.height(8.dp))
+
         Button(
             onClick = { showDeleteDialog = true },
             modifier = Modifier
@@ -293,10 +304,7 @@ fun SettingsScreen(viewModel: SettingsViewModel) {
 }
 
 /**
- * RME:
- * Reads: Section title text.
- * Modifies: None.
- * Effects: Renders bold section header text.
+ * Renders bold section header text
  */
 @Composable
 fun SectionHeader(text: String) {
@@ -309,10 +317,7 @@ fun SectionHeader(text: String) {
 }
 
 /**
- * RME:
- * Reads: Label, currentValue, options list.
- * Modifies: ExposedDropdownMenu state.
- * Effects: Renders setting card with dropdown menu selection.
+ * Renders setting card with dropdown menu selection
  */
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -349,7 +354,7 @@ fun DropdownSettingCard(
                     trailingIcon = { ExposedDropdownMenuDefaults.TrailingIcon(expanded = expanded) },
                     modifier = Modifier
                         .fillMaxWidth()
-                        .menuAnchor(),
+                        .menuAnchor(type = ExposedDropdownMenuAnchorType.PrimaryNotEditable),
                     shape = RoundedCornerShape(8.dp),
                     colors = OutlinedTextFieldDefaults.colors(
                         focusedContainerColor = MaterialTheme.colorScheme.surface,

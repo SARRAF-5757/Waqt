@@ -1,17 +1,29 @@
+// JNI bridge between Kotlin and the C++ Waqt engine
+
 #include <jni.h>
 #include "../core/WaqtEngine.hpp"
 #include "../core/FajrShiftDate.hpp"
 #include <string>
 #include <vector>
 
-extern "C" {
+extern "C" {    // to prevent name mangling
 
+/**
+ * JNI FUNCTION NAMING CONVENTION:
+ * Java_<PackageName>_<ClassName>_<MethodName>
+ *
+ * JNIEnv* env: The primary interface to the JVM (used for object allocation, etc.)
+ * jobject thiz: The instance of the Kotlin object that called this function
+ */
 JNIEXPORT jboolean JNICALL
 Java_io_github_sarraf5757_waqt_bridge_WaqtNativeBridge_nativeInitialize(JNIEnv* env, jobject /*thiz*/, jstring dbPath) {
-    if (!dbPath) return JNI_FALSE;
+    if (!dbPath)
+        return JNI_FALSE;
+
     const char* pathStr = env->GetStringUTFChars(dbPath, nullptr);
     std::string path(pathStr ? pathStr : "");
-    if (pathStr) env->ReleaseStringUTFChars(dbPath, pathStr);
+    if (pathStr)
+        env->ReleaseStringUTFChars(dbPath, pathStr);
 
     return waqt::WaqtEngine::getInstance().initialize(path) ? JNI_TRUE : JNI_FALSE;
 }
@@ -21,52 +33,72 @@ Java_io_github_sarraf5757_waqt_bridge_WaqtNativeBridge_nativeUpdateLocation(JNIE
     waqt::WaqtEngine::getInstance().setLocation(lat, lng);
 }
 
+/**
+ * Reconstructs a Kotlin 'HomeState' data class using C++ data
+ */
 JNIEXPORT jobject JNICALL
 Java_io_github_sarraf5757_waqt_bridge_WaqtNativeBridge_nativeGetHomeState(JNIEnv* env, jobject /*thiz*/, jlong nowSec) {
-    auto& engine = waqt::WaqtEngine::getInstance();
-    waqt::PrayerTimesMap times = engine.getTodayPrayerTimes(nowSec);
-    waqt::DayPrayerStatus status = engine.getTodayStatuses(nowSec);
-    waqt::PreferenceSettings prefs = engine.getPreferences();
+    auto uiState = waqt::WaqtEngine::getInstance().getUIHomeState(nowSec);
 
+    // 1. Find the Kotlin class by its internal path
+    jclass prayerItemClass = env->FindClass("io/github/sarraf5757/waqt/bridge/NativeModels$UIPrayerItem");
     jclass homeStateClass = env->FindClass("io/github/sarraf5757/waqt/bridge/NativeModels$HomeState");
-    if (!homeStateClass) return nullptr;
+    if (!prayerItemClass || !homeStateClass)
+        return nullptr;
 
-    jmethodID constructor = env->GetMethodID(homeStateClass, "<init>", "(Ljava/lang/String;ZZZZZJJJJJJJJJJZZ)V");
-    if (!constructor) return nullptr;
+    // 2. Locate the constructors using JNI method signatures
+    // [Z=Boolean, L=Object, J=Long, V=Void]
+    jmethodID itemConstructor = env->GetMethodID(prayerItemClass, "<init>", "(Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Z)V");
+    jmethodID stateConstructor = env->GetMethodID(homeStateClass, "<init>", "(Ljava/lang/String;[Lio/github/sarraf5757/waqt/bridge/NativeModels$UIPrayerItem;ZZ)V");
+    if (!itemConstructor || !stateConstructor)
+        return nullptr;
 
-    jstring dateKeyStr = env->NewStringUTF(status.dateKey.c_str());
+    // 3. Create an Array of objects to pass back to Kotlin
+    jobjectArray prayersArr = env->NewObjectArray(uiState.prayers.size(), prayerItemClass, nullptr);
+    for (size_t i = 0; i < uiState.prayers.size(); ++i) {
+        const auto& p = uiState.prayers[i];
+        jstring idStr = env->NewStringUTF(p.id.c_str());
+        jstring nameStr = env->NewStringUTF(p.name.c_str());
+        jstring startStr = env->NewStringUTF(p.startTimeStr.c_str());
+        jstring endStr = env->NewStringUTF(p.endTimeStr.c_str());
 
+        // Instantiate the Kotlin UIPrayerItem object
+        jobject itemObj = env->NewObject(prayerItemClass, itemConstructor, idStr, nameStr, startStr, endStr, p.isCompleted ? JNI_TRUE : JNI_FALSE);
+        env->SetObjectArrayElement(prayersArr, i, itemObj);
+
+        // cleanup of local references
+        env->DeleteLocalRef(idStr);
+        env->DeleteLocalRef(nameStr);
+        env->DeleteLocalRef(startStr);
+        env->DeleteLocalRef(endStr);
+        env->DeleteLocalRef(itemObj);
+    }
+
+    jstring dateKeyStr = env->NewStringUTF(uiState.dateKey.c_str());
+
+    // Construct the final HomeState object
     jobject result = env->NewObject(
-        homeStateClass, constructor,
+        homeStateClass, stateConstructor,
         dateKeyStr,
-        status.fajr ? JNI_TRUE : JNI_FALSE,
-        status.dhuhr ? JNI_TRUE : JNI_FALSE,
-        status.asr ? JNI_TRUE : JNI_FALSE,
-        status.maghrib ? JNI_TRUE : JNI_FALSE,
-        status.isha ? JNI_TRUE : JNI_FALSE,
-        static_cast<jlong>(times.fajr),
-        static_cast<jlong>(times.fajrEnd),
-        static_cast<jlong>(times.dhuhr),
-        static_cast<jlong>(times.dhuhrEnd),
-        static_cast<jlong>(times.asr),
-        static_cast<jlong>(times.asrEnd),
-        static_cast<jlong>(times.maghrib),
-        static_cast<jlong>(times.maghribEnd),
-        static_cast<jlong>(times.isha),
-        static_cast<jlong>(times.ishaEnd),
-        prefs.showStartTime ? JNI_TRUE : JNI_FALSE,
-        prefs.showEndTime ? JNI_TRUE : JNI_FALSE
+        prayersArr,
+        uiState.showStartTime ? JNI_TRUE : JNI_FALSE,
+        uiState.showEndTime ? JNI_TRUE : JNI_FALSE
     );
 
     env->DeleteLocalRef(dateKeyStr);
+    env->DeleteLocalRef(prayersArr);
     return result;
 }
 
+/**
+ * Persists a checkbox change to the C++ SQLite database
+ */
 JNIEXPORT jboolean JNICALL
 Java_io_github_sarraf5757_waqt_bridge_WaqtNativeBridge_nativeTogglePrayer(
     JNIEnv* env, jobject /*thiz*/, jstring dateKey, jstring prayerId, jboolean completed
 ) {
-    if (!dateKey || !prayerId) return JNI_FALSE;
+    if (!dateKey || !prayerId)
+        return JNI_FALSE;
     const char* dKeyStr = env->GetStringUTFChars(dateKey, nullptr);
     const char* pIdStr = env->GetStringUTFChars(prayerId, nullptr);
 
@@ -76,12 +108,17 @@ Java_io_github_sarraf5757_waqt_bridge_WaqtNativeBridge_nativeTogglePrayer(
         completed == JNI_TRUE
     );
 
-    if (dKeyStr) env->ReleaseStringUTFChars(dateKey, dKeyStr);
-    if (pIdStr) env->ReleaseStringUTFChars(prayerId, pIdStr);
+    if (dKeyStr)
+        env->ReleaseStringUTFChars(dateKey, dKeyStr);
+    if (pIdStr)
+        env->ReleaseStringUTFChars(prayerId, pIdStr);
 
     return res ? JNI_TRUE : JNI_FALSE;
 }
 
+/**
+ * Retrieves the current user preference settings from the C++ database
+ */
 JNIEXPORT jobject JNICALL
 Java_io_github_sarraf5757_waqt_bridge_WaqtNativeBridge_nativeGetPreferences(JNIEnv* env, jobject /*thiz*/) {
     waqt::PreferenceSettings prefs = waqt::WaqtEngine::getInstance().getPreferences();
@@ -113,6 +150,9 @@ Java_io_github_sarraf5757_waqt_bridge_WaqtNativeBridge_nativeGetPreferences(JNIE
     return result;
 }
 
+/**
+ * Updates a single preference value in the C++ SQLite database
+ */
 JNIEXPORT void JNICALL
 Java_io_github_sarraf5757_waqt_bridge_WaqtNativeBridge_nativeUpdatePreference(
     JNIEnv* env, jobject /*thiz*/, jstring key, jstring value
@@ -130,11 +170,17 @@ Java_io_github_sarraf5757_waqt_bridge_WaqtNativeBridge_nativeUpdatePreference(
     if (vStr) env->ReleaseStringUTFChars(value, vStr);
 }
 
+/**
+ * Wipes all prayer completion history from the C++ database
+ */
 JNIEXPORT void JNICALL
 Java_io_github_sarraf5757_waqt_bridge_WaqtNativeBridge_nativeDeleteAllHistory(JNIEnv* /*env*/, jobject /*thiz*/) {
     waqt::WaqtEngine::getInstance().deleteAllHistory();
 }
 
+/**
+ * Returns a 105-day completion grid used to render the GitHub-style streak graphs in Kotlin
+ */
 JNIEXPORT jobject JNICALL
 Java_io_github_sarraf5757_waqt_bridge_WaqtNativeBridge_nativeGetStreakData(JNIEnv* env, jobject /*thiz*/, jlong nowSec) {
     waqt::StreakGridData gridData = waqt::WaqtEngine::getInstance().getStreakData(nowSec);
@@ -171,6 +217,9 @@ Java_io_github_sarraf5757_waqt_bridge_WaqtNativeBridge_nativeGetStreakData(JNIEn
     return result;
 }
 
+/**
+ * Generates a sorted list of upcoming prayer notifications to be scheduled by the Android OS
+ */
 JNIEXPORT jobjectArray JNICALL
 Java_io_github_sarraf5757_waqt_bridge_WaqtNativeBridge_nativeGetNotificationSchedule(JNIEnv* env, jobject /*thiz*/, jlong nowSec) {
     auto intents = waqt::WaqtEngine::getInstance().getNotificationSchedule(nowSec);

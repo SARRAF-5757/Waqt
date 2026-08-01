@@ -1,6 +1,5 @@
-/**
- * File Role: ViewModel managing the 105-day prayer streak grid data.
- */
+// ViewModel managing data for the prayer streak grids
+
 package io.github.sarraf5757.waqt.ui.viewmodels
 
 import android.app.Application
@@ -26,10 +25,7 @@ class StreakViewModel(application: Application) : AndroidViewModel(application) 
     }
 
     /**
-     * RME:
-     * Reads: System current timestamp in seconds via JNI bridge.
-     * Modifies: `_streakData` and `_isLoading` StateFlows.
-     * Effects: Loads 105-day streak grids for all 5 prayers from C++ core database.
+     * Loads 105-day streak grids for all 5 prayers from C++ core database
      */
     fun loadStreakData() {
         viewModelScope.launch {

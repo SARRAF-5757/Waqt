@@ -1,6 +1,5 @@
-/**
- * File Role: ViewModel managing user settings, calculation preferences, themes, and history deletion.
- */
+// ViewModel managing user settings and preferences
+
 package io.github.sarraf5757.waqt.ui.viewmodels
 
 import android.app.Application
@@ -24,10 +23,7 @@ class SettingsViewModel(application: Application) : AndroidViewModel(application
     }
 
     /**
-     * RME:
-     * Reads: C++ database preference table via JNI bridge.
-     * Modifies: `_prefs` StateFlow value.
-     * Effects: Reads latest preference settings from storage.
+     * Reads latest preference settings from storage
      */
     fun loadPreferences() {
         viewModelScope.launch {
@@ -37,10 +33,7 @@ class SettingsViewModel(application: Application) : AndroidViewModel(application
     }
 
     /**
-     * RME:
-     * Reads: End time warning offset string input.
-     * Modifies: `endTimeOffset` setting in C++ database.
-     * Effects: Updates preference and reschedules notification queue.
+     * Updates preference and reschedules notification queue
      */
     fun updateEndTimeOffset(offsetStr: String) {
         val numeric = offsetStr.replace(Regex("[^0-9]"), "")
@@ -52,10 +45,7 @@ class SettingsViewModel(application: Application) : AndroidViewModel(application
     }
 
     /**
-     * RME:
-     * Reads: Calculation method identifier string.
-     * Modifies: `calculationMethod` setting in C++ database.
-     * Effects: Updates preference, recalculates prayer times, and reschedules notifications.
+     * Updates preference, recalculates prayer times, and reschedules notifications
      */
     fun updateCalculationMethod(method: String) {
         WaqtNativeBridge.updatePreference("calculationMethod", method)
@@ -64,10 +54,7 @@ class SettingsViewModel(application: Application) : AndroidViewModel(application
     }
 
     /**
-     * RME:
-     * Reads: Madhab identifier string ("shafi" or "hanafi").
-     * Modifies: `madhab` setting in C++ database.
-     * Effects: Updates Asr calculation preference and reschedules notifications.
+     * Updates Asr calculation preference and reschedules notifications
      */
     fun updateMadhab(madhab: String) {
         WaqtNativeBridge.updatePreference("madhab", madhab)
@@ -76,10 +63,7 @@ class SettingsViewModel(application: Application) : AndroidViewModel(application
     }
 
     /**
-     * RME:
-     * Reads: Boolean flag for showing start times on Home screen.
-     * Modifies: `showStartTime` setting in C++ database.
-     * Effects: Persists preference setting.
+     * Persists preference setting
      */
     fun updateShowStartTime(show: Boolean) {
         WaqtNativeBridge.updatePreference("showStartTime", if (show) "true" else "false")
@@ -87,10 +71,7 @@ class SettingsViewModel(application: Application) : AndroidViewModel(application
     }
 
     /**
-     * RME:
-     * Reads: Boolean flag for showing end times on Home screen.
-     * Modifies: `showEndTime` setting in C++ database.
-     * Effects: Persists preference setting.
+     * Persists preference setting
      */
     fun updateShowEndTime(show: Boolean) {
         WaqtNativeBridge.updatePreference("showEndTime", if (show) "true" else "false")
@@ -98,10 +79,7 @@ class SettingsViewModel(application: Application) : AndroidViewModel(application
     }
 
     /**
-     * RME:
-     * Reads: Theme color hex string or "Material You".
-     * Modifies: `themeColor` setting in C++ database.
-     * Effects: Persists dynamic theme or custom accent color choice.
+     * Persists dynamic theme or custom accent color choice
      */
     fun updateThemeColor(color: String) {
         WaqtNativeBridge.updatePreference("themeColor", color)
@@ -109,10 +87,7 @@ class SettingsViewModel(application: Application) : AndroidViewModel(application
     }
 
     /**
-     * RME:
-     * Reads: None.
-     * Modifies: SQLite `history` table in C++ core.
-     * Effects: Wipes all prayer completion history records. Preserves settings.
+     * Wipes all prayer completion history records. Preserves settings
      */
     fun deleteAllHistory() {
         viewModelScope.launch {

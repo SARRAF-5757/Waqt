@@ -1,36 +1,32 @@
-/**
- * File Role: Data models mirroring C++ core structures passed over the JNI boundary.
- */
+// Kotlin data classes mirroring the C++ structures
+
 package io.github.sarraf5757.waqt.bridge
 
 class NativeModels {
 
     /**
-     * Home screen state for today's prayers.
+     * UI representation of a single prayer task card
+     */
+    data class UIPrayerItem(
+        val id: String,
+        val name: String,
+        val startTimeStr: String,
+        val endTimeStr: String,
+        val isCompleted: Boolean
+    )
+
+    /**
+     * Home screen state for today's prayers
      */
     data class HomeState(
         val dateKey: String,
-        val fajrCompleted: Boolean,
-        val dhuhrCompleted: Boolean,
-        val asrCompleted: Boolean,
-        val maghribCompleted: Boolean,
-        val ishaCompleted: Boolean,
-        val fajrStartSec: Long,
-        val fajrEndSec: Long,
-        val dhuhrStartSec: Long,
-        val dhuhrEndSec: Long,
-        val asrStartSec: Long,
-        val asrEndSec: Long,
-        val maghribStartSec: Long,
-        val maghribEndSec: Long,
-        val ishaStartSec: Long,
-        val ishaEndSec: Long,
+        val prayers: Array<UIPrayerItem>,
         val showStartTime: Boolean,
         val showEndTime: Boolean
     )
 
     /**
-     * User preference settings.
+     * User preference settings
      */
     data class PreferenceSettings(
         val showStartTime: Boolean,
@@ -45,7 +41,7 @@ class NativeModels {
     )
 
     /**
-     * Notification schedule intent returned by C++ core.
+     * Notification schedule intent returned by C++ core
      */
     data class NotificationIntent(
         val id: String,
@@ -55,7 +51,7 @@ class NativeModels {
     )
 
     /**
-     * Completion grid for a single prayer over 105 days.
+     * Completion grid for a single prayer over 105 days
      */
     data class PrayerStreak(
         val prayerId: String,
@@ -63,7 +59,7 @@ class NativeModels {
     )
 
     /**
-     * Container for all 5 prayer streak grids.
+     * Container for all 5 prayer streak grids
      */
     data class StreakGridData(
         val totalDays: Int,

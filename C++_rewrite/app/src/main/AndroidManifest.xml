@@ -1,6 +1,9 @@
 <?xml version="1.0" encoding="utf-8"?>
 <manifest xmlns:android="http://schemas.android.com/apk/res/android">
 
+    <!--
+        PERMISSIONS - declare what hardware or OS features the app is allowed to use
+    -->
     <uses-permission android:name="android.permission.ACCESS_FINE_LOCATION" />
     <uses-permission android:name="android.permission.ACCESS_COARSE_LOCATION" />
     <uses-permission android:name="android.permission.POST_NOTIFICATIONS" />
@@ -9,6 +12,9 @@
     <uses-permission android:name="android.permission.RECEIVE_BOOT_COMPLETED" />
     <uses-permission android:name="android.permission.WAKE_LOCK" />
 
+    <!--
+        APPLICATION ELEMENT - global metadata and component declarations
+    -->
     <application
         android:name=".WaqtApp"
         android:allowBackup="true"
@@ -18,20 +24,31 @@
         android:supportsRtl="true"
         android:theme="@style/Theme.Waqt">
 
+        <!--
+            MAIN ACTIVITY - the "main window" of the application
+        -->
         <activity
             android:name=".MainActivity"
             android:exported="true"
             android:theme="@style/Theme.Waqt">
+
+            <!-- This filter tells Android that this Activity is the one to launch from the home screen -->
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
                 <category android:name="android.intent.category.LAUNCHER" />
             </intent-filter>
         </activity>
 
+        <!--
+            BROADCAST RECEIVERS - like event listeners that the OS triggers
+        -->
+
+        <!-- Receives AlarmManager events to show notifications -->
         <receiver
             android:name=".notifications.AlarmReceiver"
             android:exported="false" />
 
+        <!-- Receives a signal when the phone finishes booting up -->
         <receiver
             android:name=".notifications.BootReceiver"
             android:exported="true">
@@ -41,5 +58,4 @@
         </receiver>
 
     </application>
-
 </manifest>

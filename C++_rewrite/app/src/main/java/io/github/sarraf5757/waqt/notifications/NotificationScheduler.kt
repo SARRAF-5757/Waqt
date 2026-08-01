@@ -1,6 +1,5 @@
-/**
- * File Role: Manages Android system notification channels and schedules exact alarm notifications using AlarmManager.
- */
+// Manages notification channels and schedules precise alarms
+
 package io.github.sarraf5757.waqt.notifications
 
 import android.app.AlarmManager
@@ -17,31 +16,23 @@ object NotificationScheduler {
     const val CHANNEL_ID = "default"
 
     /**
-     * RME:
-     * Reads: Android OS version.
-     * Modifies: System NotificationManager channels.
-     * Effects: Creates system notification channel with default importance and vibration pattern.
+     * Creates system notification channel with default importance and vibration pattern
      */
     fun createNotificationChannel(context: Context) {
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
-            val name = "default"
-            val descriptionText = "Waqt Prayer Reminders"
-            val importance = NotificationManager.IMPORTANCE_DEFAULT
-            val channel = NotificationChannel(CHANNEL_ID, name, importance).apply {
-                description = descriptionText
-                vibrationPattern = longArrayOf(0, 250, 250, 250)
-                enableVibration(true)
-            }
-            val notificationManager = context.getSystemService(Context.NOTIFICATION_SERVICE) as NotificationManager
-            notificationManager.createNotificationChannel(channel)
+        val name = "default"
+        val descriptionText = "Waqt Prayer Reminders"
+        val importance = NotificationManager.IMPORTANCE_DEFAULT
+        val channel = NotificationChannel(CHANNEL_ID, name, importance).apply {
+            description = descriptionText
+            vibrationPattern = longArrayOf(0, 250, 250, 250)
+            enableVibration(true)
         }
+        val notificationManager = context.getSystemService(Context.NOTIFICATION_SERVICE) as NotificationManager
+        notificationManager.createNotificationChannel(channel)
     }
 
     /**
-     * RME:
-     * Reads: Notification intents computed by C++ WaqtEngine core.
-     * Modifies: AlarmManager pending intents.
-     * Effects: Cancels past scheduled alarms and schedules exact system alarms for future prayer notifications.
+     * Re-schedules notifications for future prayers, cancelling old ones
      */
     fun scheduleNotifications(context: Context) {
         val alarmManager = context.getSystemService(Context.ALARM_SERVICE) as AlarmManager
@@ -59,7 +50,7 @@ object NotificationScheduler {
             alarmManager.cancel(pendingIntent)
         }
 
-        // Schedule new intents (up to system limit)
+        // Schedule new intents
         for (index in scheduleIntents.indices) {
             if (index >= 50) break
             val intentItem = scheduleIntents[index]
@@ -79,14 +70,10 @@ object NotificationScheduler {
 
             val triggerMillis = intentItem.triggerTimestampSec * 1000L
 
-            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
-                try {
-                    alarmManager.setExactAndAllowWhileIdle(AlarmManager.RTC_WAKEUP, triggerMillis, pendingIntent)
-                } catch (e: SecurityException) {
-                    alarmManager.set(AlarmManager.RTC_WAKEUP, triggerMillis, pendingIntent)
-                }
-            } else {
-                alarmManager.setExact(AlarmManager.RTC_WAKEUP, triggerMillis, pendingIntent)
+            try {
+                alarmManager.setExactAndAllowWhileIdle(AlarmManager.RTC_WAKEUP, triggerMillis, pendingIntent)
+            } catch (e: SecurityException) {
+                alarmManager.set(AlarmManager.RTC_WAKEUP, triggerMillis, pendingIntent)
             }
         }
     }

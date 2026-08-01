@@ -1,3 +1,5 @@
+// Logic for generating upcoming prayer notifications
+
 #ifndef WAQT_NOTIFICATION_GENERATOR_HPP
 #define WAQT_NOTIFICATION_GENERATOR_HPP
 

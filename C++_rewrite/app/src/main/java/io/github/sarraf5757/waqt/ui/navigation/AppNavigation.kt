@@ -1,6 +1,5 @@
-/**
- * File Role: Bottom Navigation bar and tab screen routing setup for Jetpack Compose with edge-to-edge support.
- */
+// Bottom navigation and screen routing for Jetpack Compose
+
 package io.github.sarraf5757.waqt.ui.navigation
 
 import androidx.compose.animation.AnimatedContentTransitionScope
@@ -34,6 +33,7 @@ import io.github.sarraf5757.waqt.ui.viewmodels.HomeViewModel
 import io.github.sarraf5757.waqt.ui.viewmodels.SettingsViewModel
 import io.github.sarraf5757.waqt.ui.viewmodels.StreakViewModel
 
+// Defines routes, titles, and icons for each screen
 sealed class Screen(val route: String, val title: String, val icon: ImageVector) {
     object Home : Screen("home", "Home", Icons.Default.Home)
     object History : Screen("history", "History", Icons.Default.DateRange)
@@ -41,10 +41,7 @@ sealed class Screen(val route: String, val title: String, val icon: ImageVector)
 }
 
 /**
- * RME:
- * Reads: `HomeViewModel`, `StreakViewModel`, `SettingsViewModel`.
- * Modifies: NavHost navigation backstack state.
- * Effects: Renders App Scaffold with edge-to-edge background, Bottom Navigation Bar, and active screen composable.
+ * Renders app with edge-to-edge background, Bottom Navigation Bar, and the active screen composable
  */
 @Composable
 fun AppNavigation(
@@ -52,8 +49,8 @@ fun AppNavigation(
     streakViewModel: StreakViewModel,
     settingsViewModel: SettingsViewModel
 ) {
-    val navController = rememberNavController()
-    val items = listOf(Screen.Home, Screen.History, Screen.Settings)
+    val navController = rememberNavController()                         // Manages app navigation state
+    val items = listOf(Screen.Home, Screen.History, Screen.Settings)    // Screens available in the bottom bar
 
     Scaffold(
         containerColor = MaterialTheme.colorScheme.background,
@@ -71,6 +68,7 @@ fun AppNavigation(
                         label = { Text(screen.title) },
                         selected = currentRoute == screen.route,
                         onClick = {
+                            // Navigate to destination, avoiding duplicate stack entries
                             if (currentRoute != screen.route) {
                                 if (screen == Screen.History) {
                                     streakViewModel.loadStreakData()
@@ -96,20 +94,21 @@ fun AppNavigation(
             }
         }
     ) { innerPadding ->
+        // Determines animation direction based on tab index
         val routeOrder = listOf(Screen.Home.route, Screen.History.route, Screen.Settings.route)
 
-        // Helper for snappy side-scrolling direction.
+        // Helper for snappy side-scrolling direction
         fun slideDirection(scope: AnimatedContentTransitionScope<NavBackStackEntry>) =
             if (routeOrder.indexOf(scope.targetState.destination.route) > routeOrder.indexOf(scope.initialState.destination.route))
                 AnimatedContentTransitionScope.SlideDirection.Left else AnimatedContentTransitionScope.SlideDirection.Right
 
-        // Animation Toggle: Switch between fast (tween) and bouncy (spring)
-        // val navAnimationSpec = tween<IntOffset>(150)
+        // To Switch Animation: fast (tween) and bouncy (spring)
         val navAnimationSpec = spring<IntOffset>(
             dampingRatio = Spring.DampingRatioLowBouncy,
             stiffness = Spring.StiffnessMedium
         )
 
+        // Handles screen swapping and transitions
         NavHost(
             navController = navController,
             startDestination = Screen.Home.route,

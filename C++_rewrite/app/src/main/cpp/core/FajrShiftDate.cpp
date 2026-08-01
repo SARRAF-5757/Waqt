@@ -1,3 +1,5 @@
+// Utility to handle dates with a custom cutoff for Fajr
+
 #include "FajrShiftDate.hpp"
 #include <ctime>
 #include <cstdio>
@@ -14,20 +16,23 @@ int FajrShiftDate::getFajrCutoff() {
     return g_fajrCutoffMinutes;
 }
 
+
+// Calculates Fajr cutoff minutes from a UNIX timestamp of Fajr time
 void FajrShiftDate::setFajrCutoffFromTimestamp(int64_t fajrUnixTimestamp) {
     if (fajrUnixTimestamp <= 0) {
         g_fajrCutoffMinutes = 0;
         return;
     }
-    std::time_t t = static_cast<std::time_t>(fajrUnixTimestamp);
+    auto t = static_cast<std::time_t>(fajrUnixTimestamp);
     std::tm* localTm = std::localtime(&t);
     if (localTm) {
         g_fajrCutoffMinutes = localTm->tm_hour * 60 + localTm->tm_min;
     }
 }
 
+// Returns dateKey shifted by Fajr cutoff
 std::string FajrShiftDate::getDateKey(int64_t unixTimestampSec) {
-    std::time_t t = static_cast<std::time_t>(unixTimestampSec);
+    auto t = static_cast<std::time_t>(unixTimestampSec);
     // Subtract Fajr cutoff minutes to shift day boundary
     t -= (g_fajrCutoffMinutes * 60);
 
@@ -41,6 +46,7 @@ std::string FajrShiftDate::getDateKey(int64_t unixTimestampSec) {
     return std::string(buf);
 }
 
+// Computes target UNIX timestamp shifted by n days
 int64_t FajrShiftDate::addDays(int64_t unixTimestampSec, int days) {
     return unixTimestampSec + (static_cast<int64_t>(days) * 86400LL);
 }

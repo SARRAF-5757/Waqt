@@ -1,3 +1,5 @@
+// Logic for calculating prayer times based on location and date
+
 #include "PrayerCalculator.hpp"
 #include "AstronomicalMath.hpp"
 #include <cmath>
@@ -5,6 +7,7 @@
 
 namespace waqt {
 
+// Maps the CalculationMethod variable from string reading
 CalculationMethod PrayerCalculator::parseCalculationMethod(const std::string& methodStr) {
     if (methodStr == "MuslimWorldLeague") return CalculationMethod::MuslimWorldLeague;
     if (methodStr == "Egyptian") return CalculationMethod::Egyptian;
@@ -20,6 +23,7 @@ CalculationMethod PrayerCalculator::parseCalculationMethod(const std::string& me
     return CalculationMethod::MoonsightingCommittee;
 }
 
+// Maps string readings to the Madhab variable
 Madhab PrayerCalculator::parseMadhab(const std::string& madhabStr) {
     if (madhabStr == "hanafi") return Madhab::Hanafi;
     return Madhab::Shafi;
@@ -27,11 +31,14 @@ Madhab PrayerCalculator::parseMadhab(const std::string& madhabStr) {
 
 // Convert fractional hours UTC on a given YYYY-MM-DD into a UNIX timestamp
 static int64_t hoursUtcToUnixTimestamp(int year, int month, int day, double hoursUtc) {
+    // std::tm - a C++ struct for date/time (year is 1900-based, and month is 0-indexed)
     std::tm tmTime{};
     tmTime.tm_year = year - 1900;
     tmTime.tm_mon = month - 1;
     tmTime.tm_mday = day;
 
+    // Normalization: If the calculated time is -1.5 hours or 25 hours (Next morning),
+    // shift the day and normalize hours to the 0-24 range
     while (hoursUtc < 0.0) {
         hoursUtc += 24.0;
         tmTime.tm_mday -= 1;
@@ -41,6 +48,7 @@ static int64_t hoursUtcToUnixTimestamp(int year, int month, int day, double hour
         tmTime.tm_mday += 1;
     }
 
+    // Convert fractional hours into total seconds past midnight
     int totalSeconds = static_cast<int>(std::round(hoursUtc * 3600.0));
     int hour = totalSeconds / 3600;
     int minute = (totalSeconds / 60) % 60;
@@ -49,13 +57,10 @@ static int64_t hoursUtcToUnixTimestamp(int year, int month, int day, double hour
     tmTime.tm_hour = hour;
     tmTime.tm_min = minute;
     tmTime.tm_sec = second;
-    tmTime.tm_isdst = 0;
+    tmTime.tm_isdst = 0; // (UTC)
 
-    #if defined(_WIN32)
-    return static_cast<int64_t>(_mkgmtime(&tmTime));
-    #else
+    // Convert the tm struct into a Unix timestamp
     return static_cast<int64_t>(timegm(&tmTime));
-    #endif
 }
 
 PrayerTimesMap PrayerCalculator::calculatePrayerTimes(
@@ -66,6 +71,7 @@ PrayerTimesMap PrayerCalculator::calculatePrayerTimes(
 ) {
     PrayerTimesMap map;
 
+    // Determine the sun's required angle below the horizon for Fajr and Isha
     double fajrAngle = 18.0;
     double ishaAngle = 18.0;
     bool ishaInterval = false;
@@ -99,34 +105,33 @@ PrayerTimesMap PrayerCalculator::calculatePrayerTimes(
             fajrAngle = 18.0; ishaAngle = 18.0; break;
     }
 
+    // Calculate the sun's position for the current day
     double julianDay = AstronomicalMath::calculateJulianDay(year, month, day, 12.0);
     double T = AstronomicalMath::calculateJulianCentury(julianDay);
 
     double declination = AstronomicalMath::calculateSunDeclination(T, latitude);
     double eot = AstronomicalMath::calculateEquationOfTime(T);
-    double transit = AstronomicalMath::calculateSolarTransit(longitude, eot);
 
-    // Standard refraction + sun disc angle = -0.8333 degrees
-    double sunriseHourAngle = AstronomicalMath::calculateHourAngle(-0.8333, latitude, declination);
-    double sunsetHourAngle = AstronomicalMath::calculateHourAngle(-0.8333, latitude, declination);
+    double transit = AstronomicalMath::calculateSolarTransit(longitude, eot);   // midway between sunrise and sunset
+
+    // Use trig to find the Hour Angle, or distance from noon
+    int shadowFactor = (madhab == Madhab::Hanafi) ? 2 : 1;
+
+    double sunriseHourAngle = AstronomicalMath::calculateHourAngle(-0.8333, latitude, declination); // refraction + sun disc angle = -0.8333 degrees
+    double sunsetHourAngle =  AstronomicalMath::calculateHourAngle(-0.8333, latitude, declination);
     double fajrHourAngle = AstronomicalMath::calculateHourAngle(-fajrAngle, latitude, declination);
+    double asrHourAngle = AstronomicalMath::calculateAsrHourAngle(shadowFactor, latitude, declination);
+    double ishaHourAngle = AstronomicalMath::calculateHourAngle(-ishaAngle, latitude, declination);
 
+    // Convert the astronomical angles into actual times of day
     double fajrHours = transit - fajrHourAngle;
     double sunriseHours = transit - sunriseHourAngle;
     double dhuhrHours = transit;
-
-    int shadowFactor = (madhab == Madhab::Hanafi) ? 2 : 1;
-    double asrHourAngle = AstronomicalMath::calculateAsrHourAngle(shadowFactor, latitude, declination);
     double asrHours = transit + asrHourAngle;
-
     double maghribHours = transit + sunsetHourAngle;
-
-    double ishaHours = 0.0;
+    double ishaHours = transit + ishaHourAngle;
     if (ishaInterval) {
         ishaHours = maghribHours + (ishaMinutesOffset / 60.0);
-    } else {
-        double ishaHourAngle = AstronomicalMath::calculateHourAngle(-ishaAngle, latitude, declination);
-        ishaHours = transit + ishaHourAngle;
     }
 
     // Next day's Fajr for Middle of Night calculation
@@ -134,11 +139,7 @@ PrayerTimesMap PrayerCalculator::calculatePrayerTimes(
     tmNext.tm_year = year - 1900;
     tmNext.tm_mon = month - 1;
     tmNext.tm_mday = day + 1;
-    #if defined(_WIN32)
-    time_t nextTime = _mkgmtime(&tmNext);
-    #else
     time_t nextTime = timegm(&tmNext);
-    #endif
     std::tm* tmNextParsed = std::gmtime(&nextTime);
 
     double julianDayNext = AstronomicalMath::calculateJulianDay(tmNextParsed->tm_year + 1900, tmNextParsed->tm_mon + 1, tmNextParsed->tm_mday, 12.0);
@@ -149,6 +150,7 @@ PrayerTimesMap PrayerCalculator::calculatePrayerTimes(
     double fajrHourAngleNext = AstronomicalMath::calculateHourAngle(-fajrAngle, latitude, decNext);
     double nextFajrHours = transitNext - fajrHourAngleNext;
 
+    // Convert all fractional hours into standard Unix Timestamps
     int64_t maghribTs = hoursUtcToUnixTimestamp(year, month, day, maghribHours);
     int64_t nextFajrTs = hoursUtcToUnixTimestamp(tmNextParsed->tm_year + 1900, tmNextParsed->tm_mon + 1, tmNextParsed->tm_mday, nextFajrHours);
     int64_t middleOfTheNightTs = maghribTs + (nextFajrTs - maghribTs) / 2;

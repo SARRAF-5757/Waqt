@@ -1,6 +1,5 @@
-/**
- * File Role: ViewModel managing today's prayer state and handling user toggle interactions.
- */
+// ViewModel managing state and logic for the home screen
+
 package io.github.sarraf5757.waqt.ui.viewmodels
 
 import android.app.Application
@@ -16,20 +15,28 @@ import kotlinx.coroutines.launch
 
 class HomeViewModel(application: Application) : AndroidViewModel(application) {
 
+    /**
+     * When the value of `_homeState` changes, the UI automatically redraws
+     */
     private val _homeState = MutableStateFlow<NativeModels.HomeState?>(null)
     val homeState: StateFlow<NativeModels.HomeState?> = _homeState.asStateFlow()
 
     init {
         loadHomeState()
+        // Sync with preference changes from Settings screen
+        viewModelScope.launch {
+            WaqtNativeBridge.preferenceUpdates.collect {
+                loadHomeState()
+            }
+        }
     }
 
     /**
-     * RME:
-     * Reads: System current timestamp in seconds via JNI bridge.
-     * Modifies: `_homeState` StateFlow value.
-     * Effects: Fetches today's updated prayer times and completion statuses from C++ core.
+     * Triggers a JNI call to the C++ core to fetch the latest display data
      */
     fun loadHomeState() {
+        // viewModelScope - ensures this runs on a background thread if needed and
+        // is canceled if the user leaves the screen
         viewModelScope.launch {
             val state = WaqtNativeBridge.getHomeState()
             _homeState.value = state
@@ -37,27 +44,23 @@ class HomeViewModel(application: Application) : AndroidViewModel(application) {
     }
 
     /**
-     * RME:
-     * Reads: Prayer ID (e.g., "fajr") and current completion status.
-     * Modifies: SQLite history status in C++ engine and `_homeState` StateFlow.
-     * Effects: Toggles completion state in database and triggers notification reschedule.
+     * Sends a UI event (checking a box) down to the C++ database
      */
     fun togglePrayer(prayerId: String) {
         val currentState = _homeState.value ?: return
         val dateKey = currentState.dateKey
 
-        val currentCompleted = when (prayerId) {
-            "fajr" -> currentState.fajrCompleted
-            "dhuhr" -> currentState.dhuhrCompleted
-            "asr" -> currentState.asrCompleted
-            "maghrib" -> currentState.maghribCompleted
-            "isha" -> currentState.ishaCompleted
-            else -> false
-        }
+        val prayerItem = currentState.prayers.find { it.id == prayerId } ?: return
+        val currentCompleted = prayerItem.isCompleted
 
         viewModelScope.launch {
+            // Write to Native SQLite
             WaqtNativeBridge.togglePrayer(dateKey, prayerId, !currentCompleted)
+            
+            // Refresh the local state from C++
             loadHomeState()
+            
+            // Update scheduled system alarms
             NotificationScheduler.scheduleNotifications(getApplication())
         }
     }

@@ -1,6 +1,5 @@
-/**
- * File Role: JNI Bridge singleton providing native C++ calls to Kotlin code.
- */
+// Kotlin interface for communicating with the C++ Waqt engine
+
 package io.github.sarraf5757.waqt.bridge
 
 import android.content.Context
@@ -9,14 +8,12 @@ import java.io.File
 object WaqtNativeBridge {
 
     init {
+        // Loads the shared library built by CMake (libwaqt_core.so)
         System.loadLibrary("waqt_core")
     }
 
     /**
-     * RME:
-     * Reads: Context files directory path.
-     * Modifies: SQLite database file `waqt_native.db` initialization in C++.
-     * Effects: Opens or creates SQLite database on internal device storage.
+     * Passes the device's internal application path to C++ (so SQLite knows where to save files)
      */
     fun initialize(context: Context): Boolean {
         val dbFile = File(context.filesDir, "waqt_native.db")
@@ -24,86 +21,59 @@ object WaqtNativeBridge {
     }
 
     /**
-     * RME:
-     * Reads: Latitude and longitude coordinates.
-     * Modifies: C++ engine location state and database preferences.
-     * Effects: Recalculates Fajr cutoff and prayer times.
+     * Forwards GPS coordinates to the C++ core
      */
     fun updateLocation(latitude: Double, longitude: Double) {
         nativeUpdateLocation(latitude, longitude)
     }
 
     /**
-     * RME:
-     * Reads: Current system UNIX timestamp in seconds.
-     * Modifies: None.
-     * Effects: Queries C++ core for today's prayer times and completion statuses.
+     * Calls C++, which formats all the time and prayer strings into a ready-to-display object
      */
     fun getHomeState(nowSec: Long = System.currentTimeMillis() / 1000): NativeModels.HomeState? {
         return nativeGetHomeState(nowSec)
     }
 
     /**
-     * RME:
-     * Reads: Target dateKey (YYYY-MM-DD), prayer ID, and target completion status.
-     * Modifies: SQLite history table entry in C++.
-     * Effects: Persists prayer completion state to disk.
+     * Persists a checkbox change to the SQLite database
      */
     fun togglePrayer(dateKey: String, prayerId: String, completed: Boolean): Boolean {
         return nativeTogglePrayer(dateKey, prayerId, completed)
     }
 
-    /**
-     * RME:
-     * Reads: C++ database preference table.
-     * Modifies: None.
-     * Effects: Returns current user preference settings.
-     */
     fun getPreferences(): NativeModels.PreferenceSettings? {
         return nativeGetPreferences()
     }
 
     /**
-     * RME:
-     * Reads: Preference key and value.
-     * Modifies: SQLite preference table in C++.
-     * Effects: Updates preference value on disk.
+     * Observable flow for preference changes.
      */
+    val preferenceUpdates = kotlinx.coroutines.flow.MutableSharedFlow<Unit>(
+        extraBufferCapacity = 1,
+        onBufferOverflow = kotlinx.coroutines.channels.BufferOverflow.DROP_OLDEST
+    )
+
     fun updatePreference(key: String, value: String) {
         nativeUpdatePreference(key, value)
+        preferenceUpdates.tryEmit(Unit)
     }
 
-    /**
-     * RME:
-     * Reads: SQLite database.
-     * Modifies: Deletes all rows from `history` table.
-     * Effects: Clears prayer history from disk. Does not touch preferences.
-     */
     fun deleteAllHistory() {
         nativeDeleteAllHistory()
     }
 
-    /**
-     * RME:
-     * Reads: Current system UNIX timestamp in seconds.
-     * Modifies: None.
-     * Effects: Queries SQLite history for 105-day streak grid data per prayer.
-     */
     fun getStreakData(nowSec: Long = System.currentTimeMillis() / 1000): NativeModels.StreakGridData? {
         return nativeGetStreakData(nowSec)
     }
 
-    /**
-     * RME:
-     * Reads: Current timestamp, location, preferences, and completion history.
-     * Modifies: None.
-     * Effects: Returns ordered list of future notification intents computed by C++ core.
-     */
     fun getNotificationSchedule(nowSec: Long = System.currentTimeMillis() / 1000): Array<NativeModels.NotificationIntent> {
         return nativeGetNotificationSchedule(nowSec) ?: emptyArray()
     }
 
-    // Native JNI external method declarations
+    /**
+     * NATIVE EXTERNAL DECLARATIONS - in bridge/jni_bindings.cpp
+     * [The 'external' keyword tells the Kotlin compiler that the implementation is in the shared library]
+     */
     private external fun nativeInitialize(dbPath: String): Boolean
     private external fun nativeUpdateLocation(latitude: Double, longitude: Double)
     private external fun nativeGetHomeState(nowSec: Long): NativeModels.HomeState?
