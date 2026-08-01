@@ -1,4 +1,6 @@
-// Streak screen UI showing historical prayer contribution grids
+/**
+ * Streak screen UI showing historical prayer contribution grids
+ */
 
 package io.github.sarraf5757.waqt.ui.screens
 

@@ -58,7 +58,8 @@ PrayerTimesMap WaqtEngine::getTodayPrayerTimes(int64_t nowUnixTimestampSec) {
     }
 
     std::time_t t = static_cast<std::time_t>(nowUnixTimestampSec);
-    std::tm* localTm = std::localtime(&t);
+    std::tm localTmStruct;
+    std::tm* localTm = localtime_r(&t, &localTmStruct);
     if (!localTm)
         return PrayerTimesMap{};
 
@@ -91,7 +92,8 @@ static std::string formatTime(int64_t timestamp) {
     if (timestamp <= 0)
         return "--:--";
     std::time_t t = static_cast<std::time_t>(timestamp);
-    std::tm* localTm = std::localtime(&t);
+    std::tm localTmStruct;
+    std::tm* localTm = localtime_r(&t, &localTmStruct);
     if (!localTm)
         return "--:--";
     char buffer[16];

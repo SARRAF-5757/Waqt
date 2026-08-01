@@ -140,7 +140,8 @@ PrayerTimesMap PrayerCalculator::calculatePrayerTimes(
     tmNext.tm_mon = month - 1;
     tmNext.tm_mday = day + 1;
     time_t nextTime = timegm(&tmNext);
-    std::tm* tmNextParsed = std::gmtime(&nextTime);
+    std::tm tmNextParsedStruct;
+    std::tm* tmNextParsed = gmtime_r(&nextTime, &tmNextParsedStruct);
 
     double julianDayNext = AstronomicalMath::calculateJulianDay(tmNextParsed->tm_year + 1900, tmNextParsed->tm_mon + 1, tmNextParsed->tm_mday, 12.0);
     double TNext = AstronomicalMath::calculateJulianCentury(julianDayNext);

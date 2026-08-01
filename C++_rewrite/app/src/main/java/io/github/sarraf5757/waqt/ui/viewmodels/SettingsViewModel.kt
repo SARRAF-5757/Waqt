@@ -1,4 +1,6 @@
-// ViewModel managing user settings and preferences
+/**
+ * ViewModel managing user settings and preferences
+ */
 
 package io.github.sarraf5757.waqt.ui.viewmodels
 

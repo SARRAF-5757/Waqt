@@ -17,31 +17,31 @@ Database::~Database() {
 /**
  * INTERNAL: helper to initialize the database schema
  */
-    void Database::createTables() {
-        if (!m_db) return;
-        const char* sqlPrefs =
-                "CREATE TABLE IF NOT EXISTS preferences ("
-                "  key TEXT PRIMARY KEY, "
-                "  value TEXT"
-                ");";
+void Database::createTables() {
+    if (!m_db) return;
+    const char* sqlPrefs =
+            "CREATE TABLE IF NOT EXISTS preferences ("
+            "  key TEXT PRIMARY KEY, "
+            "  value TEXT"
+            ");";
 
-        const char* sqlHistory =
-                "CREATE TABLE IF NOT EXISTS history ("
-                "  date_key TEXT, "
-                "  prayer_id TEXT, "
-                "  completed INTEGER, "
-                "  PRIMARY KEY (date_key, prayer_id)"
-                ");";
+    const char* sqlHistory =
+            "CREATE TABLE IF NOT EXISTS history ("
+            "  date_key TEXT, "
+            "  prayer_id TEXT, "
+            "  completed INTEGER, "
+            "  PRIMARY KEY (date_key, prayer_id)"
+            ");";
 
-        char* errMsgs = nullptr;
-        sqlite3_exec(m_db, sqlPrefs, nullptr, nullptr, &errMsgs);
-        if (errMsgs)
-            sqlite3_free(errMsgs);
+    char* errMsgs = nullptr;
+    sqlite3_exec(m_db, sqlPrefs, nullptr, nullptr, &errMsgs);
+    if (errMsgs)
+        sqlite3_free(errMsgs);
 
-        sqlite3_exec(m_db, sqlHistory, nullptr, nullptr, &errMsgs);
-        if (errMsgs)
-            sqlite3_free(errMsgs);
-    }
+    sqlite3_exec(m_db, sqlHistory, nullptr, nullptr, &errMsgs);
+    if (errMsgs)
+        sqlite3_free(errMsgs);
+}
 
 /**
  * Opens the SQLite database connection at the specified path
@@ -227,7 +227,8 @@ StreakGridData Database::getStreakData(const std::string& todayDateKey) {
         for (int i = 0; i < 105; ++i) {
             int daysBack = 104 - i; // Index 0 is 104 days ago, index 104 is today
             time_t targetTime = todayTime - (daysBack * 86400);
-            std::tm* tmTarget = std::gmtime(&targetTime);
+            std::tm tmTargetStruct;
+            std::tm* tmTarget = gmtime_r(&targetTime, &tmTargetStruct);
             char buf[32];
             std::strftime(buf, sizeof(buf), "%Y-%m-%d", tmTarget);
             std::string dKey(buf);

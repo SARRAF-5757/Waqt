@@ -21,7 +21,8 @@ std::vector<NotificationIntent> NotificationGenerator::generateSchedule(
     for (int dayOffset = 0; dayOffset < 10; ++dayOffset) {
         int64_t targetTimeSec = nowUnixTimestampSec + (static_cast<int64_t>(dayOffset) * 86400LL);
         std::time_t targetTime = static_cast<std::time_t>(targetTimeSec);
-        std::tm* localTm = std::localtime(&targetTime);
+        std::tm localTmStruct;
+        std::tm* localTm = localtime_r(&targetTime, &localTmStruct);
         if (!localTm)
             continue;
 

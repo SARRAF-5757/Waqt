@@ -1,4 +1,6 @@
-// ViewModel managing state and logic for the home screen
+/**
+ * ViewModel managing state and logic for the home screen
+ */
 
 package io.github.sarraf5757.waqt.ui.viewmodels
 

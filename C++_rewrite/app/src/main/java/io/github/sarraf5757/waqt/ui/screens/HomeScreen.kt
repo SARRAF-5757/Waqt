@@ -1,4 +1,6 @@
-// Home screen UI displaying prayer times task list
+/**
+ * Home screen UI displaying prayer times task list
+ */
 
 package io.github.sarraf5757.waqt.ui.screens
 
@@ -15,6 +17,7 @@ import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.graphics.ColorFilter
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.ui.text.font.FontWeight
@@ -31,20 +34,19 @@ import io.github.sarraf5757.waqt.ui.viewmodels.HomeViewModel
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun HomeScreen(viewModel: HomeViewModel) {
-    // This line tells Compose to re-run this function whenever the C++ state changes.
-    val homeState by viewModel.homeState.collectAsState()
+    val homeState by viewModel.homeState.collectAsState()   /** Re-run this function whenever the C++ state changes */
     val isDark = isSystemInDarkTheme()
 
     val logoRes = if (isDark) R.drawable.splash_icon_light else R.drawable.splash_icon_dark
 
     val state = homeState
-    // Get the list of prayer objects constructed by C++.
+    /** Get the list of prayer objects constructed by C++ */
     val prayers = state?.prayers ?: emptyArray()
 
     val showStartTime = state?.showStartTime ?: true
     val showEndTime = state?.showEndTime ?: true
 
-    // Describe the UI layout (Vertical Column of items)
+    /** UI layout Description */
     Column(
         modifier = Modifier
             .fillMaxSize()
@@ -59,12 +61,13 @@ fun HomeScreen(viewModel: HomeViewModel) {
         Image(
             painter = painterResource(id = logoRes),
             contentDescription = "Waqt Logo",
-            modifier = Modifier.size(180.dp)
+            modifier = Modifier.size(180.dp),
+            colorFilter = ColorFilter.tint(MaterialTheme.colorScheme.onSecondaryContainer)
         )
 
         Spacer(modifier = Modifier.height(26.dp))
 
-        // Render each prayer card. Note that names and times are already formatted by C++.
+        // Render each prayer card
         prayers.forEach { prayer ->
             PrayerCardRow(
                 prayer = prayer,

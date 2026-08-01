@@ -1,4 +1,6 @@
-// ViewModel managing data for the prayer streak grids
+/**
+ * ViewModel managing data for the prayer streak grids
+ */
 
 package io.github.sarraf5757.waqt.ui.viewmodels
 
