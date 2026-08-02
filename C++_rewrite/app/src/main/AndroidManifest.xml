@@ -11,6 +11,7 @@
     <uses-permission android:name="android.permission.USE_EXACT_ALARM" />
     <uses-permission android:name="android.permission.RECEIVE_BOOT_COMPLETED" />
     <uses-permission android:name="android.permission.WAKE_LOCK" />
+    <uses-permission android:name="android.permission.INTERNET" />
 
     <!--
         APPLICATION ELEMENT - global metadata and component declarations
@@ -30,7 +31,7 @@
         <activity
             android:name=".MainActivity"
             android:exported="true"
-            android:theme="@style/Theme.Waqt">
+            android:theme="@style/Theme.Waqt.Starting">
 
             <!-- This filter tells Android that this Activity is the one to launch from the home screen -->
             <intent-filter>

@@ -14,6 +14,7 @@ import androidx.activity.viewModels
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.core.content.ContextCompat
+import androidx.core.splashscreen.SplashScreen.Companion.installSplashScreen
 import io.github.sarraf5757.waqt.bridge.WaqtNativeBridge
 import io.github.sarraf5757.waqt.location.LocationHelper
 import io.github.sarraf5757.waqt.notifications.NotificationScheduler
@@ -49,6 +50,7 @@ class MainActivity : ComponentActivity() {
      * Called when the window is first allocated
      */
     override fun onCreate(savedInstanceState: Bundle?) {
+        installSplashScreen()
         enableEdgeToEdge()
         super.onCreate(savedInstanceState)
 

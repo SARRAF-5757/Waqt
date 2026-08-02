@@ -1,3 +1,71 @@
 <resources>
     <string name="app_name">Waqt</string>
+
+    <!-- Home Screen -->
+    <string name="waqt_logo_desc">Waqt Logo</string>
+    <string name="prayer_time_separator"> — </string>
+
+    <!-- Settings Screen -->
+    <string name="settings_title">Settings</string>
+    <string name="section_notifications">Notifications</string>
+    <string name="end_time_reminder_label">Waqt end time reminder (minutes before)</string>
+    <string name="section_prayer_times">Prayer Times</string>
+    <string name="calculation_method_label">Calculation Method</string>
+    <string name="madhab_label">Madhab (Asr Shadow)</string>
+    <string name="section_appearance">Appearance</string>
+    <string name="time_display_label">Time Display</string>
+    <string name="start_time">Start Time</string>
+    <string name="end_time">End Time</string>
+    <string name="material_you">Material You</string>
+    <string name="section_danger_zone">Danger Zone</string>
+    <string name="delete_all_records_btn">DELETE ALL RECORDS</string>
+    <string name="delete_all_records_dialog_title">Delete all records</string>
+    <string name="delete_all_records_dialog_text">Are you sure you want to delete all prayer time history recorded so far? This action cannot be undone.</string>
+    <string name="delete">Delete</string>
+    <string name="cancel">Cancel</string>
+
+    <!-- Calculation Methods -->
+    <string name="calc_moonsighting_committee">Moonsighting Committee Worldwide</string>
+    <string name="calc_muslim_world_league">Muslim World League</string>
+    <string name="calc_egyptian">Egyptian General Authority of Survey</string>
+    <string name="calc_karachi">University of Islamic Sciences, Karachi</string>
+    <string name="calc_umm_al_qura">Umm Al-Qura University, Makkah</string>
+    <string name="calc_dubai">Dubai</string>
+    <string name="calc_isna">Islamic Society of North America (ISNA)</string>
+    <string name="calc_kuwait">Kuwait</string>
+    <string name="calc_qatar">Qatar</string>
+    <string name="calc_singapore">Singapore</string>
+    <string name="calc_turkey">Turkey</string>
+    <string name="calc_tehran">Tehran</string>
+
+    <!-- Madhab Options -->
+    <string name="madhab_shafi">Shafi/Maliki/Hanbali</string>
+    <string name="madhab_hanafi">Hanafi</string>
+
+    <!-- Streak Screen -->
+    <string name="streak_title">Streak</string>
+    <string-array name="weekday_letters">
+        <item>S</item>
+        <item>M</item>
+        <item>T</item>
+        <item>W</item>
+        <item>T</item>
+        <item>F</item>
+        <item>S</item>
+    </string-array>
+
+    <!-- Theme Colors -->
+    <string name="color_blue">Blue</string>
+    <string name="color_green">Green</string>
+    <string name="color_indigo">Indigo</string>
+    <string name="color_orange">Orange</string>
+    <string name="color_purple">Purple</string>
+    <string name="color_red">Red</string>
+    <string name="color_teal">Teal</string>
+    <string name="color_yellow">Yellow</string>
+
+    <!-- Navigation -->
+    <string name="nav_home">Home</string>
+    <string name="nav_history">History</string>
+    <string name="nav_settings">Settings</string>
 </resources>

@@ -5,7 +5,6 @@ package io.github.sarraf5757.waqt.ui.navigation
 import androidx.compose.animation.AnimatedContentTransitionScope
 import androidx.compose.animation.core.Spring
 import androidx.compose.animation.core.spring
-import androidx.compose.animation.core.tween
 import androidx.compose.foundation.layout.WindowInsets
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.navigationBars
@@ -19,6 +18,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.vector.ImageVector
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.IntOffset
 import androidx.navigation.NavBackStackEntry
 import androidx.navigation.NavGraph.Companion.findStartDestination
@@ -26,6 +26,7 @@ import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.currentBackStackEntryAsState
 import androidx.navigation.compose.rememberNavController
+import io.github.sarraf5757.waqt.R
 import io.github.sarraf5757.waqt.ui.screens.HomeScreen
 import io.github.sarraf5757.waqt.ui.screens.SettingsScreen
 import io.github.sarraf5757.waqt.ui.screens.StreakScreen
@@ -34,10 +35,10 @@ import io.github.sarraf5757.waqt.ui.viewmodels.SettingsViewModel
 import io.github.sarraf5757.waqt.ui.viewmodels.StreakViewModel
 
 // Defines routes, titles, and icons for each screen
-sealed class Screen(val route: String, val title: String, val icon: ImageVector) {
-    object Home : Screen("home", "Home", Icons.Default.Home)
-    object History : Screen("history", "History", Icons.Default.DateRange)
-    object Settings : Screen("settings", "Settings", Icons.Default.Settings)
+sealed class Screen(val route: String, val titleRes: Int, val icon: ImageVector) {
+    object Home : Screen("home", R.string.nav_home, Icons.Default.Home)
+    object History : Screen("history", R.string.nav_history, Icons.Default.DateRange)
+    object Settings : Screen("settings", R.string.nav_settings, Icons.Default.Settings)
 }
 
 /**
@@ -63,9 +64,10 @@ fun AppNavigation(
                 val currentRoute = navBackStackEntry?.destination?.route
 
                 items.forEach { screen ->
+                    val title = stringResource(screen.titleRes)
                     NavigationBarItem(
-                        icon = { Icon(screen.icon, contentDescription = screen.title) },
-                        label = { Text(screen.title) },
+                        icon = { Icon(screen.icon, contentDescription = title) },
+                        label = { Text(title) },
                         selected = currentRoute == screen.route,
                         onClick = {
                             // Navigate to destination, avoiding duplicate stack entries

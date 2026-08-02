@@ -59,46 +59,48 @@ private fun createWaqtColorScheme(accent: Color, isDark: Boolean): ColorScheme {
     return if (isDark) {
         val darkBg = ColorDarkBase.blend(accent, 0.06f)
         val highlight = accent.blend(Color.LightGray, 0.70f)
+        val tintedOn = Color.White.blend(accent, 0.12f)
         
         darkColorScheme(
             primary = highlight,
             onPrimary = Color.Black,
-            primaryContainer = darkBg.blend(accent, 0.35f),
-            onPrimaryContainer = DarkOnBackground, // Re-using standard dark neutrals
+            primaryContainer = darkBg.blend(accent, 0.45f),
+            onPrimaryContainer = Color.White.blend(accent, 0.20f),
             secondary = mutedAccent,
             onSecondary = Color.Black,
             secondaryContainer = darkBg.blend(mutedAccent, 0.30f),
             onSecondaryContainer = highlight,
             tertiary = mutedAccent.copy(alpha = 0.5f),
             background = darkBg,
-            onBackground = DarkOnBackground,
+            onBackground = tintedOn,
             surface = darkBg,
-            onSurface = DarkOnSurface,
-            surfaceContainer = darkBg.blend(accent, 0.05f),
+            onSurface = tintedOn,
+            surfaceContainer = darkBg.blend(accent, 0.10f),
             surfaceVariant = darkBg.blend(accent, 0.08f),
-            onSurfaceVariant = DarkOnSurfaceVariant
+            onSurfaceVariant = tintedOn.copy(alpha = 0.75f)
         )
     } else {
         val lightBg = ColorLightBase.blend(accent, 0.06f)
         val highlight = accent.blend(Color.DarkGray, 0.35f)
+        val tintedOn = Color.Black.blend(accent, 0.12f)
         
         lightColorScheme(
             primary = highlight,
             onPrimary = Color.White,
-            primaryContainer = lightBg.blend(accent, 0.25f),
-            onPrimaryContainer = LightOnBackground,
+            primaryContainer = lightBg.blend(accent, 0.45f),
+            onPrimaryContainer = Color.Black.blend(accent, 0.20f),
             secondary = mutedAccent,
             onSecondary = Color.White,
             secondaryContainer = lightBg.blend(mutedAccent, 0.20f),
             onSecondaryContainer = highlight,
             tertiary = mutedAccent.copy(alpha = 0.5f),
             background = lightBg,
-            onBackground = LightOnBackground,
+            onBackground = tintedOn,
             surface = lightBg,
-            onSurface = LightOnSurface,
-            surfaceContainer = lightBg.blend(accent, 0.08f),
-            surfaceVariant = lightBg.blend(accent, 0.06f), // Consistent with your rejected/accepted ratio
-            onSurfaceVariant = LightOnSurfaceVariant
+            onSurface = tintedOn,
+            surfaceContainer = lightBg.blend(accent, 0.10f),
+            surfaceVariant = lightBg.blend(accent, 0.06f),
+            onSurfaceVariant = tintedOn.copy(alpha = 0.65f)
         )
     }
 }

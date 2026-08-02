@@ -18,14 +18,15 @@ import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.res.stringArrayResource
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import io.github.sarraf5757.waqt.bridge.NativeModels
+import io.github.sarraf5757.waqt.R
 import io.github.sarraf5757.waqt.ui.viewmodels.StreakViewModel
 
-private val WEEKDAY_LETTERS = listOf("S", "M", "T", "W", "T", "F", "S")
 
 /**
  * Renders History tab with centered "Streak" title and 5 contribution grid cards
@@ -63,7 +64,7 @@ fun StreakScreen(viewModel: StreakViewModel) {
 
         // Screen title "Streak"
         Text(
-            text = "Streak",
+            text = stringResource(R.string.streak_title),
             style = MaterialTheme.typography.titleLarge.copy(fontSize = 30.sp, fontWeight = FontWeight.Bold),
             textAlign = TextAlign.Center,
             modifier = Modifier
@@ -75,7 +76,11 @@ fun StreakScreen(viewModel: StreakViewModel) {
 
         // 5 Prayer Contribution Graphs
         data.streaks.forEach { prayerStreak ->
-            PrayerContributionCard(prayerName = prayerStreak.prayerId, gridData = prayerStreak.completionGrid)
+            PrayerContributionCard(
+                prayerName = prayerStreak.prayerId,
+                gridData = prayerStreak.completionGrid,
+                weekdayLetters = stringArrayResource(R.array.weekday_letters).toList()
+            )
             Spacer(modifier = Modifier.height(20.dp))
         }
     }
@@ -85,7 +90,7 @@ fun StreakScreen(viewModel: StreakViewModel) {
  * Renders card container with weekday indicators and 7x15 grid of day cells
  */
 @Composable
-fun PrayerContributionCard(prayerName: String, gridData: BooleanArray) {
+fun PrayerContributionCard(prayerName: String, gridData: BooleanArray, weekdayLetters: List<String>) {
     Card(
         modifier = Modifier.fillMaxWidth(),
         shape = RoundedCornerShape(12.dp),
@@ -116,7 +121,7 @@ fun PrayerContributionCard(prayerName: String, gridData: BooleanArray) {
                     modifier = Modifier.padding(end = 8.dp),
                     verticalArrangement = Arrangement.spacedBy(4.dp)
                 ) {
-                    WEEKDAY_LETTERS.forEach { letter ->
+                    weekdayLetters.forEach { letter ->
                         Box(
                             modifier = Modifier.size(16.dp),
                             contentAlignment = Alignment.Center

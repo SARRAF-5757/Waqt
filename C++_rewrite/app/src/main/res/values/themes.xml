@@ -1,8 +1,14 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
-    <style name="Theme.Waqt" parent="android:Theme.Material.Light.NoActionBar">
+    <style name="Theme.Waqt" parent="Theme.Material3.DayNight.NoActionBar">
         <item name="android:statusBarColor">@android:color/transparent</item>
         <item name="android:navigationBarColor">@android:color/transparent</item>
         <item name="android:windowDrawsSystemBarBackgrounds">true</item>
+    </style>
+
+    <style name="Theme.Waqt.Starting" parent="Theme.SplashScreen">
+        <item name="windowSplashScreenBackground">#FCFCFC</item>
+        <item name="windowSplashScreenAnimatedIcon">@drawable/splash_icon_dark</item>
+        <item name="postSplashScreenTheme">@style/Theme.Waqt</item>
     </style>
 </resources>

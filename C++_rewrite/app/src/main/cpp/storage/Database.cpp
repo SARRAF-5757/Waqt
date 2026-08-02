@@ -5,6 +5,7 @@
 #include <iostream>
 #include <sstream>
 #include <ctime>
+#include <map>
 
 namespace waqt {
 
@@ -201,7 +202,7 @@ DayPrayerStatus Database::getStatusesForDate(const std::string& dateKey) {
 }
 
 /**
- * Compiles completion data into a streak grid format
+ * Compiles completion data into a streak grid format using a single query
  */
 StreakGridData Database::getStreakData(const std::string& todayDateKey) {
     StreakGridData gridData;
@@ -217,15 +218,43 @@ StreakGridData Database::getStreakData(const std::string& todayDateKey) {
     tmToday.tm_mday = day;
     time_t todayTime = timegm(&tmToday);
 
-    // Iterate through the global PRAYER_NAMES to build a streak grid for each.
+    // Calculate threshold date key (104 days ago)
+    time_t thresholdTime = todayTime - (104 * 86400);
+    std::tm tmThresholdStruct;
+    std::tm* tmThreshold = gmtime_r(&thresholdTime, &tmThresholdStruct);
+    char thresholdBuf[32];
+    std::strftime(thresholdBuf, sizeof(thresholdBuf), "%Y-%m-%d", tmThreshold);
+    std::string thresholdDateKey(thresholdBuf);
+
+    // Query all records in the last 105 days in one go
+    std::map<std::string, std::map<std::string, bool>> historyMap;
+    if (m_db) {
+        const char* sql = "SELECT date_key, prayer_id, completed FROM history WHERE date_key >= ?;";
+        sqlite3_stmt* stmt = nullptr;
+        if (sqlite3_prepare_v2(m_db, sql, -1, &stmt, nullptr) == SQLITE_OK) {
+            sqlite3_bind_text(stmt, 1, thresholdDateKey.c_str(), -1, SQLITE_TRANSIENT);
+            while (sqlite3_step(stmt) == SQLITE_ROW) {
+                const unsigned char* dk = sqlite3_column_text(stmt, 0);
+                const unsigned char* pi = sqlite3_column_text(stmt, 1);
+                if (dk && pi) {
+                    std::string dKey(reinterpret_cast<const char*>(dk));
+                    std::string pId(reinterpret_cast<const char*>(pi));
+                    bool completed = (sqlite3_column_int(stmt, 2) != 0);
+                    historyMap[dKey][pId] = completed;
+                }
+            }
+        }
+        if (stmt) sqlite3_finalize(stmt);
+    }
+
+    // Build the grids from the cached map
     for (const auto& prayerId : PRAYER_NAMES) {
         PrayerStreak streak;
         streak.prayerId = prayerId;
         streak.completionGrid.resize(105, false);
 
-        // Fill the 105-day grid by querying the SQLite history for each date key.
         for (int i = 0; i < 105; ++i) {
-            int daysBack = 104 - i; // Index 0 is 104 days ago, index 104 is today
+            int daysBack = 104 - i; // Index 0 is 104 days ago
             time_t targetTime = todayTime - (daysBack * 86400);
             std::tm tmTargetStruct;
             std::tm* tmTarget = gmtime_r(&targetTime, &tmTargetStruct);
@@ -233,9 +262,14 @@ StreakGridData Database::getStreakData(const std::string& todayDateKey) {
             std::strftime(buf, sizeof(buf), "%Y-%m-%d", tmTarget);
             std::string dKey(buf);
 
-            streak.completionGrid[i] = isPrayerCompleted(dKey, prayerId);
+            auto itDate = historyMap.find(dKey);
+            if (itDate != historyMap.end()) {
+                auto itPrayer = itDate->second.find(prayerId);
+                if (itPrayer != itDate->second.end()) {
+                    streak.completionGrid[i] = itPrayer->second;
+                }
+            }
         }
-
         gridData.streaks.push_back(streak);
     }
 

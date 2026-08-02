@@ -8,12 +8,15 @@ import android.app.NotificationManager
 import android.app.PendingIntent
 import android.content.Context
 import android.content.Intent
+import androidx.core.content.edit
 import android.os.Build
 import io.github.sarraf5757.waqt.bridge.WaqtNativeBridge
 
 object NotificationScheduler {
 
     const val CHANNEL_ID = "default"
+    private const val PREFS_NAME = "notification_prefs"
+    private const val KEY_SCHEDULED_COUNT = "scheduled_count"
 
     /**
      * Creates system notification channel with default importance and vibration pattern
@@ -37,9 +40,11 @@ object NotificationScheduler {
     fun scheduleNotifications(context: Context) {
         val alarmManager = context.getSystemService(Context.ALARM_SERVICE) as AlarmManager
         val scheduleIntents = WaqtNativeBridge.getNotificationSchedule()
+        val prefs = context.getSharedPreferences(PREFS_NAME, Context.MODE_PRIVATE)
 
-        // Cancel previously scheduled notifications
-        for (i in 0 until 50) {
+        // Cancel previously scheduled notifications efficiently
+        val previousCount = prefs.getInt(KEY_SCHEDULED_COUNT, 0)
+        for (i in 0 until previousCount) {
             val cancelIntent = Intent(context, AlarmReceiver::class.java)
             val pendingIntent = PendingIntent.getBroadcast(
                 context,
@@ -51,8 +56,8 @@ object NotificationScheduler {
         }
 
         // Schedule new intents
-        for (index in scheduleIntents.indices) {
-            if (index >= 50) break
+        val newCount = minOf(scheduleIntents.size, 50)
+        for (index in 0 until newCount) {
             val intentItem = scheduleIntents[index]
 
             val intent = Intent(context, AlarmReceiver::class.java).apply {
@@ -75,6 +80,11 @@ object NotificationScheduler {
             } catch (e: SecurityException) {
                 alarmManager.set(AlarmManager.RTC_WAKEUP, triggerMillis, pendingIntent)
             }
+        }
+
+        // Save the number of scheduled alarms for the next cycle
+        prefs.edit(commit = false) {
+            putInt(KEY_SCHEDULED_COUNT, newCount)
         }
     }
 }

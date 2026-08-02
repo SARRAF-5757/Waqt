@@ -16,34 +16,18 @@ import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import io.github.sarraf5757.waqt.R
 import io.github.sarraf5757.waqt.ui.theme.THEME_ACCENT_OPTIONS
 import io.github.sarraf5757.waqt.ui.viewmodels.SettingsViewModel
 
-val CALCULATION_METHODS = listOf(
-    "MoonsightingCommittee" to "Moonsighting Committee Worldwide",
-    "MuslimWorldLeague" to "Muslim World League",
-    "Egyptian" to "Egyptian General Authority of Survey",
-    "Karachi" to "University of Islamic Sciences, Karachi",
-    "UmmAlQura" to "Umm Al-Qura University, Makkah",
-    "Dubai" to "Dubai",
-    "NorthAmerica" to "Islamic Society of North America (ISNA)",
-    "Kuwait" to "Kuwait",
-    "Qatar" to "Qatar",
-    "Singapore" to "Singapore",
-    "Turkey" to "Turkey",
-    "Tehran" to "Tehran"
-)
-
-val MADHAB_OPTIONS = listOf(
-    "shafi" to "Shafi/Maliki/Hanbali",
-    "hanafi" to "Hanafi"
-)
 
 /**
  * Renders Settings screen layout with interactive controls and delete dialog
@@ -57,6 +41,26 @@ fun SettingsScreen(viewModel: SettingsViewModel) {
     val context = LocalContext.current
     val darkTheme = isSystemInDarkTheme()
 
+    val calculationMethods = listOf(
+        "MoonsightingCommittee" to stringResource(R.string.calc_moonsighting_committee),
+        "MuslimWorldLeague" to stringResource(R.string.calc_muslim_world_league),
+        "Egyptian" to stringResource(R.string.calc_egyptian),
+        "Karachi" to stringResource(R.string.calc_karachi),
+        "UmmAlQura" to stringResource(R.string.calc_umm_al_qura),
+        "Dubai" to stringResource(R.string.calc_dubai),
+        "NorthAmerica" to stringResource(R.string.calc_isna),
+        "Kuwait" to stringResource(R.string.calc_kuwait),
+        "Qatar" to stringResource(R.string.calc_qatar),
+        "Singapore" to stringResource(R.string.calc_singapore),
+        "Turkey" to stringResource(R.string.calc_turkey),
+        "Tehran" to stringResource(R.string.calc_tehran)
+    )
+
+    val madhabOptions = listOf(
+        "shafi" to stringResource(R.string.madhab_shafi),
+        "hanafi" to stringResource(R.string.madhab_hanafi)
+    )
+
     Column(
         modifier = Modifier
             .fillMaxSize()
@@ -69,7 +73,7 @@ fun SettingsScreen(viewModel: SettingsViewModel) {
 
         // Title
         Text(
-            text = "Settings",
+            text = stringResource(R.string.settings_title),
             style = MaterialTheme.typography.titleLarge.copy(fontSize = 30.sp, fontWeight = FontWeight.Bold),
             textAlign = TextAlign.Center,
             modifier = Modifier
@@ -80,57 +84,74 @@ fun SettingsScreen(viewModel: SettingsViewModel) {
         Spacer(modifier = Modifier.height(20.dp))
 
         // Section: Notifications
-        SectionHeader(text = "Notifications")
+        SectionHeader(text = stringResource(R.string.section_notifications))
         Card(
             modifier = Modifier.fillMaxWidth(),
             shape = RoundedCornerShape(12.dp),
             colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surfaceContainer)
         ) {
-            Column(modifier = Modifier.padding(16.dp)) {
-                Text(
-                    text = "Waqt end time reminder (minutes before)",
-                    style = MaterialTheme.typography.bodyMedium.copy(fontWeight = FontWeight.SemiBold),
-                    color = MaterialTheme.colorScheme.onSurfaceVariant
-                )
-                Spacer(modifier = Modifier.height(12.dp))
-                OutlinedTextField(
-                    value = settings.endTimeOffset.toString(),
-                    onValueChange = { viewModel.updateEndTimeOffset(it) },
-                    keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
-                    modifier = Modifier.fillMaxWidth(),
-                    shape = RoundedCornerShape(8.dp),
-                    colors = OutlinedTextFieldDefaults.colors(
-                        focusedContainerColor = MaterialTheme.colorScheme.surface,
-                        unfocusedContainerColor = MaterialTheme.colorScheme.surface
+            ListItem(
+                headlineContent = {
+                    Text(
+                        text = stringResource(R.string.end_time_reminder_label),
+                        style = MaterialTheme.typography.bodyMedium.copy(fontWeight = FontWeight.SemiBold),
+                        color = MaterialTheme.colorScheme.onSurfaceVariant
                     )
+                },
+                supportingContent = {
+                    TextField(
+                        value = settings.endTimeOffset.toString(),
+                        onValueChange = { viewModel.updateEndTimeOffset(it) },
+                        keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .padding(top = 8.dp),
+                        shape = RoundedCornerShape(8.dp),
+                        colors = OutlinedTextFieldDefaults.colors(
+                            focusedContainerColor = MaterialTheme.colorScheme.surface,
+                            unfocusedContainerColor = MaterialTheme.colorScheme.surface
+                        )
+                    )
+                },
+                colors = ListItemDefaults.colors(containerColor = Color.Transparent),
+                modifier = Modifier.padding(vertical = 8.dp)
+            )
+        }
+
+        Spacer(modifier = Modifier.height(24.dp))
+
+        // Section: Prayer Times
+        SectionHeader(text = stringResource(R.string.section_prayer_times))
+        Card(
+            modifier = Modifier.fillMaxWidth(),
+            shape = RoundedCornerShape(12.dp),
+            colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surfaceContainer)
+        ) {
+            Column {
+                DropdownSettingItem(
+                    label = stringResource(R.string.calculation_method_label),
+                    currentValue = settings.calculationMethod,
+                    options = calculationMethods,
+                    onSelect = { viewModel.updateCalculationMethod(it) }
+                )
+                HorizontalDivider(
+                    modifier = Modifier.padding(horizontal = 16.dp),
+                    thickness = 0.5.dp,
+                    color = MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.5f)
+                )
+                DropdownSettingItem(
+                    label = stringResource(R.string.madhab_label),
+                    currentValue = settings.madhab,
+                    options = madhabOptions,
+                    onSelect = { viewModel.updateMadhab(it) }
                 )
             }
         }
 
         Spacer(modifier = Modifier.height(24.dp))
 
-        // Section: Prayer Times
-        SectionHeader(text = "Prayer Times")
-        DropdownSettingCard(
-            label = "Calculation Method",
-            currentValue = settings.calculationMethod,
-            options = CALCULATION_METHODS,
-            onSelect = { viewModel.updateCalculationMethod(it) }
-        )
-
-        Spacer(modifier = Modifier.height(12.dp))
-
-        DropdownSettingCard(
-            label = "Madhab (Asr Shadow)",
-            currentValue = settings.madhab,
-            options = MADHAB_OPTIONS,
-            onSelect = { viewModel.updateMadhab(it) }
-        )
-
-        Spacer(modifier = Modifier.height(24.dp))
-
         // Section: Appearance
-        SectionHeader(text = "Appearance")
+        SectionHeader(text = stringResource(R.string.section_appearance))
 
         // Time Display Segmented Buttons
         Card(
@@ -138,38 +159,58 @@ fun SettingsScreen(viewModel: SettingsViewModel) {
             shape = RoundedCornerShape(12.dp),
             colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surfaceContainer)
         ) {
-            Column(modifier = Modifier.padding(16.dp)) {
-                Text(
-                    text = "Time Display",
-                    style = MaterialTheme.typography.bodyMedium.copy(fontWeight = FontWeight.SemiBold),
-                    color = MaterialTheme.colorScheme.onSurfaceVariant
-                )
-                Spacer(modifier = Modifier.height(12.dp))
-                Row(
-                    modifier = Modifier.fillMaxWidth(),
-                    horizontalArrangement = Arrangement.spacedBy(8.dp)
-                ) {
-                    FilterChip(
-                        selected = settings.showStartTime,
-                        onClick = { viewModel.updateShowStartTime(!settings.showStartTime) },
-                        label = { Text("Start Time") },
-                        modifier = Modifier.weight(1f)
+            ListItem(
+                headlineContent = {
+                    Text(
+                        text = stringResource(R.string.time_display_label),
+                        style = MaterialTheme.typography.bodyLarge.copy(fontWeight = FontWeight.Bold),
+                        color = MaterialTheme.colorScheme.onSurfaceVariant
                     )
-                    FilterChip(
-                        selected = settings.showEndTime,
-                        onClick = { viewModel.updateShowEndTime(!settings.showEndTime) },
-                        label = { Text("End Time") },
-                        modifier = Modifier.weight(1f)
+                },
+                supportingContent = {
+                    val options = listOf(
+                        stringResource(R.string.start_time),
+                        stringResource(R.string.end_time)
                     )
-                }
-            }
+
+                    MultiChoiceSegmentedButtonRow(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .padding(top = 12.dp)
+                    ) {
+                        options.forEachIndexed { index, label ->
+                            SegmentedButton(
+                                shape = SegmentedButtonDefaults.itemShape(index = index, count = options.size),
+                                onCheckedChange = {
+                                    if (index == 0) viewModel.updateShowStartTime(!settings.showStartTime)
+                                    else viewModel.updateShowEndTime(!settings.showEndTime)
+                                },
+                                checked = if (index == 0) settings.showStartTime else settings.showEndTime,
+                                icon = { SegmentedButtonDefaults.Icon(if (index == 0) settings.showStartTime else settings.showEndTime) },
+                                label = {
+                                    Text(
+                                        text = label,
+                                        style = MaterialTheme.typography.bodyMedium.copy(fontWeight = FontWeight.Bold)
+                                    )
+                                },
+                                colors = SegmentedButtonDefaults.colors(
+                                    activeContainerColor = MaterialTheme.colorScheme.primaryContainer,
+                                    activeContentColor = MaterialTheme.colorScheme.onPrimaryContainer
+                                )
+                            )
+                        }
+                    }
+                },
+                colors = ListItemDefaults.colors(containerColor = Color.Transparent),
+                modifier = Modifier.padding(vertical = 8.dp)
+            )
         }
 
         Spacer(modifier = Modifier.height(16.dp))
 
         // Colors
-        val isMaterialYou = settings.themeColor == "Material You"
-
+        val materialYouLabel = stringResource(R.string.material_you)
+        val isMaterialYou = settings.themeColor == materialYouLabel
         // Material You - hidden on unsupported systems
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) {
             val materialYouPrimary = if (darkTheme) dynamicDarkColorScheme(context).primary else dynamicLightColorScheme(context).primary
@@ -198,7 +239,7 @@ fun SettingsScreen(viewModel: SettingsViewModel) {
                     )
                     Spacer(modifier = Modifier.height(12.dp))
                     Text(
-                        text = "Material You",
+                        text = materialYouLabel,
                         style = MaterialTheme.typography.bodyMedium.copy(fontWeight = FontWeight.Bold),
                         color = if (isMaterialYou) MaterialTheme.colorScheme.onSurface else MaterialTheme.colorScheme.onSurfaceVariant,
                         textAlign = TextAlign.Center
@@ -240,7 +281,7 @@ fun SettingsScreen(viewModel: SettingsViewModel) {
                             )
                             Spacer(modifier = Modifier.height(12.dp))
                             Text(
-                                text = colorOption.name,
+                                text = stringResource(colorOption.nameRes),
                                 style = MaterialTheme.typography.bodyMedium.copy(fontWeight = FontWeight.Bold),
                                 color = if (isSelected) MaterialTheme.colorScheme.onSurface else MaterialTheme.colorScheme.onSurfaceVariant,
                                 textAlign = TextAlign.Center
@@ -258,7 +299,7 @@ fun SettingsScreen(viewModel: SettingsViewModel) {
         Spacer(modifier = Modifier.height(32.dp))
 
         // Section: Danger Zone
-        SectionHeader(text = "Danger Zone")
+        SectionHeader(text = stringResource(R.string.section_danger_zone))
         Spacer(modifier = Modifier.height(8.dp))
 
         Button(
@@ -273,7 +314,7 @@ fun SettingsScreen(viewModel: SettingsViewModel) {
             )
         ) {
             Text(
-                text = "DELETE ALL RECORDS",
+                text = stringResource(R.string.delete_all_records_btn),
                 style = MaterialTheme.typography.bodyMedium.copy(fontSize = 16.sp, fontWeight = FontWeight.Bold)
             )
         }
@@ -282,8 +323,8 @@ fun SettingsScreen(viewModel: SettingsViewModel) {
     if (showDeleteDialog) {
         AlertDialog(
             onDismissRequest = { showDeleteDialog = false },
-            title = { Text("Delete all records") },
-            text = { Text("Are you sure you want to delete all prayer time history recorded so far? This action cannot be undone.") },
+            title = { Text(stringResource(R.string.delete_all_records_dialog_title)) },
+            text = { Text(stringResource(R.string.delete_all_records_dialog_text)) },
             confirmButton = {
                 TextButton(
                     onClick = {
@@ -291,12 +332,12 @@ fun SettingsScreen(viewModel: SettingsViewModel) {
                         viewModel.deleteAllHistory()
                     }
                 ) {
-                    Text("Delete", color = MaterialTheme.colorScheme.error)
+                    Text(stringResource(R.string.delete), color = MaterialTheme.colorScheme.error)
                 }
             },
             dismissButton = {
                 TextButton(onClick = { showDeleteDialog = false }) {
-                    Text("Cancel")
+                    Text(stringResource(R.string.cancel))
                 }
             }
         )
@@ -317,11 +358,11 @@ fun SectionHeader(text: String) {
 }
 
 /**
- * Renders setting card with dropdown menu selection
+ * Renders setting item using ListItem with dropdown menu selection
  */
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun DropdownSettingCard(
+fun DropdownSettingItem(
     label: String,
     currentValue: String,
     options: List<Pair<String, String>>,
@@ -330,24 +371,21 @@ fun DropdownSettingCard(
     var expanded by remember { mutableStateOf(false) }
     val displayLabel = options.find { it.first == currentValue }?.second ?: currentValue
 
-    Card(
-        modifier = Modifier.fillMaxWidth(),
-        shape = RoundedCornerShape(12.dp),
-        colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surfaceContainer)
-    ) {
-        Column(modifier = Modifier.padding(16.dp)) {
+    ListItem(
+        headlineContent = {
             Text(
                 text = label,
                 style = MaterialTheme.typography.bodyMedium.copy(fontWeight = FontWeight.SemiBold),
                 color = MaterialTheme.colorScheme.onSurfaceVariant
             )
-            Spacer(modifier = Modifier.height(8.dp))
-
+        },
+        supportingContent = {
             ExposedDropdownMenuBox(
                 expanded = expanded,
-                onExpandedChange = { expanded = !expanded }
+                onExpandedChange = { expanded = !expanded },
+                modifier = Modifier.padding(top = 8.dp)
             ) {
-                OutlinedTextField(
+                TextField(
                     value = displayLabel,
                     onValueChange = {},
                     readOnly = true,
@@ -356,7 +394,7 @@ fun DropdownSettingCard(
                         .fillMaxWidth()
                         .menuAnchor(type = ExposedDropdownMenuAnchorType.PrimaryNotEditable),
                     shape = RoundedCornerShape(8.dp),
-                    colors = OutlinedTextFieldDefaults.colors(
+                    colors = TextFieldDefaults.colors(
                         focusedContainerColor = MaterialTheme.colorScheme.surface,
                         unfocusedContainerColor = MaterialTheme.colorScheme.surface
                     )
@@ -377,6 +415,8 @@ fun DropdownSettingCard(
                     }
                 }
             }
-        }
-    }
+        },
+        colors = ListItemDefaults.colors(containerColor = Color.Transparent),
+        modifier = Modifier.padding(vertical = 8.dp)
+    )
 }
