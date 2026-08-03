@@ -4,7 +4,7 @@
 
 package io.github.sarraf5757.waqt.ui.screens
 
-import androidx.compose.foundation.background
+import androidx.compose.foundation.Canvas
 import androidx.compose.foundation.horizontalScroll
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.rememberScrollState
@@ -12,12 +12,13 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.*
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.draw.clip
+import androidx.compose.ui.geometry.CornerRadius
+import androidx.compose.ui.geometry.Offset
+import androidx.compose.ui.geometry.Size
 import androidx.compose.ui.res.stringArrayResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
@@ -36,10 +37,6 @@ fun StreakScreen(viewModel: StreakViewModel) {
     val streakData by viewModel.streakData.collectAsState()
     val isLoading by viewModel.isLoading.collectAsState()
 
-    LaunchedEffect(Unit) {
-        viewModel.loadStreakData()
-    }
-
     if (isLoading || streakData == null) {
         Box(
             modifier = Modifier.fillMaxSize(),
@@ -50,14 +47,11 @@ fun StreakScreen(viewModel: StreakViewModel) {
         return
     }
 
-    val data = streakData!!
-
     Column(
         modifier = Modifier
             .fillMaxSize()
             .verticalScroll(rememberScrollState())
-            .padding(horizontal = 20.dp)
-            .padding(bottom = 120.dp),
+            .padding(horizontal = 20.dp),
         horizontalAlignment = Alignment.CenterHorizontally
     ) {
         Spacer(modifier = Modifier.height(26.dp))
@@ -75,13 +69,55 @@ fun StreakScreen(viewModel: StreakViewModel) {
         Spacer(modifier = Modifier.height(20.dp))
 
         // 5 Prayer Contribution Graphs
-        data.streaks.forEach { prayerStreak ->
+        streakData!!.streaks.forEach { prayerStreak ->
             PrayerContributionCard(
                 prayerName = prayerStreak.prayerId,
                 gridData = prayerStreak.completionGrid,
                 weekdayLetters = stringArrayResource(R.array.weekday_letters).toList()
             )
             Spacer(modifier = Modifier.height(20.dp))
+        }
+
+        Spacer(modifier = Modifier.height(100.dp))
+    }
+}
+
+/**
+ * Grid drawing to minimize UI nodes using a canvas
+ */
+@Composable
+fun ContributionGrid(gridData: BooleanArray, modifier: Modifier = Modifier) {
+    val completedColor = MaterialTheme.colorScheme.primary
+    val uncompletedColor = MaterialTheme.colorScheme.surface
+    val cornerRadius = 4.dp
+    val cellSize = 16.dp
+    val spacing = 4.dp
+
+    Canvas(
+        modifier = modifier
+            .width((15 * 16 + 14 * 4).dp)
+            .height((7 * 16 + 6 * 4).dp)
+    ) {
+        val cellSizePx = cellSize.toPx()
+        val spacingPx = spacing.toPx()
+        val cornerRadiusPx = cornerRadius.toPx()
+
+        for (weekIndex in 0 until 15) {
+            for (dayOfWeek in 0 until 7) {
+                val cellIndex = weekIndex * 7 + dayOfWeek
+                val isCompleted = if (cellIndex < gridData.size) gridData[cellIndex] else false
+                val color = if (isCompleted) completedColor else uncompletedColor
+
+                drawRoundRect(
+                    color = color,
+                    topLeft = Offset(
+                        x = weekIndex * (cellSizePx + spacingPx),
+                        y = dayOfWeek * (cellSizePx + spacingPx)
+                    ),
+                    size = Size(cellSizePx, cellSizePx),
+                    cornerRadius = CornerRadius(cornerRadiusPx, cornerRadiusPx)
+                )
+            }
         }
     }
 }
@@ -135,30 +171,9 @@ fun PrayerContributionCard(prayerName: String, gridData: BooleanArray, weekdayLe
                     }
                 }
 
-                // Grid of 15 week columns (105 days / 7 = 15 weeks)
-                Row(
-                    modifier = Modifier.horizontalScroll(rememberScrollState()),
-                    horizontalArrangement = Arrangement.spacedBy(4.dp)
-                ) {
-                    val numWeeks = gridData.size / 7
-                    for (weekIndex in 0 until numWeeks) {
-                        Column(
-                            verticalArrangement = Arrangement.spacedBy(4.dp)
-                        ) {
-                            for (dayOfWeek in 0 until 7) {
-                                val cellIndex = weekIndex * 7 + dayOfWeek
-                                val isCompleted = if (cellIndex < gridData.size) gridData[cellIndex] else false
-                                val cellColor = if (isCompleted) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.surface
-
-                                Box(
-                                    modifier = Modifier
-                                        .size(16.dp)
-                                        .clip(RoundedCornerShape(4.dp))
-                                        .background(cellColor)
-                                )
-                            }
-                        }
-                    }
+                // Scrollable Grid
+                Box(modifier = Modifier.horizontalScroll(rememberScrollState())) {
+                    ContributionGrid(gridData = gridData)
                 }
             }
         }

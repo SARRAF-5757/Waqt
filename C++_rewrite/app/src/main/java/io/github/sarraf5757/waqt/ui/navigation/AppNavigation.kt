@@ -72,9 +72,6 @@ fun AppNavigation(
                         onClick = {
                             // Navigate to destination, avoiding duplicate stack entries
                             if (currentRoute != screen.route) {
-                                if (screen == Screen.History) {
-                                    streakViewModel.loadStreakData()
-                                }
                                 navController.navigate(screen.route) {
                                     popUpTo(navController.graph.findStartDestination().id) {
                                         saveState = true

@@ -9,10 +9,12 @@ import androidx.lifecycle.AndroidViewModel
 import androidx.lifecycle.viewModelScope
 import io.github.sarraf5757.waqt.bridge.NativeModels
 import io.github.sarraf5757.waqt.bridge.WaqtNativeBridge
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
 
 class StreakViewModel(application: Application) : AndroidViewModel(application) {
 
@@ -24,6 +26,12 @@ class StreakViewModel(application: Application) : AndroidViewModel(application) 
 
     init {
         loadStreakData()
+        // Reactively refresh in background whenever history changes
+        viewModelScope.launch {
+            WaqtNativeBridge.historyUpdates.collect {
+                loadStreakData()
+            }
+        }
     }
 
     /**
@@ -31,8 +39,13 @@ class StreakViewModel(application: Application) : AndroidViewModel(application) 
      */
     fun loadStreakData() {
         viewModelScope.launch {
-            _isLoading.value = true
-            val data = WaqtNativeBridge.getStreakData()
+            // Only show full-screen loading on first load to prevent tab-switching flicker
+            if (_streakData.value == null) {
+                _isLoading.value = true
+            }
+            val data = withContext(Dispatchers.IO) {
+                WaqtNativeBridge.getStreakData()
+            }
             _streakData.value = data
             _isLoading.value = false
         }

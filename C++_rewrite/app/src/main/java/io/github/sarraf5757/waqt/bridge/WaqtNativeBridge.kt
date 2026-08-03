@@ -3,9 +3,27 @@
 package io.github.sarraf5757.waqt.bridge
 
 import android.content.Context
+import kotlinx.coroutines.channels.BufferOverflow
+import kotlinx.coroutines.flow.MutableSharedFlow
 import java.io.File
 
 object WaqtNativeBridge {
+
+    /**
+     * Observable flow for preference changes.
+     */
+    val preferenceUpdates = MutableSharedFlow<Unit>(
+        extraBufferCapacity = 1,
+        onBufferOverflow = BufferOverflow.DROP_OLDEST
+    )
+
+    /**
+     * Observable flow for history (prayer toggle, delete all) changes.
+     */
+    val historyUpdates = MutableSharedFlow<Unit>(
+        extraBufferCapacity = 1,
+        onBufferOverflow = BufferOverflow.DROP_OLDEST
+    )
 
     init {
         // Loads the shared library built by CMake (libwaqt_core.so)
@@ -38,20 +56,15 @@ object WaqtNativeBridge {
      * Persists a checkbox change to the SQLite database
      */
     fun togglePrayer(dateKey: String, prayerId: String, completed: Boolean): Boolean {
-        return nativeTogglePrayer(dateKey, prayerId, completed)
+        val result = nativeTogglePrayer(dateKey, prayerId, completed)
+        // Emit update regardless of whether prayer is now checked or unchecked
+        historyUpdates.tryEmit(Unit)
+        return result
     }
 
     fun getPreferences(): NativeModels.PreferenceSettings? {
         return nativeGetPreferences()
     }
-
-    /**
-     * Observable flow for preference changes.
-     */
-    val preferenceUpdates = kotlinx.coroutines.flow.MutableSharedFlow<Unit>(
-        extraBufferCapacity = 1,
-        onBufferOverflow = kotlinx.coroutines.channels.BufferOverflow.DROP_OLDEST
-    )
 
     fun updatePreference(key: String, value: String) {
         nativeUpdatePreference(key, value)
@@ -60,6 +73,7 @@ object WaqtNativeBridge {
 
     fun deleteAllHistory() {
         nativeDeleteAllHistory()
+        historyUpdates.tryEmit(Unit)
     }
 
     fun getStreakData(nowSec: Long = System.currentTimeMillis() / 1000): NativeModels.StreakGridData? {

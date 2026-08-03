@@ -7,8 +7,6 @@ package io.github.sarraf5757.waqt.ui.screens
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.isSystemInDarkTheme
 import androidx.compose.foundation.layout.*
-import androidx.compose.foundation.lazy.LazyColumn
-import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.*
 import androidx.compose.runtime.Composable
@@ -48,27 +46,26 @@ fun HomeScreen(viewModel: HomeViewModel) {
     val showEndTime = state?.showEndTime ?: true
 
     /** UI layout Description */
-    LazyColumn(
-        modifier = Modifier.fillMaxSize(),
-        contentPadding = PaddingValues(horizontal = 20.dp, vertical = 26.dp),
+    Column(
+        modifier = Modifier
+            .fillMaxSize()
+            .padding(horizontal = 20.dp, vertical = 26.dp),
         verticalArrangement = Arrangement.spacedBy(18.dp),
         horizontalAlignment = Alignment.CenterHorizontally
     ) {
-        item {
-            // Brand logo
-            Image(
-                painter = painterResource(id = logoRes),
-                contentDescription = stringResource(R.string.waqt_logo_desc),
-                modifier = Modifier.size(180.dp),
-                colorFilter = ColorFilter.tint(MaterialTheme.colorScheme.primary)
-            )
-            
-            // Extra gap after logo
-            Spacer(modifier = Modifier.height(8.dp))
-        }
+        // Brand logo
+        Image(
+            painter = painterResource(id = logoRes),
+            contentDescription = stringResource(R.string.waqt_logo_desc),
+            modifier = Modifier.size(180.dp),
+            colorFilter = ColorFilter.tint(MaterialTheme.colorScheme.primary)
+        )
 
-        // Render each prayer card efficiently
-        items(prayers) { prayer ->
+        // Extra gap after logo
+        Spacer(modifier = Modifier.height(8.dp))
+
+        // Render each prayer card
+        prayers.forEach { prayer ->
             PrayerCardRow(
                 prayer = prayer,
                 showStartTime = showStartTime,
