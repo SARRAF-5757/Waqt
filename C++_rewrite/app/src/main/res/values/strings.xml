@@ -4,6 +4,9 @@
     <!-- Home Screen -->
     <string name="waqt_logo_desc">Waqt Logo</string>
     <string name="prayer_time_separator"> — </string>
+    <string name="uncheck_prayer_title">Undo Prayer</string>
+    <string name="uncheck_prayer_message">Are you sure you want to uncheck %1$s? This will remove the on-time record of this prayer from the history.</string>
+    <string name="confirm_uncheck">Uncheck</string>
 
     <!-- Settings Screen -->
     <string name="settings_title">Settings</string>

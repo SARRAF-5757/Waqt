@@ -39,7 +39,7 @@ JNIEXPORT jint JNICALL JNI_OnLoad(JavaVM* vm, void* reserved) {
 
     cacheClass("io/github/sarraf5757/waqt/bridge/NativeModels$UIPrayerItem",
                g_cache.prayerItemClass, g_cache.prayerItemCons,
-               "(Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Z)V");
+               "(Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;JJZZ)V");
 
     cacheClass("io/github/sarraf5757/waqt/bridge/NativeModels$HomeState",
                g_cache.homeStateClass, g_cache.homeStateCons,
@@ -55,7 +55,7 @@ JNIEXPORT jint JNICALL JNI_OnLoad(JavaVM* vm, void* reserved) {
 
     cacheClass("io/github/sarraf5757/waqt/bridge/NativeModels$PrayerStreak",
                g_cache.prayerStreakClass, g_cache.prayerStreakCons,
-               "(Ljava/lang/String;[Z)V");
+               "(Ljava/lang/String;[Z[Z)V");
 
     cacheClass("io/github/sarraf5757/waqt/bridge/NativeModels$NotificationIntent",
                g_cache.notificationIntentClass, g_cache.notificationIntentCons,
@@ -106,7 +106,14 @@ Java_io_github_sarraf5757_waqt_bridge_WaqtNativeBridge_nativeGetHomeState(JNIEnv
         jstring endStr = env->NewStringUTF(p.endTimeStr.c_str());
 
         // Instantiate the Kotlin UIPrayerItem object using cached constructor
-        jobject itemObj = env->NewObject(g_cache.prayerItemClass, g_cache.prayerItemCons, idStr, nameStr, startStr, endStr, p.isCompleted ? JNI_TRUE : JNI_FALSE);
+        jobject itemObj = env->NewObject(
+            g_cache.prayerItemClass, g_cache.prayerItemCons,
+            idStr, nameStr, startStr, endStr,
+            static_cast<jlong>(p.startTime),
+            static_cast<jlong>(p.endTime),
+            p.isCompleted ? JNI_TRUE : JNI_FALSE,
+            p.isOnTime ? JNI_TRUE : JNI_FALSE
+        );
         env->SetObjectArrayElement(prayersArr, i, itemObj);
 
         // cleanup of local references
@@ -138,7 +145,7 @@ Java_io_github_sarraf5757_waqt_bridge_WaqtNativeBridge_nativeGetHomeState(JNIEnv
  */
 JNIEXPORT jboolean JNICALL
 Java_io_github_sarraf5757_waqt_bridge_WaqtNativeBridge_nativeTogglePrayer(
-    JNIEnv* env, jobject /*thiz*/, jstring dateKey, jstring prayerId, jboolean completed
+    JNIEnv* env, jobject /*thiz*/, jstring dateKey, jstring prayerId, jboolean completed, jboolean isOnTime
 ) {
     if (!dateKey || !prayerId)
         return JNI_FALSE;
@@ -148,7 +155,8 @@ Java_io_github_sarraf5757_waqt_bridge_WaqtNativeBridge_nativeTogglePrayer(
     bool res = waqt::WaqtEngine::getInstance().togglePrayerStatus(
         dKeyStr ? dKeyStr : "",
         pIdStr ? pIdStr : "",
-        completed == JNI_TRUE
+        completed == JNI_TRUE,
+        isOnTime == JNI_TRUE
     );
 
     if (dKeyStr)
@@ -232,11 +240,16 @@ Java_io_github_sarraf5757_waqt_bridge_WaqtNativeBridge_nativeGetStreakData(JNIEn
         std::vector<jboolean> tempBools(s.completionGrid.begin(), s.completionGrid.end());
         env->SetBooleanArrayRegion(boolArr, 0, tempBools.size(), tempBools.data());
 
-        jobject streakObj = env->NewObject(g_cache.prayerStreakClass, g_cache.prayerStreakCons, pIdStr, boolArr);
+        jbooleanArray onTimeArr = env->NewBooleanArray(s.onTimeGrid.size());
+        std::vector<jboolean> tempOnTime(s.onTimeGrid.begin(), s.onTimeGrid.end());
+        env->SetBooleanArrayRegion(onTimeArr, 0, tempOnTime.size(), tempOnTime.data());
+
+        jobject streakObj = env->NewObject(g_cache.prayerStreakClass, g_cache.prayerStreakCons, pIdStr, boolArr, onTimeArr);
         env->SetObjectArrayElement(streaksArr, i, streakObj);
 
         env->DeleteLocalRef(pIdStr);
         env->DeleteLocalRef(boolArr);
+        env->DeleteLocalRef(onTimeArr);
         env->DeleteLocalRef(streakObj);
     }
 

@@ -10,7 +10,7 @@ import java.io.File
 object WaqtNativeBridge {
 
     /**
-     * Observable flow for preference changes.
+     * Observable flow for preference changes
      */
     val preferenceUpdates = MutableSharedFlow<Unit>(
         extraBufferCapacity = 1,
@@ -18,7 +18,7 @@ object WaqtNativeBridge {
     )
 
     /**
-     * Observable flow for history (prayer toggle, delete all) changes.
+     * Observable flow for history (prayer toggle, delete all) changes
      */
     val historyUpdates = MutableSharedFlow<Unit>(
         extraBufferCapacity = 1,
@@ -55,8 +55,8 @@ object WaqtNativeBridge {
     /**
      * Persists a checkbox change to the SQLite database
      */
-    fun togglePrayer(dateKey: String, prayerId: String, completed: Boolean): Boolean {
-        val result = nativeTogglePrayer(dateKey, prayerId, completed)
+    fun togglePrayer(dateKey: String, prayerId: String, completed: Boolean, isOnTime: Boolean): Boolean {
+        val result = nativeTogglePrayer(dateKey, prayerId, completed, isOnTime)
         // Emit update regardless of whether prayer is now checked or unchecked
         historyUpdates.tryEmit(Unit)
         return result
@@ -91,7 +91,7 @@ object WaqtNativeBridge {
     private external fun nativeInitialize(dbPath: String): Boolean
     private external fun nativeUpdateLocation(latitude: Double, longitude: Double)
     private external fun nativeGetHomeState(nowSec: Long): NativeModels.HomeState?
-    private external fun nativeTogglePrayer(dateKey: String, prayerId: String, completed: Boolean): Boolean
+    private external fun nativeTogglePrayer(dateKey: String, prayerId: String, completed: Boolean, isOnTime: Boolean): Boolean
     private external fun nativeGetPreferences(): NativeModels.PreferenceSettings?
     private external fun nativeUpdatePreference(key: String, value: String)
     private external fun nativeDeleteAllHistory()

@@ -57,7 +57,7 @@ PrayerTimesMap WaqtEngine::getTodayPrayerTimes(int64_t nowUnixTimestampSec) {
         return PrayerTimesMap{};
     }
 
-    std::time_t t = static_cast<std::time_t>(nowUnixTimestampSec);
+    auto t = static_cast<std::time_t>(nowUnixTimestampSec);
     std::tm localTmStruct;
     std::tm* localTm = localtime_r(&t, &localTmStruct);
     if (!localTm)
@@ -91,7 +91,7 @@ DayPrayerStatus WaqtEngine::getTodayStatuses(int64_t nowUnixTimestampSec) {
 static std::string formatTime(int64_t timestamp) {
     if (timestamp <= 0)
         return "--:--";
-    std::time_t t = static_cast<std::time_t>(timestamp);
+    auto t = static_cast<std::time_t>(timestamp);
     std::tm localTmStruct;
     std::tm* localTm = localtime_r(&t, &localTmStruct);
     if (!localTm)
@@ -99,7 +99,7 @@ static std::string formatTime(int64_t timestamp) {
     char buffer[16];
     // Format: "h:mm AM/PM"
     std::strftime(buffer, sizeof(buffer), "%l:%M %p", localTm);
-    return std::string(buffer);
+    return {buffer};
 }
 
 /**
@@ -115,33 +115,48 @@ UIHomeState WaqtEngine::getUIHomeState(int64_t nowUnixTimestampSec) {
     uiState.showStartTime = prefs.showStartTime;
     uiState.showEndTime = prefs.showEndTime;
 
-    // Iterate through the global source of truth for prayer names.
+    // Iterate through the global source of truth for prayer names
     for (const auto& name : PRAYER_NAMES) {
         UIPrayerItem item;
         item.id = name;
         item.name = name;
 
-        // Map the raw C++ timestamps and status bits to the UI item.
+        // Map the raw C++ timestamps and status bits to the UI item
         if (name == "Fajr") {
             item.startTimeStr = formatTime(times.fajr);
             item.endTimeStr = formatTime(times.fajrEnd);
+            item.startTime = times.fajr;
+            item.endTime = times.fajrEnd;
             item.isCompleted = status.fajr;
+            item.isOnTime = status.fajrOnTime;
         } else if (name == "Dhuhr") {
             item.startTimeStr = formatTime(times.dhuhr);
             item.endTimeStr = formatTime(times.dhuhrEnd);
+            item.startTime = times.dhuhr;
+            item.endTime = times.dhuhrEnd;
             item.isCompleted = status.dhuhr;
+            item.isOnTime = status.dhuhrOnTime;
         } else if (name == "Asr") {
             item.startTimeStr = formatTime(times.asr);
             item.endTimeStr = formatTime(times.asrEnd);
+            item.startTime = times.asr;
+            item.endTime = times.asrEnd;
             item.isCompleted = status.asr;
+            item.isOnTime = status.asrOnTime;
         } else if (name == "Maghrib") {
             item.startTimeStr = formatTime(times.maghrib);
             item.endTimeStr = formatTime(times.maghribEnd);
+            item.startTime = times.maghrib;
+            item.endTime = times.maghribEnd;
             item.isCompleted = status.maghrib;
+            item.isOnTime = status.maghribOnTime;
         } else if (name == "Isha") {
             item.startTimeStr = formatTime(times.isha);
             item.endTimeStr = formatTime(times.ishaEnd);
+            item.startTime = times.isha;
+            item.endTime = times.ishaEnd;
             item.isCompleted = status.isha;
+            item.isOnTime = status.ishaOnTime;
         }
 
         uiState.prayers.push_back(item);
@@ -153,8 +168,8 @@ UIHomeState WaqtEngine::getUIHomeState(int64_t nowUnixTimestampSec) {
 /**
  * Toggles a prayer's completion status in the history database
  */
-bool WaqtEngine::togglePrayerStatus(const std::string& dateKey, const std::string& prayerId, bool completed) {
-    m_database.setPrayerCompleted(dateKey, prayerId, completed);
+bool WaqtEngine::togglePrayerStatus(const std::string& dateKey, const std::string& prayerId, bool completed, bool isOnTime) {
+    m_database.setPrayerCompleted(dateKey, prayerId, completed, isOnTime);
     return completed;
 }
 

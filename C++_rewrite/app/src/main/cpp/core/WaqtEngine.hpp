@@ -62,7 +62,7 @@ public:
     /**
      * Toggles a prayer's completion status in the history database
      */
-    bool togglePrayerStatus(const std::string& dateKey, const std::string& prayerId, bool completed);
+    bool togglePrayerStatus(const std::string& dateKey, const std::string& prayerId, bool completed, bool isOnTime);
 
     /**
      * Returns a 105-day completion grid used to render the GitHub-style streak graphs

@@ -53,11 +53,19 @@ class HomeViewModel(application: Application) : AndroidViewModel(application) {
         val dateKey = currentState.dateKey
 
         val prayerItem = currentState.prayers.find { it.id == prayerId } ?: return
-        val currentCompleted = prayerItem.isCompleted
+        val newCompleted = !prayerItem.isCompleted
+
+        // Calculate if it's on time
+        val nowSec = System.currentTimeMillis() / 1000
+        val isOnTime = if (newCompleted) {
+            nowSec in prayerItem.startTime..prayerItem.endTime
+        } else {
+            false // Reset onTime when unchecking
+        }
 
         viewModelScope.launch {
             // Write to Native SQLite
-            WaqtNativeBridge.togglePrayer(dateKey, prayerId, !currentCompleted)
+            WaqtNativeBridge.togglePrayer(dateKey, prayerId, newCompleted, isOnTime)
             
             // Refresh the local state from C++
             loadHomeState()

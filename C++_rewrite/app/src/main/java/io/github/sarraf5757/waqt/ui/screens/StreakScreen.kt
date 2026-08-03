@@ -72,7 +72,8 @@ fun StreakScreen(viewModel: StreakViewModel) {
         streakData!!.streaks.forEach { prayerStreak ->
             PrayerContributionCard(
                 prayerName = prayerStreak.prayerId,
-                gridData = prayerStreak.completionGrid,
+                completionGrid = prayerStreak.completionGrid,
+                onTimeGrid = prayerStreak.onTimeGrid,
                 weekdayLetters = stringArrayResource(R.array.weekday_letters).toList()
             )
             Spacer(modifier = Modifier.height(20.dp))
@@ -86,8 +87,9 @@ fun StreakScreen(viewModel: StreakViewModel) {
  * Grid drawing to minimize UI nodes using a canvas
  */
 @Composable
-fun ContributionGrid(gridData: BooleanArray, modifier: Modifier = Modifier) {
-    val completedColor = MaterialTheme.colorScheme.primary
+fun ContributionGrid(completionGrid: BooleanArray, onTimeGrid: BooleanArray, modifier: Modifier = Modifier) {
+    val completedOnTimeColor = MaterialTheme.colorScheme.primary
+    val completedLateColor = MaterialTheme.colorScheme.primary.copy(alpha = 0.4f)
     val uncompletedColor = MaterialTheme.colorScheme.surface
     val cornerRadius = 4.dp
     val cellSize = 16.dp
@@ -105,8 +107,13 @@ fun ContributionGrid(gridData: BooleanArray, modifier: Modifier = Modifier) {
         for (weekIndex in 0 until 15) {
             for (dayOfWeek in 0 until 7) {
                 val cellIndex = weekIndex * 7 + dayOfWeek
-                val isCompleted = if (cellIndex < gridData.size) gridData[cellIndex] else false
-                val color = if (isCompleted) completedColor else uncompletedColor
+                val isCompleted = if (cellIndex < completionGrid.size) completionGrid[cellIndex] else false
+                val isOnTime = if (cellIndex < onTimeGrid.size) onTimeGrid[cellIndex] else false
+                val color = when {
+                    isCompleted && isOnTime -> completedOnTimeColor
+                    isCompleted && !isOnTime -> completedLateColor
+                    else -> uncompletedColor
+                }
 
                 drawRoundRect(
                     color = color,
@@ -126,7 +133,12 @@ fun ContributionGrid(gridData: BooleanArray, modifier: Modifier = Modifier) {
  * Renders card container with weekday indicators and 7x15 grid of day cells
  */
 @Composable
-fun PrayerContributionCard(prayerName: String, gridData: BooleanArray, weekdayLetters: List<String>) {
+fun PrayerContributionCard(
+    prayerName: String,
+    completionGrid: BooleanArray,
+    onTimeGrid: BooleanArray,
+    weekdayLetters: List<String>
+) {
     Card(
         modifier = Modifier.fillMaxWidth(),
         shape = RoundedCornerShape(12.dp),
@@ -173,7 +185,10 @@ fun PrayerContributionCard(prayerName: String, gridData: BooleanArray, weekdayLe
 
                 // Scrollable Grid
                 Box(modifier = Modifier.horizontalScroll(rememberScrollState())) {
-                    ContributionGrid(gridData = gridData)
+                    ContributionGrid(
+                        completionGrid = completionGrid,
+                        onTimeGrid = onTimeGrid
+                    )
                 }
             }
         }

@@ -33,17 +33,17 @@ std::vector<NotificationIntent> NotificationGenerator::generateSchedule(
         PrayerTimesMap prayerMap = PrayerCalculator::calculatePrayerTimes(year, month, day, latitude, longitude, method, madhab);
         std::string dateKey = FajrShiftDate::getDateKey(targetTimeSec);
 
-        // Iterate through all prayers using the centralized naming standard.
+        // Iterate through all prayers using the centralized naming standard
         for (const auto& name : PRAYER_NAMES) {
-            // Skip scheduling notifications if the prayer is already marked as completed.
-            if (db.isPrayerCompleted(dateKey, name)) {
+            // Skip scheduling notifications if the prayer is already marked as completed
+            if (db.isPrayerCompleted(dateKey, name).first) {
                 continue;
             }
 
             int64_t startTime = 0;
             int64_t endTime = 0;
 
-            // Map the centralized name to the correct timestamp in the prayer map.
+            // Map the centralized name to the correct timestamp in the prayer map
             if (name == "Fajr") {
                 startTime = prayerMap.fajr;
                 endTime = prayerMap.fajrEnd;

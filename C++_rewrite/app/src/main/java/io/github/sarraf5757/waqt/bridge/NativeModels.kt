@@ -15,7 +15,10 @@ class NativeModels {
         val name: String,
         val startTimeStr: String,
         val endTimeStr: String,
-        val isCompleted: Boolean
+        val startTime: Long,
+        val endTime: Long,
+        val isCompleted: Boolean,
+        val isOnTime: Boolean
     )
 
     /**
@@ -62,7 +65,8 @@ class NativeModels {
     @Immutable
     data class PrayerStreak(
         val prayerId: String,
-        val completionGrid: BooleanArray
+        val completionGrid: BooleanArray,
+        val onTimeGrid: BooleanArray
     )
 
     /**

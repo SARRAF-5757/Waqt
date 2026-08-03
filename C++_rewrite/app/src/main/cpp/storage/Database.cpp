@@ -31,6 +31,7 @@ void Database::createTables() {
             "  date_key TEXT, "
             "  prayer_id TEXT, "
             "  completed INTEGER, "
+            "  is_on_time INTEGER DEFAULT 0, "
             "  PRIMARY KEY (date_key, prayer_id)"
             ");";
 
@@ -149,38 +150,41 @@ void Database::savePreferences(const PreferenceSettings& prefs) {
 /**
  * Checks if a specific prayer was marked as completed on a given date
  */
-bool Database::isPrayerCompleted(const std::string& dateKey, const std::string& prayerId) {
+std::pair<bool, bool> Database::isPrayerCompleted(const std::string& dateKey, const std::string& prayerId) {
     if (!m_db)
-        return false;
-    const char* sql = "SELECT completed FROM history WHERE date_key = ? AND prayer_id = ?;";
+        return {false, false};
+    const char* sql = "SELECT completed, is_on_time FROM history WHERE date_key = ? AND prayer_id = ?;";
     sqlite3_stmt* stmt = nullptr;
     bool completed = false;
+    bool isOnTime = false;
 
     if (sqlite3_prepare_v2(m_db, sql, -1, &stmt, nullptr) == SQLITE_OK) {
         sqlite3_bind_text(stmt, 1, dateKey.c_str(), -1, SQLITE_TRANSIENT);
         sqlite3_bind_text(stmt, 2, prayerId.c_str(), -1, SQLITE_TRANSIENT);
         if (sqlite3_step(stmt) == SQLITE_ROW) {
             completed = (sqlite3_column_int(stmt, 0) != 0);
+            isOnTime = (sqlite3_column_int(stmt, 1) != 0);
         }
     }
     if (stmt)
         sqlite3_finalize(stmt);
-    return completed;
+    return {completed, isOnTime};
 }
 
 /**
  * Set the completion status of a prayer for a specific date
  */
-void Database::setPrayerCompleted(const std::string& dateKey, const std::string& prayerId, bool completed) {
+void Database::setPrayerCompleted(const std::string& dateKey, const std::string& prayerId, bool completed, bool isOnTime) {
     if (!m_db)
         return;
-    const char* sql = "INSERT OR REPLACE INTO history (date_key, prayer_id, completed) VALUES (?, ?, ?);";
+    const char* sql = "INSERT OR REPLACE INTO history (date_key, prayer_id, completed, is_on_time) VALUES (?, ?, ?, ?);";
     sqlite3_stmt* stmt = nullptr;
 
     if (sqlite3_prepare_v2(m_db, sql, -1, &stmt, nullptr) == SQLITE_OK) {
         sqlite3_bind_text(stmt, 1, dateKey.c_str(), -1, SQLITE_TRANSIENT);
         sqlite3_bind_text(stmt, 2, prayerId.c_str(), -1, SQLITE_TRANSIENT);
         sqlite3_bind_int(stmt, 3, completed ? 1 : 0);
+        sqlite3_bind_int(stmt, 4, isOnTime ? 1 : 0);
         sqlite3_step(stmt);
     }
     if (stmt)
@@ -193,11 +197,19 @@ void Database::setPrayerCompleted(const std::string& dateKey, const std::string&
 DayPrayerStatus Database::getStatusesForDate(const std::string& dateKey) {
     DayPrayerStatus status;
     status.dateKey = dateKey;
-    status.fajr = isPrayerCompleted(dateKey, "Fajr");
-    status.dhuhr = isPrayerCompleted(dateKey, "Dhuhr");
-    status.asr = isPrayerCompleted(dateKey, "Asr");
-    status.maghrib = isPrayerCompleted(dateKey, "Maghrib");
-    status.isha = isPrayerCompleted(dateKey, "Isha");
+
+    auto updateStatus = [&](const std::string& pId, bool& completed, bool& isOnTime) {
+        auto res = isPrayerCompleted(dateKey, pId);
+        completed = res.first;
+        isOnTime = res.second;
+    };
+
+    updateStatus("Fajr", status.fajr, status.fajrOnTime);
+    updateStatus("Dhuhr", status.dhuhr, status.dhuhrOnTime);
+    updateStatus("Asr", status.asr, status.asrOnTime);
+    updateStatus("Maghrib", status.maghrib, status.maghribOnTime);
+    updateStatus("Isha", status.isha, status.ishaOnTime);
+
     return status;
 }
 
@@ -227,9 +239,9 @@ StreakGridData Database::getStreakData(const std::string& todayDateKey) {
     std::string thresholdDateKey(thresholdBuf);
 
     // Query all records in the last 105 days in one go
-    std::map<std::string, std::map<std::string, bool>> historyMap;
+    std::map<std::string, std::map<std::string, std::pair<bool, bool>>> historyMap;
     if (m_db) {
-        const char* sql = "SELECT date_key, prayer_id, completed FROM history WHERE date_key >= ?;";
+        const char* sql = "SELECT date_key, prayer_id, completed, is_on_time FROM history WHERE date_key >= ?;";
         sqlite3_stmt* stmt = nullptr;
         if (sqlite3_prepare_v2(m_db, sql, -1, &stmt, nullptr) == SQLITE_OK) {
             sqlite3_bind_text(stmt, 1, thresholdDateKey.c_str(), -1, SQLITE_TRANSIENT);
@@ -240,7 +252,8 @@ StreakGridData Database::getStreakData(const std::string& todayDateKey) {
                     std::string dKey(reinterpret_cast<const char*>(dk));
                     std::string pId(reinterpret_cast<const char*>(pi));
                     bool completed = (sqlite3_column_int(stmt, 2) != 0);
-                    historyMap[dKey][pId] = completed;
+                    bool isOnTime = (sqlite3_column_int(stmt, 3) != 0);
+                    historyMap[dKey][pId] = {completed, isOnTime};
                 }
             }
         }
@@ -252,6 +265,7 @@ StreakGridData Database::getStreakData(const std::string& todayDateKey) {
         PrayerStreak streak;
         streak.prayerId = prayerId;
         streak.completionGrid.resize(105, false);
+        streak.onTimeGrid.resize(105, false);
 
         for (int i = 0; i < 105; ++i) {
             int daysBack = 104 - i; // Index 0 is 104 days ago
@@ -266,7 +280,8 @@ StreakGridData Database::getStreakData(const std::string& todayDateKey) {
             if (itDate != historyMap.end()) {
                 auto itPrayer = itDate->second.find(prayerId);
                 if (itPrayer != itDate->second.end()) {
-                    streak.completionGrid[i] = itPrayer->second;
+                    streak.completionGrid[i] = itPrayer->second.first;
+                    streak.onTimeGrid[i] = itPrayer->second.second;
                 }
             }
         }

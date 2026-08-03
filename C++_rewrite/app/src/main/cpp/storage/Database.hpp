@@ -53,12 +53,12 @@ public:
     /**
      * Checks if a specific prayer was marked as completed on a given date
      */
-    bool isPrayerCompleted(const std::string& dateKey, const std::string& prayerId);
+    std::pair<bool, bool> isPrayerCompleted(const std::string& dateKey, const std::string& prayerId);
 
     /**
      * Set the completion status of a prayer for a specific date
      */
-    void setPrayerCompleted(const std::string& dateKey, const std::string& prayerId, bool completed);
+    void setPrayerCompleted(const std::string& dateKey, const std::string& prayerId, bool completed, bool isOnTime);
 
     /**
      * Returns the completion status of all prayers for a given date

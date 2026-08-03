@@ -9,10 +9,7 @@ import androidx.compose.foundation.isSystemInDarkTheme
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.*
-import androidx.compose.runtime.Composable
-import androidx.compose.runtime.CompositionLocalProvider
-import androidx.compose.runtime.collectAsState
-import androidx.compose.runtime.getValue
+import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
@@ -36,6 +33,8 @@ fun HomeScreen(viewModel: HomeViewModel) {
     val homeState by viewModel.homeState.collectAsState()   /** Re-run this function whenever the C++ state changes */
     val isDark = isSystemInDarkTheme()
 
+    var prayerToUncheck by remember { mutableStateOf<NativeModels.UIPrayerItem?>(null) }
+
     val logoRes = if (isDark) R.drawable.splash_icon_light else R.drawable.splash_icon_dark
 
     val state = homeState
@@ -49,7 +48,7 @@ fun HomeScreen(viewModel: HomeViewModel) {
     Column(
         modifier = Modifier
             .fillMaxSize()
-            .padding(horizontal = 20.dp, vertical = 26.dp),
+            .padding(horizontal = 20.dp, vertical = 16.dp),
         verticalArrangement = Arrangement.spacedBy(18.dp),
         horizontalAlignment = Alignment.CenterHorizontally
     ) {
@@ -57,12 +56,9 @@ fun HomeScreen(viewModel: HomeViewModel) {
         Image(
             painter = painterResource(id = logoRes),
             contentDescription = stringResource(R.string.waqt_logo_desc),
-            modifier = Modifier.size(180.dp),
+            modifier = Modifier.size(220.dp),
             colorFilter = ColorFilter.tint(MaterialTheme.colorScheme.primary)
         )
-
-        // Extra gap after logo
-        Spacer(modifier = Modifier.height(8.dp))
 
         // Render each prayer card
         prayers.forEach { prayer ->
@@ -70,9 +66,39 @@ fun HomeScreen(viewModel: HomeViewModel) {
                 prayer = prayer,
                 showStartTime = showStartTime,
                 showEndTime = showEndTime,
-                onToggle = { viewModel.togglePrayer(prayer.id) }
+                onToggle = {
+                    if (prayer.isCompleted && prayer.isOnTime) {
+                        prayerToUncheck = prayer
+                    } else {
+                        viewModel.togglePrayer(prayer.id)
+                    }
+                }
             )
         }
+    }
+
+    // Confirmation dialog for unchecking a prayer
+    if (prayerToUncheck != null) {
+        AlertDialog(
+            onDismissRequest = { prayerToUncheck = null },
+            title = { Text(stringResource(R.string.uncheck_prayer_title)) },
+            text = { Text(stringResource(R.string.uncheck_prayer_message, prayerToUncheck!!.name)) },
+            confirmButton = {
+                TextButton(
+                    onClick = {
+                        viewModel.togglePrayer(prayerToUncheck!!.id)
+                        prayerToUncheck = null
+                    }
+                ) {
+                    Text(stringResource(R.string.confirm_uncheck))
+                }
+            },
+            dismissButton = {
+                TextButton(onClick = { prayerToUncheck = null }) {
+                    Text(stringResource(R.string.cancel))
+                }
+            }
+        )
     }
 }
 
@@ -128,7 +154,7 @@ fun PrayerCardRow(
                             Text(
                                 text = " — ",
                                 style = MaterialTheme.typography.labelMedium.copy(
-                                    fontWeight = FontWeight.Black,
+                                    fontWeight = FontWeight.ExtraBold,
                                     fontFamily = RobotoMonoFontFamily
                                 )
                             )
@@ -156,18 +182,18 @@ fun PrayerCardRow(
 @Composable
 fun TimePill(timeStr: String) {
     Surface(
-        shape = RoundedCornerShape(8.dp),
+        shape = RoundedCornerShape(14.dp),
         color = MaterialTheme.colorScheme.background,
     ) {
         Text(
             text = timeStr,
             style = MaterialTheme.typography.labelMedium.copy(
-                fontSize = 15.sp,
+                fontSize = 14.5.sp,
                 fontWeight = FontWeight.Black,
                 fontFamily = RobotoMonoFontFamily
             ),
             color = MaterialTheme.colorScheme.onSurface,
-            modifier = Modifier.padding(horizontal = 8.dp, vertical = 4.dp)
+            modifier = Modifier.padding(horizontal = 10.dp, vertical = 6.dp)
         )
     }
 }

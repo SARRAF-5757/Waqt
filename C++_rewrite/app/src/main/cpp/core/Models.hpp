@@ -93,10 +93,15 @@ struct NotificationIntent {
 struct DayPrayerStatus {
     std::string dateKey;
     bool fajr{false};
+    bool fajrOnTime{false};
     bool dhuhr{false};
+    bool dhuhrOnTime{false};
     bool asr{false};
+    bool asrOnTime{false};
     bool maghrib{false};
+    bool maghribOnTime{false};
     bool isha{false};
+    bool ishaOnTime{false};
 };
 
 /**
@@ -105,6 +110,7 @@ struct DayPrayerStatus {
 struct PrayerStreak {
     std::string prayerId;
     std::vector<bool> completionGrid;
+    std::vector<bool> onTimeGrid;
 };
 
 struct StreakGridData {
@@ -125,7 +131,10 @@ struct UIPrayerItem {
     std::string name;
     std::string startTimeStr;
     std::string endTimeStr;
+    int64_t startTime{0};
+    int64_t endTime{0};
     bool isCompleted{false};
+    bool isOnTime{false};
 };
 
 /**
