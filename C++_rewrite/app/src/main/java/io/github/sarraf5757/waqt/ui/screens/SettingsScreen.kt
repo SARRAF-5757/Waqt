@@ -3,6 +3,7 @@
 package io.github.sarraf5757.waqt.ui.screens
 
 import android.os.Build
+
 import androidx.compose.foundation.background
 import androidx.compose.foundation.isSystemInDarkTheme
 import androidx.compose.foundation.layout.*
@@ -24,6 +25,7 @@ import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+
 import io.github.sarraf5757.waqt.R
 import io.github.sarraf5757.waqt.ui.theme.THEME_ACCENT_OPTIONS
 import io.github.sarraf5757.waqt.ui.viewmodels.SettingsViewModel

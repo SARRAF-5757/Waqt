@@ -18,6 +18,10 @@ struct {
     jmethodID streakGridDataCons;
     jclass prayerStreakClass;
     jmethodID prayerStreakCons;
+    jclass prayerStatsClass;
+    jmethodID prayerStatsCons;
+    jclass historyStatsDataClass;
+    jmethodID historyStatsDataCons;
     jclass notificationIntentClass;
     jmethodID notificationIntentCons;
 } g_cache;
@@ -56,6 +60,14 @@ JNIEXPORT jint JNICALL JNI_OnLoad(JavaVM* vm, void* reserved) {
     cacheClass("io/github/sarraf5757/waqt/bridge/NativeModels$PrayerStreak",
                g_cache.prayerStreakClass, g_cache.prayerStreakCons,
                "(Ljava/lang/String;[Z[Z)V");
+
+    cacheClass("io/github/sarraf5757/waqt/bridge/NativeModels$PrayerStats",
+               g_cache.prayerStatsClass, g_cache.prayerStatsCons,
+               "(Ljava/lang/String;III)V");
+
+    cacheClass("io/github/sarraf5757/waqt/bridge/NativeModels$HistoryStatsData",
+               g_cache.historyStatsDataClass, g_cache.historyStatsDataCons,
+               "(I[Lio/github/sarraf5757/waqt/bridge/NativeModels$PrayerStats;)V");
 
     cacheClass("io/github/sarraf5757/waqt/bridge/NativeModels$NotificationIntent",
                g_cache.notificationIntentClass, g_cache.notificationIntentCons,
@@ -224,11 +236,15 @@ Java_io_github_sarraf5757_waqt_bridge_WaqtNativeBridge_nativeDeleteAllHistory(JN
 }
 
 /**
- * Returns a 105-day completion grid used to render the GitHub-style streak graphs in Kotlin
+ * Returns a completion grid used to render streak graphs for a specific date range
  */
 JNIEXPORT jobject JNICALL
-Java_io_github_sarraf5757_waqt_bridge_WaqtNativeBridge_nativeGetStreakData(JNIEnv* env, jobject /*thiz*/, jlong nowSec) {
-    waqt::StreakGridData gridData = waqt::WaqtEngine::getInstance().getStreakData(nowSec);
+Java_io_github_sarraf5757_waqt_bridge_WaqtNativeBridge_nativeGetRangeGridData(JNIEnv* env, jobject /*thiz*/, jstring startDate, jstring endDate) {
+    const char* sStr = env->GetStringUTFChars(startDate, nullptr);
+    const char* eStr = env->GetStringUTFChars(endDate, nullptr);
+    waqt::StreakGridData gridData = waqt::WaqtEngine::getInstance().getRangeGridData(sStr ? sStr : "", eStr ? eStr : "");
+    if (sStr) env->ReleaseStringUTFChars(startDate, sStr);
+    if (eStr) env->ReleaseStringUTFChars(endDate, eStr);
 
     jobjectArray streaksArr = env->NewObjectArray(gridData.streaks.size(), g_cache.prayerStreakClass, nullptr);
 
@@ -255,6 +271,36 @@ Java_io_github_sarraf5757_waqt_bridge_WaqtNativeBridge_nativeGetStreakData(JNIEn
 
     jobject result = env->NewObject(g_cache.streakGridDataClass, g_cache.streakGridDataCons, gridData.totalDays, streaksArr);
     env->DeleteLocalRef(streaksArr);
+
+    return result;
+}
+
+/**
+ * Returns statistics for all prayers over a specific date range
+ */
+JNIEXPORT jobject JNICALL
+Java_io_github_sarraf5757_waqt_bridge_WaqtNativeBridge_nativeGetRangeStats(JNIEnv* env, jobject /*thiz*/, jstring startDate, jstring endDate) {
+    const char* sStr = env->GetStringUTFChars(startDate, nullptr);
+    const char* eStr = env->GetStringUTFChars(endDate, nullptr);
+    waqt::HistoryStatsData statsData = waqt::WaqtEngine::getInstance().getRangeStats(sStr ? sStr : "", eStr ? eStr : "");
+    if (sStr) env->ReleaseStringUTFChars(startDate, sStr);
+    if (eStr) env->ReleaseStringUTFChars(endDate, eStr);
+
+    jobjectArray statsArr = env->NewObjectArray(statsData.stats.size(), g_cache.prayerStatsClass, nullptr);
+
+    for (size_t i = 0; i < statsData.stats.size(); ++i) {
+        const auto& s = statsData.stats[i];
+        jstring pIdStr = env->NewStringUTF(s.prayerId.c_str());
+
+        jobject statObj = env->NewObject(g_cache.prayerStatsClass, g_cache.prayerStatsCons, pIdStr, s.onTimeCount, s.lateCount, s.missedCount);
+        env->SetObjectArrayElement(statsArr, i, statObj);
+
+        env->DeleteLocalRef(pIdStr);
+        env->DeleteLocalRef(statObj);
+    }
+
+    jobject result = env->NewObject(g_cache.historyStatsDataClass, g_cache.historyStatsDataCons, statsData.totalDays, statsArr);
+    env->DeleteLocalRef(statsArr);
 
     return result;
 }

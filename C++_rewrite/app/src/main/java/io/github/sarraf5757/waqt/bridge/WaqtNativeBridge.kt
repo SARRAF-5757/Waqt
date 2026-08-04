@@ -2,10 +2,12 @@
 
 package io.github.sarraf5757.waqt.bridge
 
+import java.io.File
+
 import android.content.Context
+
 import kotlinx.coroutines.channels.BufferOverflow
 import kotlinx.coroutines.flow.MutableSharedFlow
-import java.io.File
 
 object WaqtNativeBridge {
 
@@ -76,8 +78,12 @@ object WaqtNativeBridge {
         historyUpdates.tryEmit(Unit)
     }
 
-    fun getStreakData(nowSec: Long = System.currentTimeMillis() / 1000): NativeModels.StreakGridData? {
-        return nativeGetStreakData(nowSec)
+    fun getRangeGridData(startDate: String, endDate: String): NativeModels.StreakGridData? {
+        return nativeGetRangeGridData(startDate, endDate)
+    }
+
+    fun getRangeStats(startDate: String, endDate: String): NativeModels.HistoryStatsData? {
+        return nativeGetRangeStats(startDate, endDate)
     }
 
     fun getNotificationSchedule(nowSec: Long = System.currentTimeMillis() / 1000): Array<NativeModels.NotificationIntent> {
@@ -95,6 +101,7 @@ object WaqtNativeBridge {
     private external fun nativeGetPreferences(): NativeModels.PreferenceSettings?
     private external fun nativeUpdatePreference(key: String, value: String)
     private external fun nativeDeleteAllHistory()
-    private external fun nativeGetStreakData(nowSec: Long): NativeModels.StreakGridData?
+    private external fun nativeGetRangeGridData(startDate: String, endDate: String): NativeModels.StreakGridData?
+    private external fun nativeGetRangeStats(startDate: String, endDate: String): NativeModels.HistoryStatsData?
     private external fun nativeGetNotificationSchedule(nowSec: Long): Array<NativeModels.NotificationIntent>?
 }

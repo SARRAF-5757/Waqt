@@ -3,6 +3,7 @@
 package io.github.sarraf5757.waqt.ui.theme
 
 import android.os.Build
+
 import androidx.compose.foundation.isSystemInDarkTheme
 import androidx.compose.material3.*
 import androidx.compose.runtime.Composable
@@ -64,7 +65,7 @@ private fun createWaqtColorScheme(accent: Color, isDark: Boolean): ColorScheme {
         darkColorScheme(
             primary = highlight,
             onPrimary = Color.Black,
-            primaryContainer = darkBg.blend(accent, 0.45f),
+            primaryContainer = darkBg.blend(accent, 0.35f),
             onPrimaryContainer = Color.White.blend(accent, 0.20f),
             secondary = mutedAccent,
             onSecondary = Color.Black,

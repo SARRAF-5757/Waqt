@@ -8,8 +8,10 @@ import android.app.NotificationManager
 import android.app.PendingIntent
 import android.content.Context
 import android.content.Intent
-import androidx.core.content.edit
 import android.os.Build
+
+import androidx.core.content.edit
+
 import io.github.sarraf5757.waqt.bridge.WaqtNativeBridge
 
 object NotificationScheduler {

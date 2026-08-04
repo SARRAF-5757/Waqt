@@ -26,6 +26,7 @@ import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.currentBackStackEntryAsState
 import androidx.navigation.compose.rememberNavController
+
 import io.github.sarraf5757.waqt.R
 import io.github.sarraf5757.waqt.ui.screens.HomeScreen
 import io.github.sarraf5757.waqt.ui.screens.SettingsScreen

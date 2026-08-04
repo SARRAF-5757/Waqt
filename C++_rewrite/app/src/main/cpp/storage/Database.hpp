@@ -66,9 +66,14 @@ public:
     DayPrayerStatus getStatusesForDate(const std::string& dateKey);
 
     /**
-     * Compiles historical completion data into a streak grid format
+     * Compiles historical completion data into a streak grid format for a specific range
      */
-    StreakGridData getStreakData(const std::string& todayDateKey);
+    StreakGridData getRangeGridData(const std::string& startDateKey, const std::string& endDateKey);
+
+    /**
+     * Calculates aggregate statistics for a specific range
+     */
+    HistoryStatsData getRangeStats(const std::string& startDateKey, const std::string& endDateKey);
 
     /**
      * Wipes all records from the database

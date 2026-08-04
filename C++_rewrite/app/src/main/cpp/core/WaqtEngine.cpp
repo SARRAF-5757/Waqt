@@ -174,12 +174,17 @@ bool WaqtEngine::togglePrayerStatus(const std::string& dateKey, const std::strin
 }
 
 /**
- * Returns a 105-day completion grid used to render the GitHub-style streak graphs
+ * Returns completion grid for all prayers over a specific date range
  */
-StreakGridData WaqtEngine::getStreakData(int64_t nowUnixTimestampSec) {
-    getTodayPrayerTimes(nowUnixTimestampSec);
-    std::string todayKey = FajrShiftDate::getDateKey(nowUnixTimestampSec);
-    return m_database.getStreakData(todayKey);
+StreakGridData WaqtEngine::getRangeGridData(const std::string& startDateKey, const std::string& endDateKey) {
+    return m_database.getRangeGridData(startDateKey, endDateKey);
+}
+
+/**
+ * Returns statistics for all prayers over a specific date range
+ */
+HistoryStatsData WaqtEngine::getRangeStats(const std::string& startDateKey, const std::string& endDateKey) {
+    return m_database.getRangeStats(startDateKey, endDateKey);
 }
 
 /**

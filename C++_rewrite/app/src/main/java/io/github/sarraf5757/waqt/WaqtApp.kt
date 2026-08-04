@@ -3,6 +3,7 @@
 package io.github.sarraf5757.waqt
 
 import android.app.Application
+
 import io.github.sarraf5757.waqt.bridge.WaqtNativeBridge
 import io.github.sarraf5757.waqt.notifications.NotificationScheduler
 

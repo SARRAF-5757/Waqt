@@ -114,8 +114,23 @@ struct PrayerStreak {
 };
 
 struct StreakGridData {
-    int totalDays{105};
+    int totalDays{0};
     std::vector<PrayerStreak> streaks;
+};
+
+/**
+ * Aggregate statistics for a prayer over a period
+ */
+struct PrayerStats {
+    std::string prayerId;
+    int onTimeCount{0};
+    int lateCount{0};
+    int missedCount{0};
+};
+
+struct HistoryStatsData {
+    int totalDays{0};
+    std::vector<PrayerStats> stats;
 };
 
 /**

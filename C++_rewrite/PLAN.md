@@ -276,10 +276,10 @@ Achieve the layout with idiomatic Compose — do not replicate negative margins 
 *   Title **“Streak”**, centered.
 *   Loading indicator while history loads.
 *   **Five** contribution-style grids (one per prayer), each in a card (`surfaceContainer`, ~`12dp` radius).
-*   **105 days** of history per prayer.
+*   **Maximum days** of history per prayer.
 *   GitHub-style grid: weekday labels `S M T W T F S` on the left; weeks as columns; completed days filled with `primary`, incomplete with `surface`.
 *   Completion lookup uses `getDateKey()` for each day — **required**.
-*   Grid layout algorithm is **implementation-flexible**. The old app used a 4-hour shift for weekday alignment; you may use any correct Sunday-start (or equivalent) layout algorithm if the visual result matches: 105 days, weekday labels aligned, completed/incomplete coloring correct.
+*   Grid layout algorithm is **implementation-flexible**. The old app used a 4-hour shift for weekday alignment; you may use any correct Sunday-start (or equivalent) layout algorithm if the visual result matches: max history days, weekday labels aligned, completed/incomplete coloring correct.
 
 #### Settings
 
@@ -449,7 +449,7 @@ Waqt/
 
 #### 3. Storage (`Database.cpp`)
 *   `upsertPrayerStatus(date_key, prayer_id, bool is_completed)`: Uses SQLite `INSERT OR REPLACE` onto a `history` table with composite primary key `(date_key, prayer_id)`.
-*   `getStreakData(prayer_id, start_date, end_date)`: Runs a `SELECT` returning a list of booleans representing the past 105 days for the grid view.
+*   `getStreakData(prayer_id, start_date, end_date)`: Runs a `SELECT` returning a list of booleans representing the maximum history days for the grid view.
 
 #### 4. The JNI Bridge (`jni_bindings.cpp`)
 *   `Java_com_waqt_bridge_WaqtNativeBridge_getHomeState(JNIEnv* env, jobject obj, jlong timestamp)`: Calls `WaqtEngine` to get current times and completion status, returns a serialized byte array or Kotlin object.

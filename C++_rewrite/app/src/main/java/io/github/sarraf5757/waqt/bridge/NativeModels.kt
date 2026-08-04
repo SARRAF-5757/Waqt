@@ -60,7 +60,7 @@ class NativeModels {
     )
 
     /**
-     * Completion grid for a single prayer over 105 days
+     * Completion grid for a single prayer for maximum display-able days
      */
     @Immutable
     data class PrayerStreak(
@@ -76,5 +76,25 @@ class NativeModels {
     data class StreakGridData(
         val totalDays: Int,
         val streaks: Array<PrayerStreak>
+    )
+
+    /**
+     * Aggregate statistics for a single prayer
+     */
+    @Immutable
+    data class PrayerStats(
+        val prayerId: String,
+        val onTimeCount: Int,
+        val lateCount: Int,
+        val missedCount: Int
+    )
+
+    /**
+     * Container for all aggregate history stats
+     */
+    @Immutable
+    data class HistoryStatsData(
+        val totalDays: Int,
+        val stats: Array<PrayerStats>
     )
 }

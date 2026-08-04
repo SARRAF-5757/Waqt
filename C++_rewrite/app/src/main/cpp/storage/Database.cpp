@@ -214,37 +214,37 @@ DayPrayerStatus Database::getStatusesForDate(const std::string& dateKey) {
 }
 
 /**
- * Compiles completion data into a streak grid format using a single query
+ * Compiles completion data into a streak grid format for a specific range
  */
-StreakGridData Database::getStreakData(const std::string& todayDateKey) {
+StreakGridData Database::getRangeGridData(const std::string& startDateKey, const std::string& endDateKey) {
     StreakGridData gridData;
-    gridData.totalDays = 105;
 
-    // Parse todayDateKey YYYY-MM-DD
-    int year = 2025, month = 1, day = 1;
-    std::sscanf(todayDateKey.c_str(), "%d-%d-%d", &year, &month, &day);
+    int sY, sM, sD, eY, eM, eD;
+    std::sscanf(startDateKey.c_str(), "%d-%d-%d", &sY, &sM, &sD);
+    std::sscanf(endDateKey.c_str(), "%d-%d-%d", &eY, &eM, &eD);
 
-    std::tm tmToday{};
-    tmToday.tm_year = year - 1900;
-    tmToday.tm_mon = month - 1;
-    tmToday.tm_mday = day;
-    time_t todayTime = timegm(&tmToday);
+    std::tm tmStart{}, tmEnd{};
+    tmStart.tm_year = sY - 1900;
+    tmStart.tm_mon = sM - 1;
+    tmStart.tm_mday = sD;
+    tmEnd.tm_year = eY - 1900;
+    tmEnd.tm_mon = eM - 1;
+    tmEnd.tm_mday = eD;
 
-    // Calculate threshold date key (104 days ago)
-    time_t thresholdTime = todayTime - (104 * 86400);
-    std::tm tmThresholdStruct;
-    std::tm* tmThreshold = gmtime_r(&thresholdTime, &tmThresholdStruct);
-    char thresholdBuf[32];
-    std::strftime(thresholdBuf, sizeof(thresholdBuf), "%Y-%m-%d", tmThreshold);
-    std::string thresholdDateKey(thresholdBuf);
+    time_t startTime = timegm(&tmStart);
+    time_t endTime = timegm(&tmEnd);
 
-    // Query all records in the last 105 days in one go
+    int numDays = static_cast<int>((endTime - startTime) / 86400) + 1;
+    gridData.totalDays = numDays;
+
+    // Query all records in the requested range in one go
     std::map<std::string, std::map<std::string, std::pair<bool, bool>>> historyMap;
     if (m_db) {
-        const char* sql = "SELECT date_key, prayer_id, completed, is_on_time FROM history WHERE date_key >= ?;";
+        const char* sql = "SELECT date_key, prayer_id, completed, is_on_time FROM history WHERE date_key >= ? AND date_key <= ?;";
         sqlite3_stmt* stmt = nullptr;
         if (sqlite3_prepare_v2(m_db, sql, -1, &stmt, nullptr) == SQLITE_OK) {
-            sqlite3_bind_text(stmt, 1, thresholdDateKey.c_str(), -1, SQLITE_TRANSIENT);
+            sqlite3_bind_text(stmt, 1, startDateKey.c_str(), -1, SQLITE_TRANSIENT);
+            sqlite3_bind_text(stmt, 2, endDateKey.c_str(), -1, SQLITE_TRANSIENT);
             while (sqlite3_step(stmt) == SQLITE_ROW) {
                 const unsigned char* dk = sqlite3_column_text(stmt, 0);
                 const unsigned char* pi = sqlite3_column_text(stmt, 1);
@@ -264,12 +264,11 @@ StreakGridData Database::getStreakData(const std::string& todayDateKey) {
     for (const auto& prayerId : PRAYER_NAMES) {
         PrayerStreak streak;
         streak.prayerId = prayerId;
-        streak.completionGrid.resize(105, false);
-        streak.onTimeGrid.resize(105, false);
+        streak.completionGrid.resize(numDays, false);
+        streak.onTimeGrid.resize(numDays, false);
 
-        for (int i = 0; i < 105; ++i) {
-            int daysBack = 104 - i; // Index 0 is 104 days ago
-            time_t targetTime = todayTime - (daysBack * 86400);
+        for (int i = 0; i < numDays; ++i) {
+            time_t targetTime = startTime + (i * 86400LL);
             std::tm tmTargetStruct;
             std::tm* tmTarget = gmtime_r(&targetTime, &tmTargetStruct);
             char buf[32];
@@ -289,6 +288,51 @@ StreakGridData Database::getStreakData(const std::string& todayDateKey) {
     }
 
     return gridData;
+}
+
+/**
+ * Calculates aggregate statistics for a specific range
+ */
+HistoryStatsData Database::getRangeStats(const std::string& startDateKey, const std::string& endDateKey) {
+    HistoryStatsData statsData;
+
+    int sY, sM, sD, eY, eM, eD;
+    std::sscanf(startDateKey.c_str(), "%d-%d-%d", &sY, &sM, &sD);
+    std::sscanf(endDateKey.c_str(), "%d-%d-%d", &eY, &eM, &eD);
+
+    std::tm tmStart{}, tmEnd{};
+    tmStart.tm_year = sY - 1900; tmStart.tm_mon = sM - 1; tmStart.tm_mday = sD;
+    tmEnd.tm_year = eY - 1900; tmEnd.tm_mon = eM - 1; tmEnd.tm_mday = eD;
+
+    time_t startTime = timegm(&tmStart);
+    time_t endTime = timegm(&tmEnd);
+    int numDays = static_cast<int>((endTime - startTime) / 86400LL) + 1;
+    statsData.totalDays = numDays;
+
+    for (const auto& prayerId : PRAYER_NAMES) {
+        PrayerStats pStats;
+        pStats.prayerId = prayerId;
+
+        if (m_db) {
+            const char* sql = "SELECT COUNT(*), SUM(is_on_time) FROM history "
+                              "WHERE prayer_id = ? AND completed = 1 AND date_key >= ? AND date_key <= ?;";
+            sqlite3_stmt* stmt = nullptr;
+            if (sqlite3_prepare_v2(m_db, sql, -1, &stmt, nullptr) == SQLITE_OK) {
+                sqlite3_bind_text(stmt, 1, prayerId.c_str(), -1, SQLITE_TRANSIENT);
+                sqlite3_bind_text(stmt, 2, startDateKey.c_str(), -1, SQLITE_TRANSIENT);
+                sqlite3_bind_text(stmt, 3, endDateKey.c_str(), -1, SQLITE_TRANSIENT);
+                if (sqlite3_step(stmt) == SQLITE_ROW) {
+                    int completedCount = sqlite3_column_int(stmt, 0);
+                    pStats.onTimeCount = sqlite3_column_int(stmt, 1);
+                    pStats.lateCount = completedCount - pStats.onTimeCount;
+                    pStats.missedCount = std::max(0, numDays - completedCount);
+                }
+            }
+            if (stmt) sqlite3_finalize(stmt);
+        }
+        statsData.stats.push_back(pStats);
+    }
+    return statsData;
 }
 
 /**

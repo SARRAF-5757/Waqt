@@ -19,6 +19,7 @@ import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+
 import io.github.sarraf5757.waqt.R
 import io.github.sarraf5757.waqt.bridge.NativeModels
 import io.github.sarraf5757.waqt.ui.theme.RobotoMonoFontFamily
@@ -188,12 +189,12 @@ fun TimePill(timeStr: String) {
         Text(
             text = timeStr,
             style = MaterialTheme.typography.labelMedium.copy(
-                fontSize = 14.5.sp,
+                fontSize = 14.sp,
                 fontWeight = FontWeight.Black,
                 fontFamily = RobotoMonoFontFamily
             ),
             color = MaterialTheme.colorScheme.onSurface,
-            modifier = Modifier.padding(horizontal = 10.dp, vertical = 6.dp)
+            modifier = Modifier.padding(horizontal = 9.dp, vertical = 5.dp)
         )
     }
 }
