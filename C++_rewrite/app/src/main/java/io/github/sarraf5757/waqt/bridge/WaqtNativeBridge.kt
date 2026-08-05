@@ -86,8 +86,8 @@ object WaqtNativeBridge {
         return nativeGetRangeStats(startDate, endDate)
     }
 
-    fun getNotificationSchedule(nowSec: Long = System.currentTimeMillis() / 1000): Array<NativeModels.NotificationIntent> {
-        return nativeGetNotificationSchedule(nowSec) ?: emptyArray()
+    fun getNotificationSchedule(nowSec: Long = System.currentTimeMillis() / 1000): List<NativeModels.NotificationIntent> {
+        return nativeGetNotificationSchedule(nowSec) ?: emptyList()
     }
 
     /**
@@ -103,5 +103,5 @@ object WaqtNativeBridge {
     private external fun nativeDeleteAllHistory()
     private external fun nativeGetRangeGridData(startDate: String, endDate: String): NativeModels.StreakGridData?
     private external fun nativeGetRangeStats(startDate: String, endDate: String): NativeModels.HistoryStatsData?
-    private external fun nativeGetNotificationSchedule(nowSec: Long): Array<NativeModels.NotificationIntent>?
+    private external fun nativeGetNotificationSchedule(nowSec: Long): List<NativeModels.NotificationIntent>?
 }

@@ -27,7 +27,7 @@ class NativeModels {
     @Immutable
     data class HomeState(
         val dateKey: String,
-        val prayers: Array<UIPrayerItem>,
+        val prayers: List<UIPrayerItem>,
         val showStartTime: Boolean,
         val showEndTime: Boolean
     )
@@ -75,7 +75,7 @@ class NativeModels {
     @Immutable
     data class StreakGridData(
         val totalDays: Int,
-        val streaks: Array<PrayerStreak>
+        val streaks: List<PrayerStreak>
     )
 
     /**
@@ -95,6 +95,6 @@ class NativeModels {
     @Immutable
     data class HistoryStatsData(
         val totalDays: Int,
-        val stats: Array<PrayerStats>
+        val stats: List<PrayerStats>
     )
 }

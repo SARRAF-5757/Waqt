@@ -60,8 +60,6 @@
     <!-- Theme Colors -->
     <string name="color_blue">Blue</string>
     <string name="color_green">Green</string>
-    <string name="color_indigo">Indigo</string>
-    <string name="color_orange">Orange</string>
     <string name="color_purple">Purple</string>
     <string name="color_red">Red</string>
     <string name="color_teal">Teal</string>

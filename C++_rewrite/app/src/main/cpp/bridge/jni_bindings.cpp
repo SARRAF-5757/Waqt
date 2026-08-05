@@ -24,7 +24,18 @@ struct {
     jmethodID historyStatsDataCons;
     jclass notificationIntentClass;
     jmethodID notificationIntentCons;
+    jclass arrayListClass;
+    jmethodID arrayListCons;
+    jmethodID arrayListAdd;
 } g_cache;
+
+static jobject createArrayList(JNIEnv* env, jint capacity) {
+    return env->NewObject(g_cache.arrayListClass, g_cache.arrayListCons, capacity);
+}
+
+static void addToArrayList(JNIEnv* env, jobject list, jobject item) {
+    env->CallBooleanMethod(list, g_cache.arrayListAdd, item);
+}
 
 extern "C" {    // to prevent name mangling
 
@@ -41,13 +52,19 @@ JNIEXPORT jint JNICALL JNI_OnLoad(JavaVM* vm, void* reserved) {
         env->DeleteLocalRef(local);
     };
 
+    jclass arrayListLocal = env->FindClass("java/util/ArrayList");
+    g_cache.arrayListClass = (jclass)env->NewGlobalRef(arrayListLocal);
+    g_cache.arrayListCons = env->GetMethodID(g_cache.arrayListClass, "<init>", "(I)V");
+    g_cache.arrayListAdd = env->GetMethodID(g_cache.arrayListClass, "add", "(Ljava/lang/Object;)Z");
+    env->DeleteLocalRef(arrayListLocal);
+
     cacheClass("io/github/sarraf5757/waqt/bridge/NativeModels$UIPrayerItem",
                g_cache.prayerItemClass, g_cache.prayerItemCons,
                "(Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;JJZZ)V");
 
     cacheClass("io/github/sarraf5757/waqt/bridge/NativeModels$HomeState",
                g_cache.homeStateClass, g_cache.homeStateCons,
-               "(Ljava/lang/String;[Lio/github/sarraf5757/waqt/bridge/NativeModels$UIPrayerItem;ZZ)V");
+               "(Ljava/lang/String;Ljava/util/List;ZZ)V");
 
     cacheClass("io/github/sarraf5757/waqt/bridge/NativeModels$PreferenceSettings",
                g_cache.prefsSettingsClass, g_cache.prefsSettingsCons,
@@ -55,7 +72,7 @@ JNIEXPORT jint JNICALL JNI_OnLoad(JavaVM* vm, void* reserved) {
 
     cacheClass("io/github/sarraf5757/waqt/bridge/NativeModels$StreakGridData",
                g_cache.streakGridDataClass, g_cache.streakGridDataCons,
-               "(I[Lio/github/sarraf5757/waqt/bridge/NativeModels$PrayerStreak;)V");
+               "(ILjava/util/List;)V");
 
     cacheClass("io/github/sarraf5757/waqt/bridge/NativeModels$PrayerStreak",
                g_cache.prayerStreakClass, g_cache.prayerStreakCons,
@@ -67,7 +84,7 @@ JNIEXPORT jint JNICALL JNI_OnLoad(JavaVM* vm, void* reserved) {
 
     cacheClass("io/github/sarraf5757/waqt/bridge/NativeModels$HistoryStatsData",
                g_cache.historyStatsDataClass, g_cache.historyStatsDataCons,
-               "(I[Lio/github/sarraf5757/waqt/bridge/NativeModels$PrayerStats;)V");
+               "(ILjava/util/List;)V");
 
     cacheClass("io/github/sarraf5757/waqt/bridge/NativeModels$NotificationIntent",
                g_cache.notificationIntentClass, g_cache.notificationIntentCons,
@@ -108,8 +125,8 @@ JNIEXPORT jobject JNICALL
 Java_io_github_sarraf5757_waqt_bridge_WaqtNativeBridge_nativeGetHomeState(JNIEnv* env, jobject /*thiz*/, jlong nowSec) {
     auto uiState = waqt::WaqtEngine::getInstance().getUIHomeState(nowSec);
 
-    // 3. Create an Array of objects to pass back to Kotlin using cached class
-    jobjectArray prayersArr = env->NewObjectArray(uiState.prayers.size(), g_cache.prayerItemClass, nullptr);
+    // Create an ArrayList of objects to pass back to Kotlin
+    jobject prayersList = createArrayList(env, static_cast<jint>(uiState.prayers.size()));
     for (size_t i = 0; i < uiState.prayers.size(); ++i) {
         const auto& p = uiState.prayers[i];
         jstring idStr = env->NewStringUTF(p.id.c_str());
@@ -126,7 +143,7 @@ Java_io_github_sarraf5757_waqt_bridge_WaqtNativeBridge_nativeGetHomeState(JNIEnv
             p.isCompleted ? JNI_TRUE : JNI_FALSE,
             p.isOnTime ? JNI_TRUE : JNI_FALSE
         );
-        env->SetObjectArrayElement(prayersArr, i, itemObj);
+        addToArrayList(env, prayersList, itemObj);
 
         // cleanup of local references
         env->DeleteLocalRef(idStr);
@@ -142,13 +159,13 @@ Java_io_github_sarraf5757_waqt_bridge_WaqtNativeBridge_nativeGetHomeState(JNIEnv
     jobject result = env->NewObject(
         g_cache.homeStateClass, g_cache.homeStateCons,
         dateKeyStr,
-        prayersArr,
+        prayersList,
         uiState.showStartTime ? JNI_TRUE : JNI_FALSE,
         uiState.showEndTime ? JNI_TRUE : JNI_FALSE
     );
 
     env->DeleteLocalRef(dateKeyStr);
-    env->DeleteLocalRef(prayersArr);
+    env->DeleteLocalRef(prayersList);
     return result;
 }
 
@@ -246,7 +263,7 @@ Java_io_github_sarraf5757_waqt_bridge_WaqtNativeBridge_nativeGetRangeGridData(JN
     if (sStr) env->ReleaseStringUTFChars(startDate, sStr);
     if (eStr) env->ReleaseStringUTFChars(endDate, eStr);
 
-    jobjectArray streaksArr = env->NewObjectArray(gridData.streaks.size(), g_cache.prayerStreakClass, nullptr);
+    jobject streaksList = createArrayList(env, static_cast<jint>(gridData.streaks.size()));
 
     for (size_t i = 0; i < gridData.streaks.size(); ++i) {
         const auto& s = gridData.streaks[i];
@@ -261,7 +278,7 @@ Java_io_github_sarraf5757_waqt_bridge_WaqtNativeBridge_nativeGetRangeGridData(JN
         env->SetBooleanArrayRegion(onTimeArr, 0, tempOnTime.size(), tempOnTime.data());
 
         jobject streakObj = env->NewObject(g_cache.prayerStreakClass, g_cache.prayerStreakCons, pIdStr, boolArr, onTimeArr);
-        env->SetObjectArrayElement(streaksArr, i, streakObj);
+        addToArrayList(env, streaksList, streakObj);
 
         env->DeleteLocalRef(pIdStr);
         env->DeleteLocalRef(boolArr);
@@ -269,8 +286,8 @@ Java_io_github_sarraf5757_waqt_bridge_WaqtNativeBridge_nativeGetRangeGridData(JN
         env->DeleteLocalRef(streakObj);
     }
 
-    jobject result = env->NewObject(g_cache.streakGridDataClass, g_cache.streakGridDataCons, gridData.totalDays, streaksArr);
-    env->DeleteLocalRef(streaksArr);
+    jobject result = env->NewObject(g_cache.streakGridDataClass, g_cache.streakGridDataCons, gridData.totalDays, streaksList);
+    env->DeleteLocalRef(streaksList);
 
     return result;
 }
@@ -286,21 +303,21 @@ Java_io_github_sarraf5757_waqt_bridge_WaqtNativeBridge_nativeGetRangeStats(JNIEn
     if (sStr) env->ReleaseStringUTFChars(startDate, sStr);
     if (eStr) env->ReleaseStringUTFChars(endDate, eStr);
 
-    jobjectArray statsArr = env->NewObjectArray(statsData.stats.size(), g_cache.prayerStatsClass, nullptr);
+    jobject statsList = createArrayList(env, static_cast<jint>(statsData.stats.size()));
 
     for (size_t i = 0; i < statsData.stats.size(); ++i) {
         const auto& s = statsData.stats[i];
         jstring pIdStr = env->NewStringUTF(s.prayerId.c_str());
 
         jobject statObj = env->NewObject(g_cache.prayerStatsClass, g_cache.prayerStatsCons, pIdStr, s.onTimeCount, s.lateCount, s.missedCount);
-        env->SetObjectArrayElement(statsArr, i, statObj);
+        addToArrayList(env, statsList, statObj);
 
         env->DeleteLocalRef(pIdStr);
         env->DeleteLocalRef(statObj);
     }
 
-    jobject result = env->NewObject(g_cache.historyStatsDataClass, g_cache.historyStatsDataCons, statsData.totalDays, statsArr);
-    env->DeleteLocalRef(statsArr);
+    jobject result = env->NewObject(g_cache.historyStatsDataClass, g_cache.historyStatsDataCons, statsData.totalDays, statsList);
+    env->DeleteLocalRef(statsList);
 
     return result;
 }
@@ -308,11 +325,11 @@ Java_io_github_sarraf5757_waqt_bridge_WaqtNativeBridge_nativeGetRangeStats(JNIEn
 /**
  * Generates a sorted list of upcoming prayer notifications to be scheduled by the Android OS
  */
-JNIEXPORT jobjectArray JNICALL
+JNIEXPORT jobject JNICALL
 Java_io_github_sarraf5757_waqt_bridge_WaqtNativeBridge_nativeGetNotificationSchedule(JNIEnv* env, jobject /*thiz*/, jlong nowSec) {
     auto intents = waqt::WaqtEngine::getInstance().getNotificationSchedule(nowSec);
 
-    jobjectArray resultArr = env->NewObjectArray(intents.size(), g_cache.notificationIntentClass, nullptr);
+    jobject resultList = createArrayList(env, static_cast<jint>(intents.size()));
 
     for (size_t i = 0; i < intents.size(); ++i) {
         const auto& item = intents[i];
@@ -321,7 +338,7 @@ Java_io_github_sarraf5757_waqt_bridge_WaqtNativeBridge_nativeGetNotificationSche
         jstring bodyStr = env->NewStringUTF(item.body.c_str());
 
         jobject obj = env->NewObject(g_cache.notificationIntentClass, g_cache.notificationIntentCons, idStr, titleStr, bodyStr, static_cast<jlong>(item.triggerTimestampSec));
-        env->SetObjectArrayElement(resultArr, i, obj);
+        addToArrayList(env, resultList, obj);
 
         env->DeleteLocalRef(idStr);
         env->DeleteLocalRef(titleStr);
@@ -329,7 +346,7 @@ Java_io_github_sarraf5757_waqt_bridge_WaqtNativeBridge_nativeGetNotificationSche
         env->DeleteLocalRef(obj);
     }
 
-    return resultArr;
+    return resultList;
 }
 
 } // extern "C"

@@ -40,11 +40,8 @@ class HomeViewModel(application: Application) : AndroidViewModel(application) {
      * Triggers a JNI call to the C++ core to fetch the latest display data
      */
     fun loadHomeState() {
-        // viewModelScope - ensures this runs on a background thread if needed and
-        // is canceled if the user leaves the screen
         viewModelScope.launch {
-            val state = WaqtNativeBridge.getHomeState()
-            _homeState.value = state
+            _homeState.value = WaqtNativeBridge.getHomeState()
         }
     }
 
@@ -71,7 +68,7 @@ class HomeViewModel(application: Application) : AndroidViewModel(application) {
             WaqtNativeBridge.togglePrayer(dateKey, prayerId, newCompleted, isOnTime)
             
             // Refresh the local state from C++
-            loadHomeState()
+            _homeState.value = WaqtNativeBridge.getHomeState()
             
             // Update scheduled system alarms
             NotificationScheduler.scheduleNotifications(getApplication())

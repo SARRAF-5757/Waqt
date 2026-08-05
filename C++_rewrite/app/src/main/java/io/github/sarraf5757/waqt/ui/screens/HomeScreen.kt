@@ -40,7 +40,7 @@ fun HomeScreen(viewModel: HomeViewModel) {
 
     val state = homeState
     /** Get the list of prayer objects constructed by C++ */
-    val prayers = state?.prayers ?: emptyArray()
+    val prayers = state?.prayers ?: emptyList()
 
     val showStartTime = state?.showStartTime ?: true
     val showEndTime = state?.showEndTime ?: true

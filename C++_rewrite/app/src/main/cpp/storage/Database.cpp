@@ -43,6 +43,8 @@ void Database::createTables() {
     sqlite3_exec(m_db, sqlHistory, nullptr, nullptr, &errMsgs);
     if (errMsgs)
         sqlite3_free(errMsgs);
+
+    sqlite3_exec(m_db, "PRAGMA user_version = 1;", nullptr, nullptr, nullptr);
 }
 
 /**
