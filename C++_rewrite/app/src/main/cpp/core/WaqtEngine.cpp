@@ -107,7 +107,8 @@ static std::string formatTime(int64_t timestamp) {
  */
 UIHomeState WaqtEngine::getUIHomeState(int64_t nowUnixTimestampSec) {
     PrayerTimesMap times = getTodayPrayerTimes(nowUnixTimestampSec);
-    DayPrayerStatus status = getTodayStatuses(nowUnixTimestampSec);
+    std::string todayKey = FajrShiftDate::getDateKey(nowUnixTimestampSec);
+    DayPrayerStatus status = m_database.getStatusesForDate(todayKey);
     PreferenceSettings prefs = m_database.getPreferences();
 
     UIHomeState uiState;

@@ -72,9 +72,9 @@ std::vector<NotificationIntent> NotificationGenerator::generateSchedule(
             }
 
             // End notification
-            if (endTime > 0) {
+            if (endTime > 0 && offsetMinutes > 0) {
                 int64_t endWarnTime = endTime - (static_cast<int64_t>(offsetMinutes) * 60LL);
-                if (endWarnTime > nowUnixTimestampSec) {
+                if (endWarnTime > nowUnixTimestampSec && endWarnTime >= startTime) {
                     NotificationIntent endNotif;
                     endNotif.id = dateKey + "_" + name + "_end";
                     endNotif.title = name + " time is ending in " + std::to_string(offsetMinutes) + " minutes";

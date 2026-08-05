@@ -43,6 +43,7 @@ object LocationHelper {
 
         if (bestLocation != null) {
             WaqtNativeBridge.updateLocation(bestLocation.latitude, bestLocation.longitude)
+            io.github.sarraf5757.waqt.notifications.NotificationScheduler.scheduleNotifications(context)
         } else {
             // IF NO SAVED LOCATION, request a fresh update using the modern API (Android 11+)
             val provider = if (locationManager.isProviderEnabled(LocationManager.GPS_PROVIDER)) {
@@ -61,6 +62,7 @@ object LocationHelper {
                     if (location != null) {
                         // Forward the raw GPS coordinates to the C++ engine
                         WaqtNativeBridge.updateLocation(location.latitude, location.longitude)
+                        io.github.sarraf5757.waqt.notifications.NotificationScheduler.scheduleNotifications(context)
                     }
                 }
             } catch (e: Exception) {

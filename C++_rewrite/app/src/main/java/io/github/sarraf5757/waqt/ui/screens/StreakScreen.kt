@@ -49,6 +49,7 @@ fun StreakScreen(viewModel: StreakViewModel) {
     val statsData by viewModel.statsData.collectAsState()
     val isLoading by viewModel.isLoading.collectAsState()
     val baseDate by viewModel.baseDate.collectAsState()
+    val canNavigateNext by viewModel.canNavigateNext.collectAsState()
 
     var majorMenuExpanded by remember { mutableStateOf(false) }
     var granularityMenuExpanded by remember { mutableStateOf(false) }
@@ -163,7 +164,10 @@ fun StreakScreen(viewModel: StreakViewModel) {
                 color = MaterialTheme.colorScheme.onSurface
             )
 
-            IconButton(onClick = { viewModel.next() }) {
+            IconButton(
+                onClick = { viewModel.next() },
+                enabled = canNavigateNext
+            ) {
                 Icon(Icons.AutoMirrored.Filled.ArrowForward, contentDescription = "Next")
             }
         }

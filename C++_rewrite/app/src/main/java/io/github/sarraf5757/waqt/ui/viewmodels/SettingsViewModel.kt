@@ -42,11 +42,11 @@ class SettingsViewModel(application: Application) : AndroidViewModel(application
      */
     fun updateEndTimeOffset(offsetStr: String) {
         val numeric = offsetStr.replace(Regex("[^0-9]"), "")
-        if (numeric.isNotEmpty()) {
-            WaqtNativeBridge.updatePreference("endTimeOffset", numeric)
-            loadPreferences()
-            NotificationScheduler.scheduleNotifications(getApplication())
-        }
+        val parsed = numeric.toIntOrNull() ?: 15
+        val clamped = parsed.coerceIn(0, 120)
+        WaqtNativeBridge.updatePreference("endTimeOffset", clamped.toString())
+        loadPreferences()
+        NotificationScheduler.scheduleNotifications(getApplication())
     }
 
     /**

@@ -45,6 +45,7 @@ object WaqtNativeBridge {
      */
     fun updateLocation(latitude: Double, longitude: Double) {
         nativeUpdateLocation(latitude, longitude)
+        preferenceUpdates.tryEmit(Unit)
     }
 
     /**

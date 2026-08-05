@@ -127,9 +127,21 @@ PreferenceSettings Database::getPreferences() {
     prefs.calculationMethod = getPreference("calculationMethod", "MoonsightingCommittee");
     prefs.madhab = getPreference("madhab", "shafi");
     prefs.themeColor = getPreference("themeColor", "Material You");
-    prefs.endTimeOffset = std::stoi(getPreference("endTimeOffset", "15"));
-    prefs.latitude = std::stod(getPreference("latitude", "0.0"));
-    prefs.longitude = std::stod(getPreference("longitude", "0.0"));
+    try {
+        prefs.endTimeOffset = std::stoi(getPreference("endTimeOffset", "15"));
+    } catch (...) {
+        prefs.endTimeOffset = 15;
+    }
+    try {
+        prefs.latitude = std::stod(getPreference("latitude", "0.0"));
+    } catch (...) {
+        prefs.latitude = 0.0;
+    }
+    try {
+        prefs.longitude = std::stod(getPreference("longitude", "0.0"));
+    } catch (...) {
+        prefs.longitude = 0.0;
+    }
     prefs.hasLocation = (getPreference("hasLocation", "false") == "true");
     return prefs;
 }
@@ -221,9 +233,11 @@ DayPrayerStatus Database::getStatusesForDate(const std::string& dateKey) {
 StreakGridData Database::getRangeGridData(const std::string& startDateKey, const std::string& endDateKey) {
     StreakGridData gridData;
 
-    int sY, sM, sD, eY, eM, eD;
-    std::sscanf(startDateKey.c_str(), "%d-%d-%d", &sY, &sM, &sD);
-    std::sscanf(endDateKey.c_str(), "%d-%d-%d", &eY, &eM, &eD);
+    int sY = 0, sM = 0, sD = 0, eY = 0, eM = 0, eD = 0;
+    if (std::sscanf(startDateKey.c_str(), "%d-%d-%d", &sY, &sM, &sD) != 3 ||
+        std::sscanf(endDateKey.c_str(), "%d-%d-%d", &eY, &eM, &eD) != 3) {
+        return gridData;
+    }
 
     std::tm tmStart{}, tmEnd{};
     tmStart.tm_year = sY - 1900;
@@ -236,7 +250,14 @@ StreakGridData Database::getRangeGridData(const std::string& startDateKey, const
     time_t startTime = timegm(&tmStart);
     time_t endTime = timegm(&tmEnd);
 
+    if (startTime == (time_t)-1 || endTime == (time_t)-1 || endTime < startTime) {
+        return gridData;
+    }
+
     int numDays = static_cast<int>((endTime - startTime) / 86400) + 1;
+    if (numDays <= 0 || numDays > 3660) {
+        return gridData;
+    }
     gridData.totalDays = numDays;
 
     // Query all records in the requested range in one go
@@ -271,10 +292,14 @@ StreakGridData Database::getRangeGridData(const std::string& startDateKey, const
 
         for (int i = 0; i < numDays; ++i) {
             time_t targetTime = startTime + (i * 86400LL);
-            std::tm tmTargetStruct;
+            std::tm tmTargetStruct{};
             std::tm* tmTarget = gmtime_r(&targetTime, &tmTargetStruct);
             char buf[32];
-            std::strftime(buf, sizeof(buf), "%Y-%m-%d", tmTarget);
+            if (tmTarget) {
+                std::strftime(buf, sizeof(buf), "%Y-%m-%d", tmTarget);
+            } else {
+                std::snprintf(buf, sizeof(buf), "1970-01-01");
+            }
             std::string dKey(buf);
 
             auto itDate = historyMap.find(dKey);
@@ -298,9 +323,11 @@ StreakGridData Database::getRangeGridData(const std::string& startDateKey, const
 HistoryStatsData Database::getRangeStats(const std::string& startDateKey, const std::string& endDateKey) {
     HistoryStatsData statsData;
 
-    int sY, sM, sD, eY, eM, eD;
-    std::sscanf(startDateKey.c_str(), "%d-%d-%d", &sY, &sM, &sD);
-    std::sscanf(endDateKey.c_str(), "%d-%d-%d", &eY, &eM, &eD);
+    int sY = 0, sM = 0, sD = 0, eY = 0, eM = 0, eD = 0;
+    if (std::sscanf(startDateKey.c_str(), "%d-%d-%d", &sY, &sM, &sD) != 3 ||
+        std::sscanf(endDateKey.c_str(), "%d-%d-%d", &eY, &eM, &eD) != 3) {
+        return statsData;
+    }
 
     std::tm tmStart{}, tmEnd{};
     tmStart.tm_year = sY - 1900; tmStart.tm_mon = sM - 1; tmStart.tm_mday = sD;
@@ -308,7 +335,13 @@ HistoryStatsData Database::getRangeStats(const std::string& startDateKey, const 
 
     time_t startTime = timegm(&tmStart);
     time_t endTime = timegm(&tmEnd);
+    if (startTime == (time_t)-1 || endTime == (time_t)-1 || endTime < startTime) {
+        return statsData;
+    }
     int numDays = static_cast<int>((endTime - startTime) / 86400LL) + 1;
+    if (numDays <= 0 || numDays > 3660) {
+        return statsData;
+    }
     statsData.totalDays = numDays;
 
     for (const auto& prayerId : PRAYER_NAMES) {

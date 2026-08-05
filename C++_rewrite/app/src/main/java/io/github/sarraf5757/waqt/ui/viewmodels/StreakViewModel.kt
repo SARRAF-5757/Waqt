@@ -153,6 +153,24 @@ class StreakViewModel(application: Application) : AndroidViewModel(application) 
         }
     }
 
+    val canNavigateNext: StateFlow<Boolean> = combine(_granularity, _baseDate) { gr, date ->
+        val today = LocalDate.now()
+        when (gr) {
+            Granularity.MAX_DAYS -> date.isBefore(today)
+            Granularity.MONTHLY -> {
+                val currentMonth = today.with(TemporalAdjusters.firstDayOfMonth())
+                val dateMonth = date.with(TemporalAdjusters.firstDayOfMonth())
+                dateMonth.isBefore(currentMonth)
+            }
+            Granularity.WEEKLY -> {
+                val currentWeekStart = today.with(TemporalAdjusters.previousOrSame(DayOfWeek.SUNDAY))
+                val dateWeekStart = date.with(TemporalAdjusters.previousOrSame(DayOfWeek.SUNDAY))
+                dateWeekStart.isBefore(currentWeekStart)
+            }
+            Granularity.YEARLY -> date.year < today.year
+        }
+    }.stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), false)
+
     fun setMajorView(mv: MajorView) {
         _majorView.value = mv
         // Sync granularity to valid options for the major view
@@ -175,12 +193,15 @@ class StreakViewModel(application: Application) : AndroidViewModel(application) 
     }
 
     fun next() {
-        _baseDate.value = when (_granularity.value) {
-            Granularity.MAX_DAYS -> _baseDate.value.plusDays(105)
+        if (!canNavigateNext.value) return
+        val today = LocalDate.now()
+        val nextDate = when (_granularity.value) {
+            Granularity.MAX_DAYS -> _baseDate.value.plusDays(105).let { if (it.isAfter(today)) today else it }
             Granularity.MONTHLY -> _baseDate.value.plusMonths(1)
             Granularity.WEEKLY -> _baseDate.value.plusWeeks(1)
             Granularity.YEARLY -> _baseDate.value.plusYears(1)
         }
+        _baseDate.value = nextDate
     }
 
     fun previous() {
