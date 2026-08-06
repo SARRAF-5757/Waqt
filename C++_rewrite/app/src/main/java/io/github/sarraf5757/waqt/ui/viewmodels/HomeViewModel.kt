@@ -74,4 +74,20 @@ class HomeViewModel(application: Application) : AndroidViewModel(application) {
             NotificationScheduler.scheduleNotifications(getApplication())
         }
     }
+
+    /**
+     * Marks a previously completed prayer as "on-time" (override)
+     */
+    fun markAsOnTime(prayerId: String) {
+        val currentState = _homeState.value ?: return
+        val dateKey = currentState.dateKey
+
+        viewModelScope.launch {
+            // Force isOnTime = true in SQLite
+            WaqtNativeBridge.togglePrayer(dateKey, prayerId, true, true)
+            
+            // Refresh UI
+            _homeState.value = WaqtNativeBridge.getHomeState()
+        }
+    }
 }

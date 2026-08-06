@@ -8,6 +8,8 @@ import androidx.compose.foundation.Image
 import androidx.compose.foundation.isSystemInDarkTheme
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.History
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
@@ -35,6 +37,7 @@ fun HomeScreen(viewModel: HomeViewModel) {
     val isDark = isSystemInDarkTheme()
 
     var prayerToUncheck by remember { mutableStateOf<NativeModels.UIPrayerItem?>(null) }
+    var prayerToMarkOnTime by remember { mutableStateOf<NativeModels.UIPrayerItem?>(null) }
 
     val logoRes = if (isDark) R.drawable.splash_icon_light else R.drawable.splash_icon_dark
 
@@ -73,6 +76,9 @@ fun HomeScreen(viewModel: HomeViewModel) {
                     } else {
                         viewModel.togglePrayer(prayer.id)
                     }
+                },
+                onMarkOnTime = {
+                    prayerToMarkOnTime = prayer
                 }
             )
         }
@@ -101,6 +107,30 @@ fun HomeScreen(viewModel: HomeViewModel) {
             }
         )
     }
+
+    // Confirmation dialog for retroactively marking as on-time
+    if (prayerToMarkOnTime != null) {
+        AlertDialog(
+            onDismissRequest = { prayerToMarkOnTime = null },
+            title = { Text(stringResource(R.string.mark_on_time_title)) },
+            text = { Text(stringResource((R.string.mark_on_time_message)))},
+            confirmButton = {
+                TextButton(
+                    onClick = {
+                        viewModel.markAsOnTime(prayerToMarkOnTime!!.id)
+                        prayerToMarkOnTime = null
+                    }
+                ) {
+                    Text(stringResource(R.string.confirm_mark_on_time))
+                }
+            },
+            dismissButton = {
+                TextButton(onClick = { prayerToMarkOnTime = null }) {
+                    Text(stringResource(R.string.cancel))
+                }
+            }
+        )
+    }
 }
 
 /**
@@ -111,7 +141,8 @@ fun PrayerCardRow(
     prayer: NativeModels.UIPrayerItem,
     showStartTime: Boolean,
     showEndTime: Boolean,
-    onToggle: () -> Unit
+    onToggle: () -> Unit,
+    onMarkOnTime: () -> Unit
 ) {
     val cardBg = if (prayer.isCompleted) MaterialTheme.colorScheme.primaryContainer else MaterialTheme.colorScheme.surfaceContainer
     val cardContentColor = if (prayer.isCompleted) MaterialTheme.colorScheme.onPrimaryContainer else MaterialTheme.colorScheme.onSurface
@@ -148,6 +179,21 @@ fun PrayerCardRow(
                 },
                 trailingContent = {
                     Row(verticalAlignment = Alignment.CenterVertically) {
+                        if (prayer.isCompleted && !prayer.isOnTime) {
+                            IconButton(
+                                onClick = onMarkOnTime,
+                                modifier = Modifier
+                                    .size(32.dp)
+                                    .padding(end = 8.dp)
+                            ) {
+                                Icon(
+                                    imageVector = Icons.Default.History,
+                                    contentDescription = "Mark as on-time",
+                                    tint = cardContentColor.copy(alpha = 0.7f),
+                                    modifier = Modifier.size(20.dp)
+                                )
+                            }
+                        }
                         if (showStartTime) {
                             TimePill(timeStr = prayer.startTimeStr)
                         }
@@ -183,7 +229,7 @@ fun PrayerCardRow(
 @Composable
 fun TimePill(timeStr: String) {
     Surface(
-        shape = RoundedCornerShape(14.dp),
+        shape = RoundedCornerShape(13.dp),
         color = MaterialTheme.colorScheme.background,
     ) {
         Text(
@@ -194,7 +240,7 @@ fun TimePill(timeStr: String) {
                 fontFamily = RobotoMonoFontFamily
             ),
             color = MaterialTheme.colorScheme.onSurface,
-            modifier = Modifier.padding(horizontal = 9.dp, vertical = 5.dp)
+            modifier = Modifier.padding(horizontal = 8.dp, vertical = 4.dp)
         )
     }
 }

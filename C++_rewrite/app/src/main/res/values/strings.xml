@@ -7,6 +7,9 @@
     <string name="uncheck_prayer_title">Undo Prayer</string>
     <string name="uncheck_prayer_message">Are you sure you want to uncheck %1$s? This will remove the on-time record of this prayer from the history.</string>
     <string name="confirm_uncheck">Uncheck</string>
+    <string name="mark_on_time_title">Mark Prayer as On-Time</string>
+    <string name="mark_on_time_message">Prayed on time but forgot to check?</string>
+    <string name="confirm_mark_on_time">Confirm</string>
 
     <!-- Settings Screen -->
     <string name="settings_title">Settings</string>
