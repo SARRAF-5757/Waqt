@@ -127,22 +127,12 @@ PreferenceSettings Database::getPreferences() {
     prefs.calculationMethod = getPreference("calculationMethod", "MoonsightingCommittee");
     prefs.madhab = getPreference("madhab", "shafi");
     prefs.themeColor = getPreference("themeColor", "Material You");
-    try {
-        prefs.endTimeOffset = std::stoi(getPreference("endTimeOffset", "15"));
-    } catch (...) {
-        prefs.endTimeOffset = 15;
-    }
-    try {
-        prefs.latitude = std::stod(getPreference("latitude", "0.0"));
-    } catch (...) {
-        prefs.latitude = 0.0;
-    }
-    try {
-        prefs.longitude = std::stod(getPreference("longitude", "0.0"));
-    } catch (...) {
-        prefs.longitude = 0.0;
-    }
+    prefs.endTimeOffset = std::stoi(getPreference("endTimeOffset", "15"));
+    prefs.latitude = std::stod(getPreference("latitude", "0.0"));
+    prefs.longitude = std::stod(getPreference("longitude", "0.0"));
     prefs.hasLocation = (getPreference("hasLocation", "false") == "true");
+    prefs.historyMajorView = getPreference("historyMajorView", "MATRIX");
+    prefs.historyGranularity = getPreference("historyGranularity", "MAX_DAYS");
     return prefs;
 }
 
@@ -159,6 +149,8 @@ void Database::savePreferences(const PreferenceSettings& prefs) {
     setPreference("latitude", std::to_string(prefs.latitude));
     setPreference("longitude", std::to_string(prefs.longitude));
     setPreference("hasLocation", prefs.hasLocation ? "true" : "false");
+    setPreference("historyMajorView", prefs.historyMajorView);
+    setPreference("historyGranularity", prefs.historyGranularity);
 }
 
 /**

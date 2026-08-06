@@ -49,6 +49,19 @@ class StreakViewModel(application: Application) : AndroidViewModel(application) 
     val isLoading: StateFlow<Boolean> = _isLoading.asStateFlow()
 
     init {
+        // Load initial state from preferences
+        viewModelScope.launch {
+            val prefs = withContext(Dispatchers.IO) { WaqtNativeBridge.getPreferences() }
+            if (prefs != null) {
+                try {
+                    _majorView.value = MajorView.valueOf(prefs.historyMajorView)
+                } catch (_: Exception) { }
+                try {
+                    _granularity.value = Granularity.valueOf(prefs.historyGranularity)
+                } catch (_: Exception) { }
+            }
+        }
+
         // Automatically refresh when view settings or date changes
         viewModelScope.launch {
             combine(_majorView, _granularity, _baseDate) { mv, gr, date ->
@@ -173,16 +186,18 @@ class StreakViewModel(application: Application) : AndroidViewModel(application) 
 
     fun setMajorView(mv: MajorView) {
         _majorView.value = mv
+        WaqtNativeBridge.updatePreference("historyMajorView", mv.name)
+
         // Sync granularity to valid options for the major view
         when (mv) {
             MajorView.MATRIX -> {
                 if (_granularity.value == Granularity.WEEKLY || _granularity.value == Granularity.YEARLY) {
-                    _granularity.value = Granularity.MAX_DAYS
+                    setGranularity(Granularity.MAX_DAYS)
                 }
             }
             MajorView.STATS, MajorView.BAR_CHART -> {
                 if (_granularity.value == Granularity.MAX_DAYS) {
-                    _granularity.value = Granularity.WEEKLY
+                    setGranularity(Granularity.WEEKLY)
                 }
             }
         }
@@ -190,6 +205,7 @@ class StreakViewModel(application: Application) : AndroidViewModel(application) 
 
     fun setGranularity(gr: Granularity) {
         _granularity.value = gr
+        WaqtNativeBridge.updatePreference("historyGranularity", gr.name)
     }
 
     fun next() {

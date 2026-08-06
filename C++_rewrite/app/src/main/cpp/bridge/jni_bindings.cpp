@@ -68,7 +68,7 @@ JNIEXPORT jint JNICALL JNI_OnLoad(JavaVM* vm, void* reserved) {
 
     cacheClass("io/github/sarraf5757/waqt/bridge/NativeModels$PreferenceSettings",
                g_cache.prefsSettingsClass, g_cache.prefsSettingsCons,
-               "(ZZLjava/lang/String;Ljava/lang/String;Ljava/lang/String;IDDZ)V");
+               "(ZZLjava/lang/String;Ljava/lang/String;Ljava/lang/String;IDDZLjava/lang/String;Ljava/lang/String;)V");
 
     cacheClass("io/github/sarraf5757/waqt/bridge/NativeModels$StreakGridData",
                g_cache.streakGridDataClass, g_cache.streakGridDataCons,
@@ -206,6 +206,8 @@ Java_io_github_sarraf5757_waqt_bridge_WaqtNativeBridge_nativeGetPreferences(JNIE
     jstring calcStr = env->NewStringUTF(prefs.calculationMethod.c_str());
     jstring madhabStr = env->NewStringUTF(prefs.madhab.c_str());
     jstring themeStr = env->NewStringUTF(prefs.themeColor.c_str());
+    jstring mvStr = env->NewStringUTF(prefs.historyMajorView.c_str());
+    jstring grStr = env->NewStringUTF(prefs.historyGranularity.c_str());
 
     jobject result = env->NewObject(
         g_cache.prefsSettingsClass, g_cache.prefsSettingsCons,
@@ -214,12 +216,15 @@ Java_io_github_sarraf5757_waqt_bridge_WaqtNativeBridge_nativeGetPreferences(JNIE
         calcStr, madhabStr, themeStr,
         prefs.endTimeOffset,
         prefs.latitude, prefs.longitude,
-        prefs.hasLocation ? JNI_TRUE : JNI_FALSE
+        prefs.hasLocation ? JNI_TRUE : JNI_FALSE,
+        mvStr, grStr
     );
 
     env->DeleteLocalRef(calcStr);
     env->DeleteLocalRef(madhabStr);
     env->DeleteLocalRef(themeStr);
+    env->DeleteLocalRef(mvStr);
+    env->DeleteLocalRef(grStr);
 
     return result;
 }

@@ -45,7 +45,9 @@ class NativeModels {
         val endTimeOffset: Int,
         val latitude: Double,
         val longitude: Double,
-        val hasLocation: Boolean
+        val hasLocation: Boolean,
+        val historyMajorView: String,
+        val historyGranularity: String
     )
 
     /**
