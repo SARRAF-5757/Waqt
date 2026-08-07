@@ -62,19 +62,27 @@ fun AppNavigation(
                 windowInsets = WindowInsets.navigationBars
             ) {
                 val navBackStackEntry by navController.currentBackStackEntryAsState()
-                val currentRoute = navBackStackEntry?.destination?.route
+                
+                var currentRoute: String? = null
+                val destination = navBackStackEntry?.destination
+                if (destination != null) {
+                    currentRoute = destination.route
+                }
 
-                items.forEach { screen ->
+                for (screen in items) {
                     val title = stringResource(screen.titleRes)
+                    val isSelected = (currentRoute == screen.route)
+                    
                     NavigationBarItem(
                         icon = { Icon(screen.icon, contentDescription = title) },
                         label = { Text(title) },
-                        selected = currentRoute == screen.route,
+                        selected = isSelected,
                         onClick = {
                             // Navigate to destination, avoiding duplicate stack entries
                             if (currentRoute != screen.route) {
                                 navController.navigate(screen.route) {
-                                    popUpTo(navController.graph.findStartDestination().id) {
+                                    val startId = navController.graph.findStartDestination().id
+                                    popUpTo(startId) {
                                         saveState = true
                                     }
                                     launchSingleTop = true
@@ -97,17 +105,6 @@ fun AppNavigation(
         // Determines animation direction based on tab index
         val routeOrder = listOf(Screen.Home.route, Screen.History.route, Screen.Settings.route)
 
-        // Helper for snappy side-scrolling direction
-        fun slideDirection(scope: AnimatedContentTransitionScope<NavBackStackEntry>) =
-            if (routeOrder.indexOf(scope.targetState.destination.route) > routeOrder.indexOf(scope.initialState.destination.route))
-                AnimatedContentTransitionScope.SlideDirection.Left else AnimatedContentTransitionScope.SlideDirection.Right
-
-        // To Switch Animation: fast (tween) and bouncy (spring)
-        val navAnimationSpec = spring<IntOffset>(
-            dampingRatio = Spring.DampingRatioLowBouncy,
-            stiffness = Spring.StiffnessMedium
-        )
-
         // Handles screen swapping and transitions
         NavHost(
             navController = navController,
@@ -115,10 +112,50 @@ fun AppNavigation(
             modifier = Modifier
                 .fillMaxSize()
                 .padding(innerPadding),
-            enterTransition = { slideIntoContainer(slideDirection(this), navAnimationSpec) },
-            exitTransition = { slideOutOfContainer(slideDirection(this), navAnimationSpec) },
-            popEnterTransition = { slideIntoContainer(slideDirection(this), navAnimationSpec) },
-            popExitTransition = { slideOutOfContainer(slideDirection(this), navAnimationSpec) }
+            enterTransition = {
+                val fromRoute = initialState.destination.route
+                val toRoute = targetState.destination.route
+                
+                var fromIndex = 0
+                var toIndex = 0
+                for (i in 0 until routeOrder.size) {
+                    if (routeOrder[i] == fromRoute) fromIndex = i
+                    if (routeOrder[i] == toRoute) toIndex = i
+                }
+
+                var direction = AnimatedContentTransitionScope.SlideDirection.Left
+                if (toIndex < fromIndex) {
+                    direction = AnimatedContentTransitionScope.SlideDirection.Right
+                }
+
+                val springSpec = spring<IntOffset>(
+                    dampingRatio = Spring.DampingRatioLowBouncy,
+                    stiffness = Spring.StiffnessMedium
+                )
+                slideIntoContainer(direction, springSpec)
+            },
+            exitTransition = {
+                val fromRoute = initialState.destination.route
+                val toRoute = targetState.destination.route
+                
+                var fromIndex = 0
+                var toIndex = 0
+                for (i in 0 until routeOrder.size) {
+                    if (routeOrder[i] == fromRoute) fromIndex = i
+                    if (routeOrder[i] == toRoute) toIndex = i
+                }
+
+                var direction = AnimatedContentTransitionScope.SlideDirection.Left
+                if (toIndex < fromIndex) {
+                    direction = AnimatedContentTransitionScope.SlideDirection.Right
+                }
+
+                val springSpec = spring<IntOffset>(
+                    dampingRatio = Spring.DampingRatioLowBouncy,
+                    stiffness = Spring.StiffnessMedium
+                )
+                slideOutOfContainer(direction, springSpec)
+            }
         ) {
             composable(Screen.Home.route) {
                 HomeScreen(viewModel = homeViewModel)

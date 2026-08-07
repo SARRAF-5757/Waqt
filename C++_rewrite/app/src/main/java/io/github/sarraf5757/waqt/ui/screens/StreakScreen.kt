@@ -81,7 +81,7 @@ fun StreakScreen(viewModel: StreakViewModel) {
             // Major View (Left)
             ExposedDropdownMenuBox(
                 expanded = majorMenuExpanded,
-                onExpandedChange = { majorMenuExpanded = it },
+                onExpandedChange = { expanded -> majorMenuExpanded = expanded },
                 modifier = Modifier.weight(1f)
             ) {
                 OutlinedTextField(
@@ -97,7 +97,8 @@ fun StreakScreen(viewModel: StreakViewModel) {
                     expanded = majorMenuExpanded,
                     onDismissRequest = { majorMenuExpanded = false }
                 ) {
-                    MajorView.entries.forEach { mv ->
+                    val views = MajorView.entries
+                    for (mv in views) {
                         DropdownMenuItem(
                             text = { Text(formatMajorView(mv)) },
                             onClick = {
@@ -117,7 +118,7 @@ fun StreakScreen(viewModel: StreakViewModel) {
 
             ExposedDropdownMenuBox(
                 expanded = granularityMenuExpanded,
-                onExpandedChange = { granularityMenuExpanded = it },
+                onExpandedChange = { expanded -> granularityMenuExpanded = expanded },
                 modifier = Modifier.weight(1f)
             ) {
                 OutlinedTextField(
@@ -133,7 +134,7 @@ fun StreakScreen(viewModel: StreakViewModel) {
                     expanded = granularityMenuExpanded,
                     onDismissRequest = { granularityMenuExpanded = false }
                 ) {
-                    options.forEach { gr ->
+                    for (gr in options) {
                         DropdownMenuItem(
                             text = { Text(formatGranularity(gr)) },
                             onClick = {
@@ -179,40 +180,40 @@ fun StreakScreen(viewModel: StreakViewModel) {
                 CircularProgressIndicator()
             }
         } else {
-            when (majorView) {
-                MajorView.MATRIX -> {
-                    if (streakData != null) {
-                        val weekdayLetters = stringArrayResource(R.array.weekday_letters).toList()
-                        streakData!!.streaks.forEach { prayerStreak ->
-                            PrayerContributionCard(
-                                prayerName = prayerStreak.prayerId,
-                                completionGrid = prayerStreak.completionGrid,
-                                onTimeGrid = prayerStreak.onTimeGrid,
-                                granularity = granularity,
-                                baseDate = baseDate,
-                                weekdayLetters = weekdayLetters
-                            )
-                            Spacer(modifier = Modifier.height(20.dp))
-                        }
+            if (majorView == MajorView.MATRIX) {
+                val data = streakData
+                if (data != null) {
+                    val weekdayStrings = stringArrayResource(R.array.weekday_letters)
+                    val weekdayLetters = weekdayStrings.toList()
+                    for (prayerStreak in data.streaks) {
+                        PrayerContributionCard(
+                            prayerName = prayerStreak.prayerId,
+                            completionGrid = prayerStreak.completionGrid,
+                            onTimeGrid = prayerStreak.onTimeGrid,
+                            granularity = granularity,
+                            baseDate = baseDate,
+                            weekdayLetters = weekdayLetters
+                        )
+                        Spacer(modifier = Modifier.height(20.dp))
                     }
                 }
-                MajorView.STATS -> {
-                    if (statsData != null) {
-                        statsData!!.stats.forEach { stats ->
-                            PrayerChartCard(
-                                prayerName = stats.prayerId,
-                                onTimeCount = stats.onTimeCount,
-                                lateCount = stats.lateCount,
-                                missedCount = stats.missedCount
-                            )
-                            Spacer(modifier = Modifier.height(20.dp))
-                        }
+            } else if (majorView == MajorView.STATS) {
+                val data = statsData
+                if (data != null) {
+                    for (stats in data.stats) {
+                        PrayerChartCard(
+                            prayerName = stats.prayerId,
+                            onTimeCount = stats.onTimeCount,
+                            lateCount = stats.lateCount,
+                            missedCount = stats.missedCount
+                        )
+                        Spacer(modifier = Modifier.height(20.dp))
                     }
                 }
-                MajorView.BAR_CHART -> {
-                    if (statsData != null) {
-                        BarChartView(statsData = statsData!!)
-                    }
+            } else if (majorView == MajorView.BAR_CHART) {
+                val data = statsData
+                if (data != null) {
+                    BarChartView(statsData = data)
                 }
             }
         }

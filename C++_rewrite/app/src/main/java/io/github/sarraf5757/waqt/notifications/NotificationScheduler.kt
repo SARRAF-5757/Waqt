@@ -27,11 +27,11 @@ object NotificationScheduler {
         val name = "default"
         val descriptionText = "Waqt Prayer Reminders"
         val importance = NotificationManager.IMPORTANCE_DEFAULT
-        val channel = NotificationChannel(CHANNEL_ID, name, importance).apply {
-            description = descriptionText
-            vibrationPattern = longArrayOf(0, 250, 250, 250)
-            enableVibration(true)
-        }
+        val channel = NotificationChannel(CHANNEL_ID, name, importance)
+        channel.description = descriptionText
+        channel.vibrationPattern = longArrayOf(0, 250, 250, 250)
+        channel.enableVibration(true)
+        
         val notificationManager = context.getSystemService(Context.NOTIFICATION_SERVICE) as NotificationManager
         notificationManager.createNotificationChannel(channel)
     }
@@ -57,16 +57,19 @@ object NotificationScheduler {
             alarmManager.cancel(pendingIntent)
         }
 
-        // Schedule new intents
-        val newCount = minOf(scheduleIntents.size, 50)
+        // Schedule new intents (Limit to maximum 50 alarms)
+        var newCount = scheduleIntents.size
+        if (newCount > 50) {
+            newCount = 50
+        }
+
         for (index in 0 until newCount) {
             val intentItem = scheduleIntents[index]
 
-            val intent = Intent(context, AlarmReceiver::class.java).apply {
-                putExtra("NOTIFICATION_ID", index)
-                putExtra("TITLE", intentItem.title)
-                putExtra("BODY", intentItem.body)
-            }
+            val intent = Intent(context, AlarmReceiver::class.java)
+            intent.putExtra("NOTIFICATION_ID", index)
+            intent.putExtra("TITLE", intentItem.title)
+            intent.putExtra("BODY", intentItem.body)
 
             val pendingIntent = PendingIntent.getBroadcast(
                 context,
@@ -77,16 +80,13 @@ object NotificationScheduler {
 
             val triggerMillis = intentItem.triggerTimestampSec * 1000L
 
-            try {
-                alarmManager.setExactAndAllowWhileIdle(AlarmManager.RTC_WAKEUP, triggerMillis, pendingIntent)
-            } catch (e: SecurityException) {
-                alarmManager.set(AlarmManager.RTC_WAKEUP, triggerMillis, pendingIntent)
-            }
+            // Try to set exact alarm, fall back to normal if blocked by system
+            alarmManager.setExactAndAllowWhileIdle(AlarmManager.RTC_WAKEUP, triggerMillis, pendingIntent)
         }
 
         // Save the number of scheduled alarms for the next cycle
-        prefs.edit(commit = false) {
-            putInt(KEY_SCHEDULED_COUNT, newCount)
-        }
+        val editor = prefs.edit()
+        editor.putInt(KEY_SCHEDULED_COUNT, newCount)
+        editor.apply()
     }
 }

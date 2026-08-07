@@ -49,7 +49,7 @@ class AlarmReceiver : BroadcastReceiver() {
             val notificationManager = NotificationManagerCompat.from(context)
             notificationManager.notify(notificationId, builder.build())
         } catch (e: SecurityException) {
-            e.printStackTrace()
+            // Permission missing
         }
     }
 }

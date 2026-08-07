@@ -180,27 +180,47 @@ fun SettingsScreen(viewModel: SettingsViewModel) {
                             .fillMaxWidth()
                             .padding(top = 12.dp)
                     ) {
-                        options.forEachIndexed { index, label ->
-                            SegmentedButton(
-                                shape = SegmentedButtonDefaults.itemShape(index = index, count = options.size),
-                                onCheckedChange = {
-                                    if (index == 0) viewModel.updateShowStartTime(!settings.showStartTime)
-                                    else viewModel.updateShowEndTime(!settings.showEndTime)
-                                },
-                                checked = if (index == 0) settings.showStartTime else settings.showEndTime,
-                                icon = { SegmentedButtonDefaults.Icon(if (index == 0) settings.showStartTime else settings.showEndTime) },
-                                label = {
-                                    Text(
-                                        text = label,
-                                        style = MaterialTheme.typography.bodyMedium.copy(fontWeight = FontWeight.Bold)
-                                    )
-                                },
-                                colors = SegmentedButtonDefaults.colors(
-                                    activeContainerColor = MaterialTheme.colorScheme.primaryContainer,
-                                    activeContentColor = MaterialTheme.colorScheme.onPrimaryContainer
+                        // Start Time Button
+                        val startTimeLabel = options[0]
+                        SegmentedButton(
+                            shape = SegmentedButtonDefaults.itemShape(index = 0, count = options.size),
+                            onCheckedChange = {
+                                viewModel.updateShowStartTime(!settings.showStartTime)
+                            },
+                            checked = settings.showStartTime,
+                            icon = { SegmentedButtonDefaults.Icon(settings.showStartTime) },
+                            label = {
+                                Text(
+                                    text = startTimeLabel,
+                                    style = MaterialTheme.typography.bodyMedium.copy(fontWeight = FontWeight.Bold)
                                 )
+                            },
+                            colors = SegmentedButtonDefaults.colors(
+                                activeContainerColor = MaterialTheme.colorScheme.primaryContainer,
+                                activeContentColor = MaterialTheme.colorScheme.onPrimaryContainer
                             )
-                        }
+                        )
+
+                        // End Time Button
+                        val endTimeLabel = options[1]
+                        SegmentedButton(
+                            shape = SegmentedButtonDefaults.itemShape(index = 1, count = options.size),
+                            onCheckedChange = {
+                                viewModel.updateShowEndTime(!settings.showEndTime)
+                            },
+                            checked = settings.showEndTime,
+                            icon = { SegmentedButtonDefaults.Icon(settings.showEndTime) },
+                            label = {
+                                Text(
+                                    text = endTimeLabel,
+                                    style = MaterialTheme.typography.bodyMedium.copy(fontWeight = FontWeight.Bold)
+                                )
+                            },
+                            colors = SegmentedButtonDefaults.colors(
+                                activeContainerColor = MaterialTheme.colorScheme.primaryContainer,
+                                activeContentColor = MaterialTheme.colorScheme.onPrimaryContainer
+                            )
+                        )
                     }
                 },
                 colors = ListItemDefaults.colors(containerColor = Color.Transparent),
@@ -406,7 +426,9 @@ fun DropdownSettingItem(
                     expanded = expanded,
                     onDismissRequest = { expanded = false }
                 ) {
-                    options.forEach { (key, title) ->
+                    for (option in options) {
+                        val key = option.first
+                        val title = option.second
                         DropdownMenuItem(
                             text = { Text(title) },
                             onClick = {

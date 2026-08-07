@@ -41,10 +41,19 @@ class SettingsViewModel(application: Application) : AndroidViewModel(application
      * Updates preference and reschedules notification queue
      */
     fun updateEndTimeOffset(offsetStr: String) {
-        val numeric = offsetStr.replace(Regex("[^0-9]"), "")
-        val parsed = numeric.toIntOrNull() ?: 15
-        val clamped = parsed.coerceIn(0, 120)
-        WaqtNativeBridge.updatePreference("endTimeOffset", clamped.toString())
+        val numericOnly = offsetStr.replace(Regex("[^0-9]"), "")
+        val parsedInt = numericOnly.toIntOrNull()
+        
+        var finalOffset = 15
+        if (parsedInt != null) {
+            finalOffset = parsedInt
+        }
+        
+        // Clamp between 0 and 120 minutes
+        if (finalOffset < 0) finalOffset = 0
+        if (finalOffset > 120) finalOffset = 120
+        
+        WaqtNativeBridge.updatePreference("endTimeOffset", finalOffset.toString())
         loadPreferences()
         NotificationScheduler.scheduleNotifications(getApplication())
     }
@@ -71,7 +80,12 @@ class SettingsViewModel(application: Application) : AndroidViewModel(application
      * Persists preference setting
      */
     fun updateShowStartTime(show: Boolean) {
-        WaqtNativeBridge.updatePreference("showStartTime", if (show) "true" else "false")
+        val valueString = if (show) {
+            "true"
+        } else {
+            "false"
+        }
+        WaqtNativeBridge.updatePreference("showStartTime", valueString)
         loadPreferences()
     }
 
@@ -79,7 +93,12 @@ class SettingsViewModel(application: Application) : AndroidViewModel(application
      * Persists preference setting
      */
     fun updateShowEndTime(show: Boolean) {
-        WaqtNativeBridge.updatePreference("showEndTime", if (show) "true" else "false")
+        val valueString = if (show) {
+            "true"
+        } else {
+            "false"
+        }
+        WaqtNativeBridge.updatePreference("showEndTime", valueString)
         loadPreferences()
     }
 

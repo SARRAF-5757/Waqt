@@ -36,8 +36,9 @@ object WaqtNativeBridge {
      * Passes the device's internal application path to C++ (so SQLite knows where to save files)
      */
     fun initialize(context: Context): Boolean {
-        val dbFile = File(context.filesDir, "waqt_native.db")
-        return nativeInitialize(dbFile.absolutePath)
+        val databaseFile = File(context.filesDir, "waqt_native.db")
+        val databasePath = databaseFile.absolutePath
+        return nativeInitialize(databasePath)
     }
 
     /**
@@ -51,7 +52,8 @@ object WaqtNativeBridge {
     /**
      * Calls C++, which formats all the time and prayer strings into a ready-to-display object
      */
-    fun getHomeState(nowSec: Long = System.currentTimeMillis() / 1000): NativeModels.HomeState? {
+    fun getHomeState(): NativeModels.HomeState? {
+        val nowSec = System.currentTimeMillis() / 1000
         return nativeGetHomeState(nowSec)
     }
 
@@ -60,7 +62,6 @@ object WaqtNativeBridge {
      */
     fun togglePrayer(dateKey: String, prayerId: String, completed: Boolean, isOnTime: Boolean): Boolean {
         val result = nativeTogglePrayer(dateKey, prayerId, completed, isOnTime)
-        // Emit update regardless of whether prayer is now checked or unchecked
         historyUpdates.tryEmit(Unit)
         return result
     }
@@ -87,8 +88,14 @@ object WaqtNativeBridge {
         return nativeGetRangeStats(startDate, endDate)
     }
 
-    fun getNotificationSchedule(nowSec: Long = System.currentTimeMillis() / 1000): List<NativeModels.NotificationIntent> {
-        return nativeGetNotificationSchedule(nowSec) ?: emptyList()
+    fun getNotificationSchedule(): List<NativeModels.NotificationIntent> {
+        val nowSec = System.currentTimeMillis() / 1000
+        val schedule = nativeGetNotificationSchedule(nowSec)
+        if (schedule != null) {
+            return schedule
+        } else {
+            return emptyList()
+        }
     }
 
     /**

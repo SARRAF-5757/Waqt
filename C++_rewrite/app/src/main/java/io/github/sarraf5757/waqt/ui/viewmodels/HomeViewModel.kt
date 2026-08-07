@@ -49,26 +49,44 @@ class HomeViewModel(application: Application) : AndroidViewModel(application) {
      * Sends a UI event (checking a box) down to the C++ database
      */
     fun togglePrayer(prayerId: String) {
-        val currentState = _homeState.value ?: return
-        val dateKey = currentState.dateKey
+        val currentHomeState = _homeState.value
+        if (currentHomeState == null) {
+            return
+        }
 
-        val prayerItem = currentState.prayers.find { it.id == prayerId } ?: return
-        val newCompleted = !prayerItem.isCompleted
+        val dateKey = currentHomeState.dateKey
+        val prayerList = currentHomeState.prayers
+
+        var foundPrayer: NativeModels.UIPrayerItem? = null
+        for (p in prayerList) {
+            if (p.id == prayerId) {
+                foundPrayer = p
+                break
+            }
+        }
+
+        if (foundPrayer == null) {
+            return
+        }
+
+        val newCompletedStatus = !foundPrayer.isCompleted
 
         // Calculate if it's on time
         val nowSec = System.currentTimeMillis() / 1000
-        val isOnTime = if (newCompleted) {
-            nowSec in prayerItem.startTime..prayerItem.endTime
-        } else {
-            false // Reset onTime when unchecking
+        var onTimeResult = false
+        if (newCompletedStatus) {
+            if (nowSec >= foundPrayer.startTime && nowSec <= foundPrayer.endTime) {
+                onTimeResult = true
+            }
         }
 
         viewModelScope.launch {
             // Write to Native SQLite
-            WaqtNativeBridge.togglePrayer(dateKey, prayerId, newCompleted, isOnTime)
+            WaqtNativeBridge.togglePrayer(dateKey, prayerId, newCompletedStatus, onTimeResult)
             
             // Refresh the local state from C++
-            _homeState.value = WaqtNativeBridge.getHomeState()
+            val newState = WaqtNativeBridge.getHomeState()
+            _homeState.value = newState
             
             // Update scheduled system alarms
             NotificationScheduler.scheduleNotifications(getApplication())
@@ -79,15 +97,20 @@ class HomeViewModel(application: Application) : AndroidViewModel(application) {
      * Marks a previously completed prayer as "on-time" (override)
      */
     fun markAsOnTime(prayerId: String) {
-        val currentState = _homeState.value ?: return
-        val dateKey = currentState.dateKey
+        val currentHomeState = _homeState.value
+        if (currentHomeState == null) {
+            return
+        }
+
+        val dateKey = currentHomeState.dateKey
 
         viewModelScope.launch {
             // Force isOnTime = true in SQLite
             WaqtNativeBridge.togglePrayer(dateKey, prayerId, true, true)
             
             // Refresh UI
-            _homeState.value = WaqtNativeBridge.getHomeState()
+            val newState = WaqtNativeBridge.getHomeState()
+            _homeState.value = newState
         }
     }
 }

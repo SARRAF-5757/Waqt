@@ -37,8 +37,17 @@ class MainActivity : ComponentActivity() {
     private val permissionLauncher = registerForActivityResult(
         ActivityResultContracts.RequestMultiplePermissions()
     ) { permissions ->
-        val locationGranted = permissions[Manifest.permission.ACCESS_FINE_LOCATION] == true ||
-                permissions[Manifest.permission.ACCESS_COARSE_LOCATION] == true
+        val fineLocationPermission = permissions[Manifest.permission.ACCESS_FINE_LOCATION]
+        val coarseLocationPermission = permissions[Manifest.permission.ACCESS_COARSE_LOCATION]
+        
+        var locationGranted = false
+        if (fineLocationPermission != null && fineLocationPermission == true) {
+            locationGranted = true
+        }
+        if (coarseLocationPermission != null && coarseLocationPermission == true) {
+            locationGranted = true
+        }
+        
         if (locationGranted) {
             LocationHelper.updateDeviceLocation(this)
             homeViewModel.loadHomeState()

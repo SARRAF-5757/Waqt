@@ -31,42 +31,37 @@ object LocationHelper {
         val locationManager = context.getSystemService(Context.LOCATION_SERVICE) as LocationManager
 
         // FIRST, try to get the cached location
-        val gpsLocation = try {
-            locationManager.getLastKnownLocation(LocationManager.GPS_PROVIDER)
-        } catch (e: Exception) { null }
+        val gpsLocation = locationManager.getLastKnownLocation(LocationManager.GPS_PROVIDER)
+        val networkLocation = locationManager.getLastKnownLocation(LocationManager.NETWORK_PROVIDER)
 
-        val networkLocation = try {
-            locationManager.getLastKnownLocation(LocationManager.NETWORK_PROVIDER)
-        } catch (e: Exception) { null }
-
-        val bestLocation: Location? = gpsLocation ?: networkLocation
+        var bestLocation: Location? = null
+        if (gpsLocation != null) {
+            bestLocation = gpsLocation
+        } else if (networkLocation != null) {
+            bestLocation = networkLocation
+        }
 
         if (bestLocation != null) {
             WaqtNativeBridge.updateLocation(bestLocation.latitude, bestLocation.longitude)
             io.github.sarraf5757.waqt.notifications.NotificationScheduler.scheduleNotifications(context)
         } else {
             // IF NO SAVED LOCATION, request a fresh update using the modern API (Android 11+)
-            val provider = if (locationManager.isProviderEnabled(LocationManager.GPS_PROVIDER)) {
-                LocationManager.GPS_PROVIDER
-            } else {
-                LocationManager.NETWORK_PROVIDER
+            var provider = LocationManager.NETWORK_PROVIDER
+            if (locationManager.isProviderEnabled(LocationManager.GPS_PROVIDER)) {
+                provider = LocationManager.GPS_PROVIDER
             }
 
-            try {
-                // Request a location estimate from the system drivers (asynchronous)
-                locationManager.getCurrentLocation(
-                    provider,
-                    null, // No cancellation signal needed
-                    ContextCompat.getMainExecutor(context) // Run the callback on the Main UI thread
-                ) { location ->
-                    if (location != null) {
-                        // Forward the raw GPS coordinates to the C++ engine
-                        WaqtNativeBridge.updateLocation(location.latitude, location.longitude)
-                        io.github.sarraf5757.waqt.notifications.NotificationScheduler.scheduleNotifications(context)
-                    }
+            // Request a location estimate from the system drivers (asynchronous)
+            locationManager.getCurrentLocation(
+                provider,
+                null, // No cancellation signal needed
+                ContextCompat.getMainExecutor(context) // Run the callback on the Main UI thread
+            ) { location ->
+                if (location != null) {
+                    // Forward the raw GPS coordinates to the C++ engine
+                    WaqtNativeBridge.updateLocation(location.latitude, location.longitude)
+                    io.github.sarraf5757.waqt.notifications.NotificationScheduler.scheduleNotifications(context)
                 }
-            } catch (e: Exception) {
-                e.printStackTrace()
             }
         }
     }

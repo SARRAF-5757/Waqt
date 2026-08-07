@@ -53,12 +53,23 @@ class StreakViewModel(application: Application) : AndroidViewModel(application) 
         viewModelScope.launch {
             val prefs = withContext(Dispatchers.IO) { WaqtNativeBridge.getPreferences() }
             if (prefs != null) {
-                try {
-                    _majorView.value = MajorView.valueOf(prefs.historyMajorView)
-                } catch (_: Exception) { }
-                try {
-                    _granularity.value = Granularity.valueOf(prefs.historyGranularity)
-                } catch (_: Exception) { }
+                // Restore the last major view (e.g., Matrix, Stats)
+                val storedMajorView = prefs.historyMajorView
+                for (mv in MajorView.entries) {
+                    if (mv.name == storedMajorView) {
+                        _majorView.value = mv
+                        break
+                    }
+                }
+
+                // Restore the last granularity (e.g., Weekly, Monthly)
+                val storedGranularity = prefs.historyGranularity
+                for (gr in Granularity.entries) {
+                    if (gr.name == storedGranularity) {
+                        _granularity.value = gr
+                        break
+                    }
+                }
             }
         }
 
@@ -66,7 +77,10 @@ class StreakViewModel(application: Application) : AndroidViewModel(application) 
         viewModelScope.launch {
             combine(_majorView, _granularity, _baseDate) { mv, gr, date ->
                 Triple(mv, gr, date)
-            }.collect { (mv, gr, date) ->
+            }.collect { data ->
+                val mv = data.first
+                val gr = data.second
+                val date = data.third
                 updateDateLabel(mv, gr, date)
                 loadData(mv, gr, date)
             }
@@ -74,10 +88,14 @@ class StreakViewModel(application: Application) : AndroidViewModel(application) 
 
         // Reactively refresh in background whenever history or preferences change
         viewModelScope.launch {
-            merge(WaqtNativeBridge.historyUpdates, WaqtNativeBridge.preferenceUpdates)
-                .collect {
-                    loadData(_majorView.value, _granularity.value, _baseDate.value)
-                }
+            WaqtNativeBridge.historyUpdates.collect {
+                loadData(_majorView.value, _granularity.value, _baseDate.value)
+            }
+        }
+        viewModelScope.launch {
+            WaqtNativeBridge.preferenceUpdates.collect {
+                loadData(_majorView.value, _granularity.value, _baseDate.value)
+            }
         }
     }
 
@@ -168,20 +186,23 @@ class StreakViewModel(application: Application) : AndroidViewModel(application) 
 
     val canNavigateNext: StateFlow<Boolean> = combine(_granularity, _baseDate) { gr, date ->
         val today = LocalDate.now()
-        when (gr) {
-            Granularity.MAX_DAYS -> date.isBefore(today)
-            Granularity.MONTHLY -> {
-                val currentMonth = today.with(TemporalAdjusters.firstDayOfMonth())
-                val dateMonth = date.with(TemporalAdjusters.firstDayOfMonth())
-                dateMonth.isBefore(currentMonth)
-            }
-            Granularity.WEEKLY -> {
-                val currentWeekStart = today.with(TemporalAdjusters.previousOrSame(DayOfWeek.SUNDAY))
-                val dateWeekStart = date.with(TemporalAdjusters.previousOrSame(DayOfWeek.SUNDAY))
-                dateWeekStart.isBefore(currentWeekStart)
-            }
-            Granularity.YEARLY -> date.year < today.year
+        var canGoNext = false
+        
+        if (gr == Granularity.MAX_DAYS) {
+            canGoNext = date.isBefore(today)
+        } else if (gr == Granularity.MONTHLY) {
+            val currentMonth = today.with(TemporalAdjusters.firstDayOfMonth())
+            val dateMonth = date.with(TemporalAdjusters.firstDayOfMonth())
+            canGoNext = dateMonth.isBefore(currentMonth)
+        } else if (gr == Granularity.WEEKLY) {
+            val currentWeekStart = today.with(TemporalAdjusters.previousOrSame(DayOfWeek.SUNDAY))
+            val dateWeekStart = date.with(TemporalAdjusters.previousOrSame(DayOfWeek.SUNDAY))
+            canGoNext = dateWeekStart.isBefore(currentWeekStart)
+        } else if (gr == Granularity.YEARLY) {
+            canGoNext = date.year < today.year
         }
+        
+        canGoNext
     }.stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), false)
 
     fun setMajorView(mv: MajorView) {
