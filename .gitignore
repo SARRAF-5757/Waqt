@@ -93,6 +93,7 @@ render.experimental.xml
 *.pepk
 google-services.json
 GoogleService-Info.plist
+keystore.properties
 
 # Android Package Bundles
 *.apk
