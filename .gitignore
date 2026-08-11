@@ -1,5 +1,5 @@
 # ------------------------------------------------------------------------------
-# 1. System, OS & Editor Artifacts
+# System, OS & Editor Artifacts
 # ------------------------------------------------------------------------------
 .DS_Store
 .DS_Store?
@@ -29,43 +29,12 @@ Thumbs.db
 **/.artifacts/
 
 # ------------------------------------------------------------------------------
-# 2. React Native & Expo App (Root Level)
-# ------------------------------------------------------------------------------
-# Dependencies & Package Manager Logs
-node_modules/
-npm-debug.log*
-yarn-debug.log*
-yarn-error.log*
-lerna-debug.log*
-.pnpm-debug.log*
-
-# Expo Build & Cache
-.expo/
-dist/
-web-build/
-.metro-health-check*
-expo-env.d.ts
-
-# TypeScript Build State
-tsconfig.tsbuildinfo
-
-# Environment & Secret Files
-.env
-.env.local
-.env.development.local
-.env.test.local
-.env.production.local
-
-# Expo / EAS Builds
-*.eas-build-run
-
-# ------------------------------------------------------------------------------
-# 3. Native Android Project (C++_rewrite & root)
+# Native Android Project
 # ------------------------------------------------------------------------------
 # Gradle Build Outputs & Cache
 .gradle/
 **/build/
-/C++_rewrite/app/build
+/app/build
 **/bin/
 
 # Compiled Java / Kotlin Bytecode & Android DEX
@@ -101,7 +70,7 @@ keystore.properties
 *.ap_
 
 # ------------------------------------------------------------------------------
-# 4. C++ & Android NDK Build Artifacts
+# C++ & Android NDK Build Artifacts
 # ------------------------------------------------------------------------------
 # Android NDK CMake Build Directories & Cache
 .cxx/
@@ -123,7 +92,7 @@ Makefile
 *.pch
 
 # Test Executables & Temporary Binary Runners
-/C++_rewrite/app/src/test
+/app/src/test
 test_waqt_cpp
 a.out
 *.exe

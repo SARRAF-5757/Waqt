@@ -51,8 +51,10 @@ android {
 
     signingConfigs {
         create("release") {
-            val path = keystoreProperties.getProperty("storeFile") ?: ""
-            storeFile = file(path.replaceFirst("~", System.getProperty("user.home")))
+            val path = keystoreProperties.getProperty("storeFile")
+            if (!path.isNullOrEmpty()) {
+                storeFile = file(path.replaceFirst("~", System.getProperty("user.home")))
+            }
             storePassword = keystoreProperties.getProperty("storePassword")
             keyAlias = keystoreProperties.getProperty("keyAlias")
             keyPassword = keystoreProperties.getProperty("keyPassword")

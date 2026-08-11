@@ -1,14 +1,17 @@
 # Waqt
 
-A simple app to help you improve your prayer habits.
-
 <p align="center">
   <img src="https://github.com/SARRAF-5757/Waqt/blob/master/assets/images/icons/splash-icon-light.png?raw=true" alt="App Icon" width="50%" />
 </p>
 
-### Personal Story
+* Do you tend to wait to pray until the very last minute and sometimes even miss the prayer?
+* Do you have days when you wonder whether you've already prayed a prayer or not?
+* Do you wish you had a personal assistant to remind you to pray, not right after the Adhan, but when it is convenient for you? Or just before time runs out?
+* Are you especially motivated by tasks that are gamified?
 
-The motivation behind this app comes from my own struggle with procrastination. In our busy lives, it's easy to not prioritize prayer. For me, I often find myself putting it off until suddenly I notice the next prayer is approaching—and then I either rush to pray at the last second or miss it entirely. While there are other apps that remind you at Adhan time, they don't help much if you can't pray right away. Getting a second, well-timed reminder is hard. That's where this app comes in: YOU tell the app when you're able to pray, and it will learn your preferences and adjust to prayer time shifts throughout the year, reminding you at the right moment. And I hope as you see more and more checked-off boxes in your history, you'll get the boost to keep going and make prayer a consistent part of your day.
+If you said yes to any of these questions, you might want to give Waqt a shot.
+
+**Disclaimer:** Everyone should try to pray as close to Adhan as possible. However, for some of us, that is just hard to do for various reasons. *Waqt* is designed to provide different people the different types of push they need to make daily prayers a consistent part of their lives. Whether it is a completion graph to act as a visual representation of their earned rewards or just a little nudge at the right time.
 
 <h3 align="center">Dark Mode</h3>
 <p align="center">
@@ -27,46 +30,25 @@ The motivation behind this app comes from my own struggle with procrastination. 
 ## Features Checklist
 
 - [x] Track daily prayer completion with a GitHub contribution graph style streak grid
-- [x] Material You dynamic theming (for Android only) and custom color selection
+- [x] Material You dynamic theming and custom color selection
 - [x] No internet access required, all data is stored locally
 - [x] _Waqt_ and location-based prayer notifications
-- [x] Smart _Waqt_ expiring notifications
+- [x] _Waqt_ expiration notifications
 - [x] Customizable calculation methods
-- [ ] More advanced score system to take _kaza_ prayers into account
-- [ ] More ways to represent your history data (Bar charts, Heatmaps, Month view, Year view, etc)
-- [ ] Ability to keep track of prayer data for as long or delete until a specific date
+- [x] Graphs that take _kaza_ prayers into account
+- [ ] A more advanced score system to incentivize praying in congregation, within *X* minutes of adhan, etc. 
+- [x] More ways to represent your history data (Bar charts, Heatmaps, Month view, Year view, etc)
+- [ ] Ability to navigate back to older dates in the home screen
 - [x] Custom reminder & "custom reminder offset until prayer time expires" option in settings
 - [x] Make the app prettier
 - [ ] Incorporate haptics to UI elements
 - [ ] Backup/Restore data functionality
+- [ ] Ability to keep track of prayer data for as long or delete until a specific date
 - [x] Delete data button
 - [ ] Export history as spreadsheet file
 - [ ] Widgets
 
-## Known Issues
-
-- prayer resetting at 4 am everyday
-  - this will be the default behavior until I implement time & location based reminders
-
-<br>
-<br>
 <br>
 
-# For interested devs
-
-## Project Structure
-
-- `app/(tabs)/index.tsx` — Home screen, check off today's prayers
-- `app/(tabs)/streak.tsx` — Visual streak grid for each prayer
-- `app/(tabs)/settings.tsx` — Theme and color settings
-- `providers/` — Custom React Context providers for habits and theming
-- `components/` — Themed UI components
-- `constants/` — Habit/prayer definitions and helpers
-
-## How It Works
-
-- All habit/prayer data is managed by a custom React Context provider (`habitProvider`).
-- Theme color is managed by a separate provider (`materialYouProvider`).
-- Data is stored in local storage (AsyncStorage) and loaded automatically.
-- Prayer times are calculated using [adhan-js](https://github.com/batoulapps/adhan-js) and provided by `prayerTimesProvider` to display in homepage
-- Prayer notifications are scheduled directly in `index`
+### Personal Story
+The motivation behind this app comes from my own struggle with procrastination. In our busy lives, it's easy to not prioritize prayer. For me, I often find myself putting it off until suddenly I notice the next prayer is approaching—and then I either rush to pray at the last second or miss it entirely. While there are other apps that remind you at Adhan time, they don't help much if you can't pray right away. A second, well-timed reminder is rare in any other prayer-time apps. That's why I created *Waqt*. I am also a completionist, so the github-style graph and the in-app reward system give me a secondary incentive to keep getting up to pray even when my body doesn't want to.
