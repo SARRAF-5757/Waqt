@@ -1,7 +1,7 @@
 # Waqt
 
 <p align="center">
-  <img src="https://github.com/SARRAF-5757/Waqt/blob/master/images/icon.png?raw=true" alt="App Icon" width="50%" />
+  <img src="images/icon.png" alt="App Icon" width="50%" />
 </p>
 
 * Do you tend to wait to pray until the very last minute and sometimes even miss the prayer?
