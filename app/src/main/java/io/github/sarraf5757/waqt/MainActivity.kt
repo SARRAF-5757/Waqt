@@ -32,7 +32,7 @@ class MainActivity : ComponentActivity() {
     private val settingsViewModel: SettingsViewModel by viewModels()
 
     /**
-\     * PERMISSIONS: Handles the asynchronous callback from the OS when the user accepts/denies permissions
+     * PERMISSIONS: Handles the asynchronous callback from the OS when the user accepts/denies permissions
      */
     private val permissionLauncher = registerForActivityResult(
         ActivityResultContracts.RequestMultiplePermissions()
@@ -41,10 +41,10 @@ class MainActivity : ComponentActivity() {
         val coarseLocationPermission = permissions[Manifest.permission.ACCESS_COARSE_LOCATION]
         
         var locationGranted = false
-        if (fineLocationPermission != null && fineLocationPermission == true) {
+        if (fineLocationPermission != null && fineLocationPermission) {
             locationGranted = true
         }
-        if (coarseLocationPermission != null && coarseLocationPermission == true) {
+        if (coarseLocationPermission != null && coarseLocationPermission) {
             locationGranted = true
         }
         

@@ -8,7 +8,6 @@ import io.github.sarraf5757.waqt.bridge.WaqtNativeBridge
 import io.github.sarraf5757.waqt.notifications.NotificationScheduler
 
 class WaqtApp : Application() {
-
     /**
      * Called when the application is starting, before any activity, service, or receiver objects have been created
      */

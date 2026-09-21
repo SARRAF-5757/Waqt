@@ -7,7 +7,6 @@ import android.content.Context
 import android.content.Intent
 
 class BootReceiver : BroadcastReceiver() {
-
     /**
      * Reschedules all active prayer notifications upon device system boot
      */
