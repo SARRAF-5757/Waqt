@@ -1,4 +1,6 @@
-// Settings screen UI for preferences and calculation controls
+/**
+ * Settings screen UI for preferences and calculation controls
+ */
 
 package io.github.sarraf5757.waqt.ui.screens
 
@@ -36,7 +38,7 @@ import io.github.sarraf5757.waqt.ui.viewmodels.SettingsViewModel
  */
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun SettingsScreen(viewModel: SettingsViewModel) {
+fun SettingsScreen(viewModel: SettingsViewModel, contentPadding: PaddingValues) {
     val prefs by viewModel.prefs.collectAsState()
     var showDeleteDialog by remember { mutableStateOf(false) }
     val settings = prefs ?: return
@@ -67,8 +69,9 @@ fun SettingsScreen(viewModel: SettingsViewModel) {
         modifier = Modifier
             .fillMaxSize()
             .verticalScroll(rememberScrollState())
+            .padding(contentPadding)
             .padding(horizontal = 20.dp)
-            .padding(bottom = 120.dp),
+            .padding(bottom = 20.dp),
         horizontalAlignment = Alignment.Start
     ) {
         Spacer(modifier = Modifier.height(26.dp))

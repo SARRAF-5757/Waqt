@@ -41,7 +41,7 @@ import io.github.sarraf5757.waqt.ui.viewmodels.StreakViewModel
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun StreakScreen(viewModel: StreakViewModel) {
+fun StreakScreen(viewModel: StreakViewModel, contentPadding: PaddingValues) {
     val majorView by viewModel.majorView.collectAsState()
     val granularity by viewModel.granularity.collectAsState()
     val dateLabel by viewModel.dateLabel.collectAsState()
@@ -58,6 +58,7 @@ fun StreakScreen(viewModel: StreakViewModel) {
         modifier = Modifier
             .fillMaxSize()
             .verticalScroll(rememberScrollState())
+            .padding(contentPadding)
             .padding(horizontal = 20.dp),
         horizontalAlignment = Alignment.CenterHorizontally
     ) {
