@@ -18,7 +18,7 @@ import io.github.sarraf5757.waqt.bridge.NativeModels
 import io.github.sarraf5757.waqt.bridge.WaqtNativeBridge
 import io.github.sarraf5757.waqt.notifications.NotificationScheduler
 
-class HomeViewModel(application: Application) : AndroidViewModel(application) {
+class HomeViewModel(application: Application, private val waqtBridge: io.github.sarraf5757.waqt.bridge.IWaqtBridge) : AndroidViewModel(application) {
 
     /**
      * When the value of `_homeState` changes, the UI automatically redraws
@@ -30,7 +30,7 @@ class HomeViewModel(application: Application) : AndroidViewModel(application) {
         loadHomeState()
         // Sync with preference changes from Settings screen
         viewModelScope.launch {
-            WaqtNativeBridge.preferenceUpdates.collect {
+            waqtBridge.preferenceUpdates.collect {
                 loadHomeState()
             }
         }
@@ -41,7 +41,7 @@ class HomeViewModel(application: Application) : AndroidViewModel(application) {
      */
     fun loadHomeState() {
         viewModelScope.launch {
-            _homeState.value = WaqtNativeBridge.getHomeState()
+            _homeState.value = waqtBridge.getHomeState()
         }
     }
 
@@ -82,10 +82,10 @@ class HomeViewModel(application: Application) : AndroidViewModel(application) {
 
         viewModelScope.launch {
             // Write to Native SQLite
-            WaqtNativeBridge.togglePrayer(dateKey, prayerId, newCompletedStatus, onTimeResult)
+            waqtBridge.togglePrayer(dateKey, prayerId, newCompletedStatus, onTimeResult)
             
             // Refresh the local state from C++
-            val newState = WaqtNativeBridge.getHomeState()
+            val newState = waqtBridge.getHomeState()
             _homeState.value = newState
             
             // Update scheduled system alarms
@@ -106,10 +106,10 @@ class HomeViewModel(application: Application) : AndroidViewModel(application) {
 
         viewModelScope.launch {
             // Force isOnTime = true in SQLite
-            WaqtNativeBridge.togglePrayer(dateKey, prayerId, true, true)
+            waqtBridge.togglePrayer(dateKey, prayerId, true, true)
             
             // Refresh UI
-            val newState = WaqtNativeBridge.getHomeState()
+            val newState = waqtBridge.getHomeState()
             _homeState.value = newState
         }
     }

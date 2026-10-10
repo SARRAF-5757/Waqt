@@ -4,12 +4,22 @@
 
 package io.github.sarraf5757.waqt.ui.screens
 
-import java.time.LocalDate
-
 import androidx.compose.foundation.Canvas
 import androidx.compose.foundation.background
 import androidx.compose.foundation.horizontalScroll
-import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.PaddingValues
+import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.fillMaxHeight
+import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
@@ -17,8 +27,25 @@ import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.automirrored.filled.ArrowForward
-import androidx.compose.material3.*
-import androidx.compose.runtime.*
+import androidx.compose.material3.Card
+import androidx.compose.material3.CardDefaults
+import androidx.compose.material3.CircularProgressIndicator
+import androidx.compose.material3.DropdownMenuItem
+import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.material3.ExposedDropdownMenuAnchorType
+import androidx.compose.material3.ExposedDropdownMenuBox
+import androidx.compose.material3.ExposedDropdownMenuDefaults
+import androidx.compose.material3.Icon
+import androidx.compose.material3.IconButton
+import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.OutlinedTextField
+import androidx.compose.material3.Text
+import androidx.compose.runtime.Composable
+import androidx.compose.runtime.collectAsState
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
@@ -30,14 +57,15 @@ import androidx.compose.ui.res.stringArrayResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
+import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-
 import io.github.sarraf5757.waqt.R
 import io.github.sarraf5757.waqt.bridge.NativeModels
 import io.github.sarraf5757.waqt.ui.viewmodels.Granularity
 import io.github.sarraf5757.waqt.ui.viewmodels.MajorView
 import io.github.sarraf5757.waqt.ui.viewmodels.StreakViewModel
+import java.time.LocalDate
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -51,6 +79,40 @@ fun StreakScreen(viewModel: StreakViewModel, contentPadding: PaddingValues) {
     val baseDate by viewModel.baseDate.collectAsState()
     val canNavigateNext by viewModel.canNavigateNext.collectAsState()
 
+    StreakScreenContent(
+        majorView = majorView,
+        granularity = granularity,
+        dateLabel = dateLabel,
+        streakData = streakData,
+        statsData = statsData,
+        isLoading = isLoading,
+        baseDate = baseDate,
+        canNavigateNext = canNavigateNext,
+        contentPadding = contentPadding,
+        onSetMajorView = { viewModel.setMajorView(it) },
+        onSetGranularity = { viewModel.setGranularity(it) },
+        onPrevious = { viewModel.previous() },
+        onNext = { viewModel.next() }
+    )
+}
+
+@OptIn(ExperimentalMaterial3Api::class)
+@Composable
+fun StreakScreenContent(
+    majorView: MajorView,
+    granularity: Granularity,
+    dateLabel: String,
+    streakData: NativeModels.StreakGridData?,
+    statsData: NativeModels.HistoryStatsData?,
+    isLoading: Boolean,
+    baseDate: LocalDate,
+    canNavigateNext: Boolean,
+    contentPadding: PaddingValues,
+    onSetMajorView: (MajorView) -> Unit,
+    onSetGranularity: (Granularity) -> Unit,
+    onPrevious: () -> Unit,
+    onNext: () -> Unit
+) {
     var majorMenuExpanded by remember { mutableStateOf(false) }
     var granularityMenuExpanded by remember { mutableStateOf(false) }
 
@@ -103,7 +165,7 @@ fun StreakScreen(viewModel: StreakViewModel, contentPadding: PaddingValues) {
                         DropdownMenuItem(
                             text = { Text(formatMajorView(mv)) },
                             onClick = {
-                                viewModel.setMajorView(mv)
+                                onSetMajorView(mv)
                                 majorMenuExpanded = false
                             }
                         )
@@ -139,7 +201,7 @@ fun StreakScreen(viewModel: StreakViewModel, contentPadding: PaddingValues) {
                         DropdownMenuItem(
                             text = { Text(formatGranularity(gr)) },
                             onClick = {
-                                viewModel.setGranularity(gr)
+                                onSetGranularity(gr)
                                 granularityMenuExpanded = false
                             }
                         )
@@ -156,7 +218,7 @@ fun StreakScreen(viewModel: StreakViewModel, contentPadding: PaddingValues) {
             verticalAlignment = Alignment.CenterVertically,
             horizontalArrangement = Arrangement.SpaceBetween
         ) {
-            IconButton(onClick = { viewModel.previous() }) {
+            IconButton(onClick = { onPrevious() }) {
                 Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = "Previous")
             }
 
@@ -167,7 +229,7 @@ fun StreakScreen(viewModel: StreakViewModel, contentPadding: PaddingValues) {
             )
 
             IconButton(
-                onClick = { viewModel.next() },
+                onClick = { onNext() },
                 enabled = canNavigateNext
             ) {
                 Icon(Icons.AutoMirrored.Filled.ArrowForward, contentDescription = "Next")
@@ -264,7 +326,7 @@ fun MatrixGrid(completionGrid: BooleanArray, onTimeGrid: BooleanArray, numWeeks:
         for (weekIndex in 0 until numWeeks) {
             for (dayOfWeek in 0 until 7) {
                 val cellIndex = weekIndex * 7 + dayOfWeek
-                if (cellIndex >= completionGrid.size) continue
+                if (cellIndex >= completionGrid.size || cellIndex >= onTimeGrid.size) continue
 
                 val isCompleted = completionGrid[cellIndex]
                 val isOnTime = onTimeGrid[cellIndex]
@@ -311,8 +373,8 @@ fun CalendarGrid(completionGrid: BooleanArray, onTimeGrid: BooleanArray, date: L
                     val pos = r * 7 + c
                     val dayIdx = pos - offset
                     if (dayIdx in 0 until daysInMonth) {
-                        val isCompleted = completionGrid[dayIdx]
-                        val isOnTime = onTimeGrid[dayIdx]
+                        val isCompleted = completionGrid.getOrElse(dayIdx) { false }
+                        val isOnTime = onTimeGrid.getOrElse(dayIdx) { false }
                         val color = when {
                             isCompleted && isOnTime -> onTimeColor
                             isCompleted && !isOnTime -> lateColor
@@ -552,5 +614,33 @@ fun BarChartCanvas(statsData: NativeModels.HistoryStatsData) {
                 )
             }
         }
+    }
+}
+
+@Preview(showBackground = true)
+@Composable
+fun StreakScreenPreview() {
+    io.github.sarraf5757.waqt.ui.theme.WaqtTheme {
+        StreakScreenContent(
+            majorView = MajorView.MATRIX,
+            granularity = Granularity.MONTHLY,
+            dateLabel = "September 2024",
+            streakData = NativeModels.StreakGridData(
+                totalDays = 30,
+                streaks = listOf(
+                    NativeModels.PrayerStreak("Fajr", BooleanArray(30) { it % 2 == 0 }, BooleanArray(30) { it % 3 == 0 }),
+                    NativeModels.PrayerStreak("Dhuhr", BooleanArray(30) { true }, BooleanArray(30) { true })
+                )
+            ),
+            statsData = null,
+            isLoading = false,
+            baseDate = LocalDate.now(),
+            canNavigateNext = false,
+            contentPadding = PaddingValues(16.dp),
+            onSetMajorView = {},
+            onSetGranularity = {},
+            onPrevious = {},
+            onNext = {}
+        )
     }
 }

@@ -9,12 +9,12 @@ import android.content.Context
 import kotlinx.coroutines.channels.BufferOverflow
 import kotlinx.coroutines.flow.MutableSharedFlow
 
-object WaqtNativeBridge {
+object WaqtNativeBridge : IWaqtBridge {
 
     /**
      * Observable flow for preference changes
      */
-    val preferenceUpdates = MutableSharedFlow<Unit>(
+    override val preferenceUpdates = MutableSharedFlow<Unit>(
         extraBufferCapacity = 1,
         onBufferOverflow = BufferOverflow.DROP_OLDEST
     )
@@ -22,7 +22,7 @@ object WaqtNativeBridge {
     /**
      * Observable flow for history (prayer toggle, delete all) changes
      */
-    val historyUpdates = MutableSharedFlow<Unit>(
+    override val historyUpdates = MutableSharedFlow<Unit>(
         extraBufferCapacity = 1,
         onBufferOverflow = BufferOverflow.DROP_OLDEST
     )
@@ -35,7 +35,7 @@ object WaqtNativeBridge {
     /**
      * Passes the device's internal application path to C++ (so SQLite knows where to save files)
      */
-    fun initialize(context: Context): Boolean {
+    override fun initialize(context: Context): Boolean {
         val databaseFile = File(context.filesDir, "waqt_native.db")
         val databasePath = databaseFile.absolutePath
         return nativeInitialize(databasePath)
@@ -44,7 +44,7 @@ object WaqtNativeBridge {
     /**
      * Forwards GPS coordinates to the C++ core
      */
-    fun updateLocation(latitude: Double, longitude: Double) {
+    override fun updateLocation(latitude: Double, longitude: Double) {
         nativeUpdateLocation(latitude, longitude)
         preferenceUpdates.tryEmit(Unit)
     }
@@ -52,7 +52,7 @@ object WaqtNativeBridge {
     /**
      * Calls C++, which formats all the time and prayer strings into a ready-to-display object
      */
-    fun getHomeState(): NativeModels.HomeState? {
+    override fun getHomeState(): NativeModels.HomeState? {
         val nowSec = System.currentTimeMillis() / 1000
         return nativeGetHomeState(nowSec)
     }
@@ -60,35 +60,35 @@ object WaqtNativeBridge {
     /**
      * Persists a checkbox change to the SQLite database
      */
-    fun togglePrayer(dateKey: String, prayerId: String, completed: Boolean, isOnTime: Boolean): Boolean {
+    override fun togglePrayer(dateKey: String, prayerId: String, completed: Boolean, isOnTime: Boolean): Boolean {
         val result = nativeTogglePrayer(dateKey, prayerId, completed, isOnTime)
         historyUpdates.tryEmit(Unit)
         return result
     }
 
-    fun getPreferences(): NativeModels.PreferenceSettings? {
+    override fun getPreferences(): NativeModels.PreferenceSettings? {
         return nativeGetPreferences()
     }
 
-    fun updatePreference(key: String, value: String) {
+    override fun updatePreference(key: String, value: String) {
         nativeUpdatePreference(key, value)
         preferenceUpdates.tryEmit(Unit)
     }
 
-    fun deleteAllHistory() {
+    override fun deleteAllHistory() {
         nativeDeleteAllHistory()
         historyUpdates.tryEmit(Unit)
     }
 
-    fun getRangeGridData(startDate: String, endDate: String): NativeModels.StreakGridData? {
+    override fun getRangeGridData(startDate: String, endDate: String): NativeModels.StreakGridData? {
         return nativeGetRangeGridData(startDate, endDate)
     }
 
-    fun getRangeStats(startDate: String, endDate: String): NativeModels.HistoryStatsData? {
+    override fun getRangeStats(startDate: String, endDate: String): NativeModels.HistoryStatsData? {
         return nativeGetRangeStats(startDate, endDate)
     }
 
-    fun getNotificationSchedule(): List<NativeModels.NotificationIntent> {
+    override fun getNotificationSchedule(): List<NativeModels.NotificationIntent> {
         val nowSec = System.currentTimeMillis() / 1000
         val schedule = nativeGetNotificationSchedule(nowSec)
         if (schedule != null) {

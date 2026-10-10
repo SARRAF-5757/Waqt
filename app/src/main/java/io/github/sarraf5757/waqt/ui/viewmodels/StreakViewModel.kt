@@ -25,7 +25,7 @@ import io.github.sarraf5757.waqt.bridge.WaqtNativeBridge
 enum class MajorView { MATRIX, STATS, BAR_CHART }
 enum class Granularity { MAX_DAYS, MONTHLY, WEEKLY, YEARLY }
 
-class StreakViewModel(application: Application) : AndroidViewModel(application) {
+class StreakViewModel(application: Application, private val waqtBridge: io.github.sarraf5757.waqt.bridge.IWaqtBridge) : AndroidViewModel(application) {
 
     private val _majorView = MutableStateFlow(MajorView.MATRIX)
     val majorView: StateFlow<MajorView> = _majorView.asStateFlow()
@@ -51,7 +51,7 @@ class StreakViewModel(application: Application) : AndroidViewModel(application) 
     init {
         // Load initial state from preferences
         viewModelScope.launch {
-            val prefs = withContext(Dispatchers.IO) { WaqtNativeBridge.getPreferences() }
+            val prefs = withContext(Dispatchers.IO) { waqtBridge.getPreferences() }
             if (prefs != null) {
                 // Restore the last major view (e.g., Matrix, Stats)
                 val storedMajorView = prefs.historyMajorView
@@ -88,12 +88,12 @@ class StreakViewModel(application: Application) : AndroidViewModel(application) 
 
         // Reactively refresh in background whenever history or preferences change
         viewModelScope.launch {
-            WaqtNativeBridge.historyUpdates.collect {
+            waqtBridge.historyUpdates.collect {
                 loadData(_majorView.value, _granularity.value, _baseDate.value)
             }
         }
         viewModelScope.launch {
-            WaqtNativeBridge.preferenceUpdates.collect {
+            waqtBridge.preferenceUpdates.collect {
                 loadData(_majorView.value, _granularity.value, _baseDate.value)
             }
         }
@@ -134,11 +134,11 @@ class StreakViewModel(application: Application) : AndroidViewModel(application) 
             withContext(Dispatchers.IO) {
                 when (mv) {
                     MajorView.MATRIX -> {
-                        _streakData.value = WaqtNativeBridge.getRangeGridData(startStr, endStr)
+                        _streakData.value = waqtBridge.getRangeGridData(startStr, endStr)
                         _statsData.value = null
                     }
                     MajorView.STATS, MajorView.BAR_CHART -> {
-                        _statsData.value = WaqtNativeBridge.getRangeStats(startStr, endStr)
+                        _statsData.value = waqtBridge.getRangeStats(startStr, endStr)
                         _streakData.value = null
                     }
                 }
@@ -207,7 +207,7 @@ class StreakViewModel(application: Application) : AndroidViewModel(application) 
 
     fun setMajorView(mv: MajorView) {
         _majorView.value = mv
-        WaqtNativeBridge.updatePreference("historyMajorView", mv.name)
+        waqtBridge.updatePreference("historyMajorView", mv.name)
 
         // Sync granularity to valid options for the major view
         when (mv) {
@@ -226,7 +226,7 @@ class StreakViewModel(application: Application) : AndroidViewModel(application) 
 
     fun setGranularity(gr: Granularity) {
         _granularity.value = gr
-        WaqtNativeBridge.updatePreference("historyGranularity", gr.name)
+        waqtBridge.updatePreference("historyGranularity", gr.name)
     }
 
     fun next() {

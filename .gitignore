@@ -98,3 +98,4 @@ test_waqt_cpp
 a.out
 *.exe
 *.out
+/graphify-out

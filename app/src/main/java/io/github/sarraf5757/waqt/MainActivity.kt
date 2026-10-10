@@ -30,9 +30,15 @@ import io.github.sarraf5757.waqt.ui.viewmodels.StreakViewModel
 
 class MainActivity : ComponentActivity() {
     // ViewModels are the "State Owners" for each screen
-    private val homeViewModel: HomeViewModel by viewModels()
-    private val streakViewModel: StreakViewModel by viewModels()
-    private val settingsViewModel: SettingsViewModel by viewModels()
+    private val homeViewModel: HomeViewModel by viewModels {
+        io.github.sarraf5757.waqt.ui.viewmodels.WaqtViewModelFactory(application)
+    }
+    private val streakViewModel: StreakViewModel by viewModels {
+        io.github.sarraf5757.waqt.ui.viewmodels.WaqtViewModelFactory(application)
+    }
+    private val settingsViewModel: SettingsViewModel by viewModels {
+        io.github.sarraf5757.waqt.ui.viewmodels.WaqtViewModelFactory(application)
+    }
 
     /**
      * PERMISSIONS: Handles the asynchronous callback from the OS when the user accepts/denies permissions

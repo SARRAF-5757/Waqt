@@ -25,6 +25,9 @@ import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.text.style.TextAlign
+import androidx.compose.ui.tooling.preview.Preview
+import io.github.sarraf5757.waqt.bridge.NativeModels
+import io.github.sarraf5757.waqt.ui.theme.WaqtTheme
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 
@@ -40,8 +43,36 @@ import io.github.sarraf5757.waqt.ui.viewmodels.SettingsViewModel
 @Composable
 fun SettingsScreen(viewModel: SettingsViewModel, contentPadding: PaddingValues) {
     val prefs by viewModel.prefs.collectAsState()
-    var showDeleteDialog by remember { mutableStateOf(false) }
     val settings = prefs ?: return
+
+
+    SettingsScreenContent(
+        settings = settings,
+        contentPadding = contentPadding,
+        onUpdateEndTimeOffset = { viewModel.updateEndTimeOffset(it) },
+        onUpdateCalculationMethod = { viewModel.updateCalculationMethod(it) },
+        onUpdateMadhab = { viewModel.updateMadhab(it) },
+        onUpdateShowStartTime = { viewModel.updateShowStartTime(it) },
+        onUpdateShowEndTime = { viewModel.updateShowEndTime(it) },
+        onUpdateThemeColor = { viewModel.updateThemeColor(it) },
+        onDeleteAllHistory = { viewModel.deleteAllHistory() }
+    )
+}
+
+@OptIn(ExperimentalMaterial3Api::class)
+@Composable
+fun SettingsScreenContent(
+    settings: NativeModels.PreferenceSettings,
+    contentPadding: PaddingValues,
+    onUpdateEndTimeOffset: (String) -> Unit,
+    onUpdateCalculationMethod: (String) -> Unit,
+    onUpdateMadhab: (String) -> Unit,
+    onUpdateShowStartTime: (Boolean) -> Unit,
+    onUpdateShowEndTime: (Boolean) -> Unit,
+    onUpdateThemeColor: (String) -> Unit,
+    onDeleteAllHistory: () -> Unit
+) {
+    var showDeleteDialog by remember { mutableStateOf(false) }
     val context = LocalContext.current
     val darkTheme = isSystemInDarkTheme()
 
@@ -106,7 +137,7 @@ fun SettingsScreen(viewModel: SettingsViewModel, contentPadding: PaddingValues) 
                 supportingContent = {
                     TextField(
                         value = settings.endTimeOffset.toString(),
-                        onValueChange = { viewModel.updateEndTimeOffset(it) },
+                        onValueChange = { onUpdateEndTimeOffset(it) },
                         keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
                         modifier = Modifier
                             .fillMaxWidth()
@@ -137,7 +168,7 @@ fun SettingsScreen(viewModel: SettingsViewModel, contentPadding: PaddingValues) 
                     label = stringResource(R.string.calculation_method_label),
                     currentValue = settings.calculationMethod,
                     options = calculationMethods,
-                    onSelect = { viewModel.updateCalculationMethod(it) }
+                    onSelect = { onUpdateCalculationMethod(it) }
                 )
                 HorizontalDivider(
                     modifier = Modifier.padding(horizontal = 16.dp),
@@ -148,7 +179,7 @@ fun SettingsScreen(viewModel: SettingsViewModel, contentPadding: PaddingValues) 
                     label = stringResource(R.string.madhab_label),
                     currentValue = settings.madhab,
                     options = madhabOptions,
-                    onSelect = { viewModel.updateMadhab(it) }
+                    onSelect = { onUpdateMadhab(it) }
                 )
             }
         }
@@ -188,7 +219,7 @@ fun SettingsScreen(viewModel: SettingsViewModel, contentPadding: PaddingValues) 
                         SegmentedButton(
                             shape = SegmentedButtonDefaults.itemShape(index = 0, count = options.size),
                             onCheckedChange = {
-                                viewModel.updateShowStartTime(!settings.showStartTime)
+                                onUpdateShowStartTime(!settings.showStartTime)
                             },
                             checked = settings.showStartTime,
                             icon = { SegmentedButtonDefaults.Icon(settings.showStartTime) },
@@ -209,7 +240,7 @@ fun SettingsScreen(viewModel: SettingsViewModel, contentPadding: PaddingValues) 
                         SegmentedButton(
                             shape = SegmentedButtonDefaults.itemShape(index = 1, count = options.size),
                             onCheckedChange = {
-                                viewModel.updateShowEndTime(!settings.showEndTime)
+                                onUpdateShowEndTime(!settings.showEndTime)
                             },
                             checked = settings.showEndTime,
                             icon = { SegmentedButtonDefaults.Icon(settings.showEndTime) },
@@ -243,7 +274,7 @@ fun SettingsScreen(viewModel: SettingsViewModel, contentPadding: PaddingValues) 
             Spacer(modifier = Modifier.height(16.dp))
 
             Card(
-                onClick = { viewModel.updateThemeColor("Material You") },
+                onClick = { onUpdateThemeColor("Material You") },
                 modifier = Modifier.fillMaxWidth(),
                 shape = RoundedCornerShape(16.dp),
                 colors = CardDefaults.cardColors(
@@ -285,7 +316,7 @@ fun SettingsScreen(viewModel: SettingsViewModel, contentPadding: PaddingValues) 
                 rowColors.forEach { colorOption ->
                     val isSelected = !isMaterialYou && settings.themeColor.equals(colorOption.hexString, ignoreCase = true)
                     Card(
-                        onClick = { viewModel.updateThemeColor(colorOption.hexString) },
+                        onClick = { onUpdateThemeColor(colorOption.hexString) },
                         modifier = Modifier.weight(1f),
                         shape = RoundedCornerShape(16.dp),
                         colors = CardDefaults.cardColors(
@@ -354,7 +385,7 @@ fun SettingsScreen(viewModel: SettingsViewModel, contentPadding: PaddingValues) 
                 TextButton(
                     onClick = {
                         showDeleteDialog = false
-                        viewModel.deleteAllHistory()
+                        onDeleteAllHistory()
                     }
                 ) {
                     Text(stringResource(R.string.delete), color = MaterialTheme.colorScheme.error)
@@ -446,4 +477,36 @@ fun DropdownSettingItem(
         colors = ListItemDefaults.colors(containerColor = Color.Transparent),
         modifier = Modifier.padding(vertical = 8.dp)
     )
+}
+
+@Preview(showBackground = true)
+@Composable
+fun SettingsScreenPreview() {
+    val mockSettings = NativeModels.PreferenceSettings(
+        showStartTime = true,
+        showEndTime = true,
+        calculationMethod = "MuslimWorldLeague",
+        madhab = "shafi",
+        themeColor = "Material You",
+        endTimeOffset = 5,
+        latitude = 0.0,
+        longitude = 0.0,
+        hasLocation = false,
+        historyMajorView = "Matrix",
+        historyGranularity = "Monthly"
+    )
+
+    io.github.sarraf5757.waqt.ui.theme.WaqtTheme {
+        SettingsScreenContent(
+            settings = mockSettings,
+            contentPadding = PaddingValues(16.dp),
+            onUpdateEndTimeOffset = {},
+            onUpdateCalculationMethod = {},
+            onUpdateMadhab = {},
+            onUpdateShowStartTime = {},
+            onUpdateShowEndTime = {},
+            onUpdateThemeColor = {},
+            onDeleteAllHistory = {}
+        )
+    }
 }

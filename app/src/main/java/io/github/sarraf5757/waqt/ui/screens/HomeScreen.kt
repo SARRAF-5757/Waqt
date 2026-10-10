@@ -56,7 +56,9 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import io.github.sarraf5757.waqt.R
 import io.github.sarraf5757.waqt.bridge.NativeModels
+import androidx.compose.ui.tooling.preview.Preview
 import io.github.sarraf5757.waqt.ui.theme.RobotoMonoFontFamily
+import io.github.sarraf5757.waqt.ui.theme.WaqtTheme
 import io.github.sarraf5757.waqt.ui.viewmodels.HomeViewModel
 
 /**
@@ -65,6 +67,22 @@ import io.github.sarraf5757.waqt.ui.viewmodels.HomeViewModel
 @Composable
 fun HomeScreen(viewModel: HomeViewModel, contentPadding: PaddingValues) {
     val homeState by viewModel.homeState.collectAsState()   /** Re-run this function whenever the C++ state changes */
+    
+    HomeScreenContent(
+        homeState = homeState,
+        contentPadding = contentPadding,
+        onTogglePrayer = { viewModel.togglePrayer(it) },
+        onMarkAsOnTime = { viewModel.markAsOnTime(it) }
+    )
+}
+
+@Composable
+fun HomeScreenContent(
+    homeState: NativeModels.HomeState?,
+    contentPadding: PaddingValues,
+    onTogglePrayer: (String) -> Unit,
+    onMarkAsOnTime: (String) -> Unit
+) {
     val isDark = isSystemInDarkTheme()
 
     var prayerToUncheck by remember { mutableStateOf<NativeModels.UIPrayerItem?>(null) }
@@ -109,7 +127,7 @@ fun HomeScreen(viewModel: HomeViewModel, contentPadding: PaddingValues) {
                     if (prayer.isCompleted && prayer.isOnTime) {
                         prayerToUncheck = prayer
                     } else {
-                        viewModel.togglePrayer(prayer.id)
+                        onTogglePrayer(prayer.id)
                     }
                 },
                 onMarkOnTime = {
@@ -128,7 +146,7 @@ fun HomeScreen(viewModel: HomeViewModel, contentPadding: PaddingValues) {
             confirmButton = {
                 TextButton(
                     onClick = {
-                        viewModel.togglePrayer(prayerToUncheck!!.id)
+                        onTogglePrayer(prayerToUncheck!!.id)
                         prayerToUncheck = null
                     }
                 ) {
@@ -152,7 +170,7 @@ fun HomeScreen(viewModel: HomeViewModel, contentPadding: PaddingValues) {
             confirmButton = {
                 TextButton(
                     onClick = {
-                        viewModel.markAsOnTime(prayerToMarkOnTime!!.id)
+                        onMarkAsOnTime(prayerToMarkOnTime!!.id)
                         prayerToMarkOnTime = null
                     }
                 ) {
@@ -164,6 +182,28 @@ fun HomeScreen(viewModel: HomeViewModel, contentPadding: PaddingValues) {
                     Text(stringResource(R.string.cancel))
                 }
             }
+        )
+    }
+}
+
+@Preview(showBackground = true)
+@Composable
+fun HomeScreenPreview() {
+    val samplePrayers = listOf(
+        NativeModels.UIPrayerItem("fajr", "Fajr", "05:30", "06:45", 0L, 0L, isCompleted = true, isOnTime = true),
+        NativeModels.UIPrayerItem("dhuhr", "Dhuhr", "13:15", "16:20", 0L, 0L, isCompleted = false, isOnTime = false),
+        NativeModels.UIPrayerItem("asr", "Asr", "16:30", "18:45", 0L, 0L, isCompleted = true, isOnTime = false),
+        NativeModels.UIPrayerItem("maghrib", "Maghrib", "19:00", "20:30", 0L, 0L, isCompleted = false, isOnTime = false),
+        NativeModels.UIPrayerItem("isha", "Isha", "20:45", "05:00", 0L, 0L, isCompleted = false, isOnTime = false)
+    )
+    val mockState = NativeModels.HomeState("2024-01-01", samplePrayers, showStartTime = true, showEndTime = true)
+    
+    WaqtTheme {
+        HomeScreenContent(
+            homeState = mockState,
+            contentPadding = PaddingValues(16.dp),
+            onTogglePrayer = {},
+            onMarkAsOnTime = {}
         )
     }
 }

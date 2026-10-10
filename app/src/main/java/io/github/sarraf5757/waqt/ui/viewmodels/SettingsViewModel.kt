@@ -18,7 +18,7 @@ import io.github.sarraf5757.waqt.bridge.NativeModels
 import io.github.sarraf5757.waqt.bridge.WaqtNativeBridge
 import io.github.sarraf5757.waqt.notifications.NotificationScheduler
 
-class SettingsViewModel(application: Application) : AndroidViewModel(application) {
+class SettingsViewModel(application: Application, private val waqtBridge: io.github.sarraf5757.waqt.bridge.IWaqtBridge) : AndroidViewModel(application) {
 
     private val _prefs = MutableStateFlow<NativeModels.PreferenceSettings?>(null)
     val prefs: StateFlow<NativeModels.PreferenceSettings?> = _prefs.asStateFlow()
@@ -32,7 +32,7 @@ class SettingsViewModel(application: Application) : AndroidViewModel(application
      */
     fun loadPreferences() {
         viewModelScope.launch {
-            val settings = WaqtNativeBridge.getPreferences()
+            val settings = waqtBridge.getPreferences()
             _prefs.value = settings
         }
     }
@@ -53,7 +53,7 @@ class SettingsViewModel(application: Application) : AndroidViewModel(application
         if (finalOffset < 0) finalOffset = 0
         if (finalOffset > 120) finalOffset = 120
         
-        WaqtNativeBridge.updatePreference("endTimeOffset", finalOffset.toString())
+        waqtBridge.updatePreference("endTimeOffset", finalOffset.toString())
         loadPreferences()
         NotificationScheduler.scheduleNotifications(getApplication())
     }
@@ -62,7 +62,7 @@ class SettingsViewModel(application: Application) : AndroidViewModel(application
      * Updates preference, recalculates prayer times, and reschedules notifications
      */
     fun updateCalculationMethod(method: String) {
-        WaqtNativeBridge.updatePreference("calculationMethod", method)
+        waqtBridge.updatePreference("calculationMethod", method)
         loadPreferences()
         NotificationScheduler.scheduleNotifications(getApplication())
     }
@@ -71,7 +71,7 @@ class SettingsViewModel(application: Application) : AndroidViewModel(application
      * Updates Asr calculation preference and reschedules notifications
      */
     fun updateMadhab(madhab: String) {
-        WaqtNativeBridge.updatePreference("madhab", madhab)
+        waqtBridge.updatePreference("madhab", madhab)
         loadPreferences()
         NotificationScheduler.scheduleNotifications(getApplication())
     }
@@ -85,7 +85,7 @@ class SettingsViewModel(application: Application) : AndroidViewModel(application
         } else {
             "false"
         }
-        WaqtNativeBridge.updatePreference("showStartTime", valueString)
+        waqtBridge.updatePreference("showStartTime", valueString)
         loadPreferences()
     }
 
@@ -98,7 +98,7 @@ class SettingsViewModel(application: Application) : AndroidViewModel(application
         } else {
             "false"
         }
-        WaqtNativeBridge.updatePreference("showEndTime", valueString)
+        waqtBridge.updatePreference("showEndTime", valueString)
         loadPreferences()
     }
 
@@ -106,7 +106,7 @@ class SettingsViewModel(application: Application) : AndroidViewModel(application
      * Persists dynamic theme or custom accent color choice
      */
     fun updateThemeColor(color: String) {
-        WaqtNativeBridge.updatePreference("themeColor", color)
+        waqtBridge.updatePreference("themeColor", color)
         loadPreferences()
     }
 
@@ -115,7 +115,7 @@ class SettingsViewModel(application: Application) : AndroidViewModel(application
      */
     fun deleteAllHistory() {
         viewModelScope.launch {
-            WaqtNativeBridge.deleteAllHistory()
+            waqtBridge.deleteAllHistory()
             NotificationScheduler.scheduleNotifications(getApplication())
         }
     }
