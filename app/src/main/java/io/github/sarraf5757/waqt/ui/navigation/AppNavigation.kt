@@ -12,21 +12,24 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.DateRange
 import androidx.compose.material.icons.filled.Home
 import androidx.compose.material.icons.filled.Settings
-import androidx.compose.material3.*
+import androidx.compose.material3.Icon
+import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.NavigationBar
+import androidx.compose.material3.NavigationBarItem
+import androidx.compose.material3.NavigationBarItemDefaults
+import androidx.compose.material3.Scaffold
+import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.res.stringResource
-import androidx.compose.ui.unit.IntOffset
 import androidx.navigation.NavDestination.Companion.hasRoute
 import androidx.navigation.NavGraph.Companion.findStartDestination
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.currentBackStackEntryAsState
 import androidx.navigation.compose.rememberNavController
-import kotlinx.serialization.Serializable
-
 import io.github.sarraf5757.waqt.R
 import io.github.sarraf5757.waqt.ui.screens.HomeScreen
 import io.github.sarraf5757.waqt.ui.screens.SettingsScreen
@@ -34,6 +37,7 @@ import io.github.sarraf5757.waqt.ui.screens.StreakScreen
 import io.github.sarraf5757.waqt.ui.viewmodels.HomeViewModel
 import io.github.sarraf5757.waqt.ui.viewmodels.SettingsViewModel
 import io.github.sarraf5757.waqt.ui.viewmodels.StreakViewModel
+import kotlinx.serialization.Serializable
 
 @Serializable
 object HomeRoute
@@ -50,7 +54,7 @@ data class BottomNavItem<T : Any>(val route: T, val titleRes: Int, val icon: Ima
 val navItems = listOf(
     BottomNavItem(HomeRoute, R.string.nav_home, Icons.Default.Home),
     BottomNavItem(HistoryRoute, R.string.nav_history, Icons.Default.DateRange),
-    BottomNavItem(SettingsRoute, R.string.nav_settings, Icons.Default.Settings)
+    BottomNavItem(SettingsRoute, R.string.nav_settings, Icons.Default.Settings),
 )
 
 /**
@@ -60,7 +64,7 @@ val navItems = listOf(
 fun AppNavigation(
     homeViewModel: HomeViewModel,
     streakViewModel: StreakViewModel,
-    settingsViewModel: SettingsViewModel
+    settingsViewModel: SettingsViewModel,
 ) {
     val navController = rememberNavController() // Manages app navigation state
 
@@ -69,22 +73,22 @@ fun AppNavigation(
         bottomBar = {
             NavigationBar(
                 containerColor = MaterialTheme.colorScheme.surfaceContainer,
-                windowInsets = WindowInsets.navigationBars
+                windowInsets = WindowInsets.navigationBars,
             ) {
                 val navBackStackEntry by navController.currentBackStackEntryAsState()
                 val currentDestination = navBackStackEntry?.destination
 
-                for (screen in navItems) {
-                    val title = stringResource(screen.titleRes)
-                    val isSelected = currentDestination?.hasRoute(screen.route::class) == true
+                for ((route, titleRes, icon) in navItems) {
+                    val title = stringResource(titleRes)
+                    val isSelected = currentDestination?.hasRoute(route::class) == true
                     
                     NavigationBarItem(
-                        icon = { Icon(screen.icon, contentDescription = title) },
+                        icon = { Icon(icon, contentDescription = title) },
                         label = { Text(title) },
                         selected = isSelected,
                         onClick = {
                             if (!isSelected) {
-                                navController.navigate(screen.route) {
+                                navController.navigate(route) {
                                     val startId = navController.graph.findStartDestination().id
                                     popUpTo(startId) {
                                         saveState = true
@@ -99,12 +103,12 @@ fun AppNavigation(
                             selectedTextColor = MaterialTheme.colorScheme.onSurface,
                             indicatorColor = MaterialTheme.colorScheme.secondaryContainer,
                             unselectedIconColor = MaterialTheme.colorScheme.onSurfaceVariant,
-                            unselectedTextColor = MaterialTheme.colorScheme.onSurfaceVariant
-                        )
+                            unselectedTextColor = MaterialTheme.colorScheme.onSurfaceVariant,
+                        ),
                     )
                 }
             }
-        }
+        },
     ) { innerPadding ->
         // Handles screen swapping and transitions
         NavHost(
@@ -112,8 +116,8 @@ fun AppNavigation(
             startDestination = HomeRoute,
             modifier = Modifier.fillMaxSize(),
             enterTransition = {
-                val fromIndex = navItems.indexOfFirst { initialState.destination.hasRoute(it.route::class) }
-                val toIndex = navItems.indexOfFirst { targetState.destination.hasRoute(it.route::class) }
+                val fromIndex = navItems.indexOfFirst { (route) -> initialState.destination.hasRoute(route::class) }
+                val toIndex = navItems.indexOfFirst { (route) -> targetState.destination.hasRoute(route::class) }
 
                 val direction = if (toIndex < fromIndex) {
                     AnimatedContentTransitionScope.SlideDirection.Right
@@ -123,15 +127,15 @@ fun AppNavigation(
 
                 slideIntoContainer(
                     direction,
-                    spring<IntOffset>(
+                    spring(
                         dampingRatio = Spring.DampingRatioLowBouncy,
-                        stiffness = Spring.StiffnessMedium
-                    )
+                        stiffness = Spring.StiffnessMedium,
+                    ),
                 )
             },
             exitTransition = {
-                val fromIndex = navItems.indexOfFirst { initialState.destination.hasRoute(it.route::class) }
-                val toIndex = navItems.indexOfFirst { targetState.destination.hasRoute(it.route::class) }
+                val fromIndex = navItems.indexOfFirst { (route) -> initialState.destination.hasRoute(route::class) }
+                val toIndex = navItems.indexOfFirst { (route) -> targetState.destination.hasRoute(route::class) }
 
                 val direction = if (toIndex < fromIndex) {
                     AnimatedContentTransitionScope.SlideDirection.Right
@@ -141,12 +145,12 @@ fun AppNavigation(
 
                 slideOutOfContainer(
                     direction,
-                    spring<IntOffset>(
+                    spring(
                         dampingRatio = Spring.DampingRatioLowBouncy,
-                        stiffness = Spring.StiffnessMedium
-                    )
+                        stiffness = Spring.StiffnessMedium,
+                    ),
                 )
-            }
+            },
         ) {
             composable<HomeRoute> {
                 HomeScreen(viewModel = homeViewModel, contentPadding = innerPadding)

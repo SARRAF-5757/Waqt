@@ -133,6 +133,10 @@ PreferenceSettings Database::getPreferences() {
     prefs.hasLocation = (getPreference("hasLocation", "false") == "true");
     prefs.historyMajorView = getPreference("historyMajorView", "MATRIX");
     prefs.historyGranularity = getPreference("historyGranularity", "MAX_DAYS");
+    prefs.maghribEndMode = getPreference("maghribEndMode", "TIED_TO_ISHA");
+    prefs.maghribEndCustomAngle = std::stod(getPreference("maghribEndCustomAngle", "14.0"));
+    prefs.maghribEndCustomMinutes = std::stoi(getPreference("maghribEndCustomMinutes", "90"));
+    prefs.ishaEndMode = getPreference("ishaEndMode", "ISLAMIC_MIDNIGHT");
     return prefs;
 }
 
@@ -151,6 +155,10 @@ void Database::savePreferences(const PreferenceSettings& prefs) {
     setPreference("hasLocation", prefs.hasLocation ? "true" : "false");
     setPreference("historyMajorView", prefs.historyMajorView);
     setPreference("historyGranularity", prefs.historyGranularity);
+    setPreference("maghribEndMode", prefs.maghribEndMode);
+    setPreference("maghribEndCustomAngle", std::to_string(prefs.maghribEndCustomAngle));
+    setPreference("maghribEndCustomMinutes", std::to_string(prefs.maghribEndCustomMinutes));
+    setPreference("ishaEndMode", prefs.ishaEndMode);
 }
 
 /**

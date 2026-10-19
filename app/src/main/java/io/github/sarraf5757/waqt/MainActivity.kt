@@ -44,18 +44,12 @@ class MainActivity : ComponentActivity() {
      * PERMISSIONS: Handles the asynchronous callback from the OS when the user accepts/denies permissions
      */
     private val permissionLauncher = registerForActivityResult(
-        ActivityResultContracts.RequestMultiplePermissions()
+        ActivityResultContracts.RequestMultiplePermissions(),
     ) { permissions ->
-        val fineLocationPermission = permissions[Manifest.permission.ACCESS_FINE_LOCATION]
-        val coarseLocationPermission = permissions[Manifest.permission.ACCESS_COARSE_LOCATION]
+        val fineLocationPermission = permissions[Manifest.permission.ACCESS_FINE_LOCATION] == true
+        val coarseLocationPermission = permissions[Manifest.permission.ACCESS_COARSE_LOCATION] == true
         
-        var locationGranted = false
-        if (fineLocationPermission != null && fineLocationPermission) {
-            locationGranted = true
-        }
-        if (coarseLocationPermission != null && coarseLocationPermission) {
-            locationGranted = true
-        }
+        val locationGranted = fineLocationPermission || coarseLocationPermission
         
         if (locationGranted) {
             LocationHelper.updateDeviceLocation(this)
@@ -72,9 +66,7 @@ class MainActivity : ComponentActivity() {
         enableEdgeToEdge()
         super.onCreate(savedInstanceState)
         
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
-            window.isNavigationBarContrastEnforced = false
-        }
+        window.isNavigationBarContrastEnforced = false
 
         requestRuntimePermissions()
         LocationHelper.updateDeviceLocation(this)
@@ -89,7 +81,7 @@ class MainActivity : ComponentActivity() {
                 AppNavigation(
                     homeViewModel = homeViewModel,
                     streakViewModel = streakViewModel,
-                    settingsViewModel = settingsViewModel
+                    settingsViewModel = settingsViewModel,
                 )
             }
         }
@@ -129,7 +121,7 @@ class MainActivity : ComponentActivity() {
 
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) {
             val alarmManager = getSystemService(AlarmManager::class.java)
-            if (alarmManager != null && !alarmManager.canScheduleExactAlarms()) {
+            if ((alarmManager != null) && !alarmManager.canScheduleExactAlarms()) {
                 val intent = Intent(Settings.ACTION_REQUEST_SCHEDULE_EXACT_ALARM)
                 startActivity(intent)
             }

@@ -67,10 +67,7 @@ PrayerTimesMap WaqtEngine::getTodayPrayerTimes(int64_t nowUnixTimestampSec) {
     int month = localTm->tm_mon + 1;
     int day = localTm->tm_mday;
 
-    CalculationMethod method = PrayerCalculator::parseCalculationMethod(prefs.calculationMethod);
-    Madhab madhab = PrayerCalculator::parseMadhab(prefs.madhab);
-
-    PrayerTimesMap map = PrayerCalculator::calculatePrayerTimes(year, month, day, prefs.latitude, prefs.longitude, method, madhab);
+    PrayerTimesMap map = PrayerCalculator::calculatePrayerTimes(year, month, day, prefs);
     
     // Synchronize Fajr cutoff globally
     FajrShiftDate::setFajrCutoffFromTimestamp(map.fajr);
@@ -203,16 +200,80 @@ std::vector<NotificationIntent> WaqtEngine::getNotificationSchedule(int64_t nowU
     if (!prefs.hasLocation)
         return {};
 
-    CalculationMethod method = PrayerCalculator::parseCalculationMethod(prefs.calculationMethod);
-    Madhab madhab = PrayerCalculator::parseMadhab(prefs.madhab);
-
     return NotificationGenerator::generateSchedule(
         nowUnixTimestampSec,
-        prefs.latitude, prefs.longitude,
-        prefs.endTimeOffset,
-        method, madhab,
+        prefs,
         m_database
     );
+}
+
+/**
+ * Calculates and returns option preview labels with formatted timestamps for the UI
+ */
+EndOptionPreviews WaqtEngine::getEndOptionPreviews(int64_t nowUnixTimestampSec) {
+    EndOptionPreviews previews;
+    PreferenceSettings prefs = m_database.getPreferences();
+
+    // Default dropdown labels without timestamps
+    previews.maghribOptions = {
+        "Tied to Isha",
+        "Red Twilight (14°)",
+        "White Twilight (18°)",
+        "Fixed Minutes"
+    };
+    previews.ishaOptions = {
+        "Islamic Midnight (Sunset to Fajr)",
+        "First Third of Night",
+        "Astronomical Midnight (Sunset to Sunrise)",
+        "Tied to Fajr Start"
+    };
+
+    if (!prefs.hasLocation) {
+        return previews;
+    }
+
+    auto t = static_cast<std::time_t>(nowUnixTimestampSec);
+    std::tm localTmStruct;
+    std::tm* localTm = localtime_r(&t, &localTmStruct);
+    if (!localTm) return previews;
+    
+    int year = localTm->tm_year + 1900;
+    int month = localTm->tm_mon + 1;
+    int day = localTm->tm_mday;
+
+    auto calcWithMode = [&](const std::string& maghribMode, const std::string& ishaMode) {
+        PreferenceSettings tempPrefs = prefs;
+        tempPrefs.maghribEndMode = maghribMode;
+        if (maghribMode == "RED_TWILIGHT") tempPrefs.maghribEndCustomAngle = 14.0;
+        if (maghribMode == "WHITE_TWILIGHT") tempPrefs.maghribEndCustomAngle = 18.0;
+        tempPrefs.ishaEndMode = ishaMode;
+        
+        return PrayerCalculator::calculatePrayerTimes(year, month, day, tempPrefs);
+    };
+
+    // Calculate Maghrib previews
+    PrayerTimesMap tiedToIsha = calcWithMode("TIED_TO_ISHA", prefs.ishaEndMode);
+    PrayerTimesMap redTwilight = calcWithMode("RED_TWILIGHT", prefs.ishaEndMode);
+    PrayerTimesMap whiteTwilight = calcWithMode("WHITE_TWILIGHT", prefs.ishaEndMode);
+    PrayerTimesMap fixedMinutes = calcWithMode("FIXED_MINUTES", prefs.ishaEndMode);
+
+    previews.maghribOptions[0] += " (" + formatTime(tiedToIsha.maghribEnd) + ")";
+    previews.maghribOptions[1] += " (" + formatTime(redTwilight.maghribEnd) + ")";
+    previews.maghribOptions[2] += " (" + formatTime(whiteTwilight.maghribEnd) + ")";
+    previews.maghribOptions[3] += " (" + formatTime(fixedMinutes.maghribEnd) + ")";
+
+    // Calculate Isha previews
+    PrayerTimesMap islamicMidnight = calcWithMode(prefs.maghribEndMode, "ISLAMIC_MIDNIGHT");
+    PrayerTimesMap firstThird = calcWithMode(prefs.maghribEndMode, "FIRST_THIRD");
+    PrayerTimesMap astronomicalMidnight = calcWithMode(prefs.maghribEndMode, "ASTRONOMICAL_MIDNIGHT");
+    PrayerTimesMap tiedToFajr = calcWithMode(prefs.maghribEndMode, "FAJR_START");
+
+    previews.ishaOptions[0] += " (" + formatTime(islamicMidnight.ishaEnd) + ")";
+    previews.ishaOptions[1] += " (" + formatTime(firstThird.ishaEnd) + ")";
+    previews.ishaOptions[2] += " (" + formatTime(astronomicalMidnight.ishaEnd) + ")";
+    previews.ishaOptions[3] += " (" + formatTime(tiedToFajr.ishaEnd) + ")";
+
+    return previews;
 }
 
 } // namespace waqt

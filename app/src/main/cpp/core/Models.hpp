@@ -60,6 +60,10 @@ struct PreferenceSettings {
     bool hasLocation{false};
     std::string historyMajorView{"MATRIX"};
     std::string historyGranularity{"MAX_DAYS"};
+    std::string maghribEndMode{"TIED_TO_ISHA"};
+    double maghribEndCustomAngle{14.0};
+    int maghribEndCustomMinutes{90};
+    std::string ishaEndMode{"ISLAMIC_MIDNIGHT"};
 };
 
 /**
@@ -162,6 +166,11 @@ struct UIHomeState {
     std::vector<UIPrayerItem> prayers;
     bool showStartTime{true};
     bool showEndTime{true};
+};
+
+struct EndOptionPreviews {
+    std::vector<std::string> maghribOptions;
+    std::vector<std::string> ishaOptions;
 };
 
 } // namespace waqt

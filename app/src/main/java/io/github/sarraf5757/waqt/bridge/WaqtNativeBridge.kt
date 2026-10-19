@@ -99,6 +99,14 @@ object WaqtNativeBridge : IWaqtBridge {
     }
 
     /**
+     * Retrieves precomputed formatted preview times for prayer end options from C++ core
+     */
+    override fun getEndOptionPreviews(): NativeModels.EndOptionPreviews? {
+        val nowSec = System.currentTimeMillis() / 1000
+        return nativeGetEndOptionPreviews(nowSec)
+    }
+
+    /**
      * NATIVE EXTERNAL DECLARATIONS - in bridge/jni_bindings.cpp
      * [The 'external' keyword tells the Kotlin compiler that the implementation is in the shared library]
      */
@@ -112,4 +120,5 @@ object WaqtNativeBridge : IWaqtBridge {
     private external fun nativeGetRangeGridData(startDate: String, endDate: String): NativeModels.StreakGridData?
     private external fun nativeGetRangeStats(startDate: String, endDate: String): NativeModels.HistoryStatsData?
     private external fun nativeGetNotificationSchedule(nowSec: Long): List<NativeModels.NotificationIntent>?
+    private external fun nativeGetEndOptionPreviews(nowSec: Long): NativeModels.EndOptionPreviews?
 }

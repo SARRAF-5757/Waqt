@@ -24,6 +24,8 @@ struct {
     jmethodID historyStatsDataCons;
     jclass notificationIntentClass;
     jmethodID notificationIntentCons;
+    jclass endOptionPreviewsClass;
+    jmethodID endOptionPreviewsCons;
     jclass arrayListClass;
     jmethodID arrayListCons;
     jmethodID arrayListAdd;
@@ -47,8 +49,8 @@ JNIEXPORT jint JNICALL JNI_OnLoad(JavaVM* vm, void* reserved) {
 
     auto cacheClass = [&](const char* name, jclass& outCls, jmethodID& outCons, const char* sig) {
         jclass local = env->FindClass(name);
+        outCons = env->GetMethodID(local, "<init>", sig);
         outCls = (jclass)env->NewGlobalRef(local);
-        outCons = env->GetMethodID(outCls, "<init>", sig);
         env->DeleteLocalRef(local);
     };
 
@@ -68,7 +70,7 @@ JNIEXPORT jint JNICALL JNI_OnLoad(JavaVM* vm, void* reserved) {
 
     cacheClass("io/github/sarraf5757/waqt/bridge/NativeModels$PreferenceSettings",
                g_cache.prefsSettingsClass, g_cache.prefsSettingsCons,
-               "(ZZLjava/lang/String;Ljava/lang/String;Ljava/lang/String;IDDZLjava/lang/String;Ljava/lang/String;)V");
+               "(ZZLjava/lang/String;Ljava/lang/String;Ljava/lang/String;IDDZLjava/lang/String;Ljava/lang/String;Ljava/lang/String;DILjava/lang/String;)V");
 
     cacheClass("io/github/sarraf5757/waqt/bridge/NativeModels$StreakGridData",
                g_cache.streakGridDataClass, g_cache.streakGridDataCons,
@@ -89,6 +91,10 @@ JNIEXPORT jint JNICALL JNI_OnLoad(JavaVM* vm, void* reserved) {
     cacheClass("io/github/sarraf5757/waqt/bridge/NativeModels$NotificationIntent",
                g_cache.notificationIntentClass, g_cache.notificationIntentCons,
                "(Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;J)V");
+
+    cacheClass("io/github/sarraf5757/waqt/bridge/NativeModels$EndOptionPreviews",
+               g_cache.endOptionPreviewsClass, g_cache.endOptionPreviewsCons,
+               "(Ljava/util/List;Ljava/util/List;)V");
 
     return JNI_VERSION_1_6;
 }
@@ -208,6 +214,8 @@ Java_io_github_sarraf5757_waqt_bridge_WaqtNativeBridge_nativeGetPreferences(JNIE
     jstring themeStr = env->NewStringUTF(prefs.themeColor.c_str());
     jstring mvStr = env->NewStringUTF(prefs.historyMajorView.c_str());
     jstring grStr = env->NewStringUTF(prefs.historyGranularity.c_str());
+    jstring maghribModeStr = env->NewStringUTF(prefs.maghribEndMode.c_str());
+    jstring ishaModeStr = env->NewStringUTF(prefs.ishaEndMode.c_str());
 
     jobject result = env->NewObject(
         g_cache.prefsSettingsClass, g_cache.prefsSettingsCons,
@@ -217,7 +225,8 @@ Java_io_github_sarraf5757_waqt_bridge_WaqtNativeBridge_nativeGetPreferences(JNIE
         prefs.endTimeOffset,
         prefs.latitude, prefs.longitude,
         prefs.hasLocation ? JNI_TRUE : JNI_FALSE,
-        mvStr, grStr
+        mvStr, grStr,
+        maghribModeStr, prefs.maghribEndCustomAngle, prefs.maghribEndCustomMinutes, ishaModeStr
     );
 
     env->DeleteLocalRef(calcStr);
@@ -225,6 +234,8 @@ Java_io_github_sarraf5757_waqt_bridge_WaqtNativeBridge_nativeGetPreferences(JNIE
     env->DeleteLocalRef(themeStr);
     env->DeleteLocalRef(mvStr);
     env->DeleteLocalRef(grStr);
+    env->DeleteLocalRef(maghribModeStr);
+    env->DeleteLocalRef(ishaModeStr);
 
     return result;
 }
@@ -352,6 +363,40 @@ Java_io_github_sarraf5757_waqt_bridge_WaqtNativeBridge_nativeGetNotificationSche
     }
 
     return resultList;
+}
+
+/**
+ * Marshals formatted prayer end option preview strings from C++ to a Kotlin EndOptionPreviews object
+ */
+JNIEXPORT jobject JNICALL
+Java_io_github_sarraf5757_waqt_bridge_WaqtNativeBridge_nativeGetEndOptionPreviews(JNIEnv* env, jobject /*thiz*/, jlong nowSec) {
+    waqt::EndOptionPreviews previews = waqt::WaqtEngine::getInstance().getEndOptionPreviews(nowSec);
+
+    jobject maghribList = createArrayList(env, static_cast<jint>(previews.maghribOptions.size()));
+    for (const auto& opt : previews.maghribOptions) {
+        jstring str = env->NewStringUTF(opt.c_str());
+        addToArrayList(env, maghribList, str);
+        env->DeleteLocalRef(str);
+    }
+
+    jobject ishaList = createArrayList(env, static_cast<jint>(previews.ishaOptions.size()));
+    for (const auto& opt : previews.ishaOptions) {
+        jstring str = env->NewStringUTF(opt.c_str());
+        addToArrayList(env, ishaList, str);
+        env->DeleteLocalRef(str);
+    }
+
+    jobject result = env->NewObject(
+        g_cache.endOptionPreviewsClass,
+        g_cache.endOptionPreviewsCons,
+        maghribList,
+        ishaList
+    );
+
+    env->DeleteLocalRef(maghribList);
+    env->DeleteLocalRef(ishaList);
+
+    return result;
 }
 
 } // extern "C"

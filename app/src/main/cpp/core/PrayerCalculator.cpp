@@ -63,13 +63,19 @@ static int64_t hoursUtcToUnixTimestamp(int year, int month, int day, double hour
     return static_cast<int64_t>(timegm(&tmTime));
 }
 
+/**
+ * Calculates start and end times for all five daily prayers based on date and user preferences
+ */
 PrayerTimesMap PrayerCalculator::calculatePrayerTimes(
     int year, int month, int day,
-    double latitude, double longitude,
-    CalculationMethod method,
-    Madhab madhab
+    const PreferenceSettings& prefs
 ) {
     PrayerTimesMap map;
+
+    double latitude = prefs.latitude;
+    double longitude = prefs.longitude;
+    CalculationMethod method = parseCalculationMethod(prefs.calculationMethod);
+    Madhab madhab = parseMadhab(prefs.madhab);
 
     // Determine the sun's required angle below the horizon for Fajr and Isha
     double fajrAngle = 18.0;
@@ -134,6 +140,29 @@ PrayerTimesMap PrayerCalculator::calculatePrayerTimes(
         ishaHours = maghribHours + (ishaMinutesOffset / 60.0);
     }
 
+    // Calculate Maghrib End
+    double maghribEndHours = ishaHours;
+    if (prefs.maghribEndMode == "FIXED_MINUTES") {
+        maghribEndHours = maghribHours + (prefs.maghribEndCustomMinutes / 60.0);
+    } else if (prefs.maghribEndMode == "RED_TWILIGHT" || prefs.maghribEndMode == "WHITE_TWILIGHT") {
+        double customHourAngle = AstronomicalMath::calculateHourAngle(-prefs.maghribEndCustomAngle, latitude, declination);
+        
+        // calculateHourAngle clamps the value, so check if it would have been NaN
+        double latRad = AstronomicalMath::degreesToRadians(latitude);
+        double decRad = AstronomicalMath::degreesToRadians(declination);
+        double angRad = AstronomicalMath::degreesToRadians(-prefs.maghribEndCustomAngle);
+        double cosH = (std::sin(angRad) - std::sin(latRad) * std::sin(decRad)) / (std::cos(latRad) * std::cos(decRad));
+        
+        if (cosH > 1.0 || cosH < -1.0 || std::isnan(customHourAngle)) {
+            maghribEndHours = maghribHours + (prefs.maghribEndCustomMinutes / 60.0);
+        } else {
+            maghribEndHours = transit + customHourAngle;
+        }
+    } else {
+        // TIED_TO_ISHA
+        maghribEndHours = ishaHours;
+    }
+
     // Next day's Fajr for Middle of Night calculation
     std::tm tmNext{};
     tmNext.tm_year = year - 1900;
@@ -148,24 +177,40 @@ PrayerTimesMap PrayerCalculator::calculatePrayerTimes(
     double decNext = AstronomicalMath::calculateSunDeclination(TNext, latitude);
     double eotNext = AstronomicalMath::calculateEquationOfTime(TNext);
     double transitNext = AstronomicalMath::calculateSolarTransit(longitude, eotNext);
+    
     double fajrHourAngleNext = AstronomicalMath::calculateHourAngle(-fajrAngle, latitude, decNext);
     double nextFajrHours = transitNext - fajrHourAngleNext;
+    
+    double sunriseHourAngleNext = AstronomicalMath::calculateHourAngle(-0.8333, latitude, decNext);
+    double nextSunriseHours = transitNext - sunriseHourAngleNext;
 
     // Convert all fractional hours into standard Unix Timestamps
     int64_t maghribTs = hoursUtcToUnixTimestamp(year, month, day, maghribHours);
     int64_t nextFajrTs = hoursUtcToUnixTimestamp(tmNextParsed->tm_year + 1900, tmNextParsed->tm_mon + 1, tmNextParsed->tm_mday, nextFajrHours);
-    int64_t middleOfTheNightTs = maghribTs + (nextFajrTs - maghribTs) / 2;
+    int64_t nextSunriseTs = hoursUtcToUnixTimestamp(tmNextParsed->tm_year + 1900, tmNextParsed->tm_mon + 1, tmNextParsed->tm_mday, nextSunriseHours);
+
+    int64_t ishaEndTs;
+    if (prefs.ishaEndMode == "ASTRONOMICAL_MIDNIGHT") {
+        ishaEndTs = maghribTs + (nextSunriseTs - maghribTs) / 2;
+    } else if (prefs.ishaEndMode == "FIRST_THIRD") {
+        ishaEndTs = maghribTs + (nextFajrTs - maghribTs) / 3;
+    } else if (prefs.ishaEndMode == "FAJR_START") {
+        ishaEndTs = nextFajrTs;
+    } else {
+        // ISLAMIC_MIDNIGHT
+        ishaEndTs = maghribTs + (nextFajrTs - maghribTs) / 2;
+    }
 
     map.fajr = hoursUtcToUnixTimestamp(year, month, day, fajrHours);
     map.fajrEnd = hoursUtcToUnixTimestamp(year, month, day, sunriseHours);
     map.dhuhr = hoursUtcToUnixTimestamp(year, month, day, dhuhrHours);
     map.dhuhrEnd = hoursUtcToUnixTimestamp(year, month, day, asrHours);
     map.asr = hoursUtcToUnixTimestamp(year, month, day, asrHours);
-    map.asrEnd = hoursUtcToUnixTimestamp(year, month, day, maghribHours);
-    map.maghrib = hoursUtcToUnixTimestamp(year, month, day, maghribHours);
-    map.maghribEnd = hoursUtcToUnixTimestamp(year, month, day, ishaHours);
+    map.asrEnd = maghribTs;
+    map.maghrib = maghribTs;
+    map.maghribEnd = hoursUtcToUnixTimestamp(year, month, day, maghribEndHours);
     map.isha = hoursUtcToUnixTimestamp(year, month, day, ishaHours);
-    map.ishaEnd = middleOfTheNightTs;
+    map.ishaEnd = ishaEndTs;
     map.isValid = true;
 
     return map;

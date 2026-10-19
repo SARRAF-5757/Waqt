@@ -1,3 +1,5 @@
+// Interface defining the bridge contract between Kotlin and the C++ Waqt engine
+
 package io.github.sarraf5757.waqt.bridge
 
 import android.content.Context
@@ -17,4 +19,5 @@ interface IWaqtBridge {
     fun getRangeGridData(startDate: String, endDate: String): NativeModels.StreakGridData?
     fun getRangeStats(startDate: String, endDate: String): NativeModels.HistoryStatsData?
     fun getNotificationSchedule(): List<NativeModels.NotificationIntent>
+    fun getEndOptionPreviews(): NativeModels.EndOptionPreviews?
 }

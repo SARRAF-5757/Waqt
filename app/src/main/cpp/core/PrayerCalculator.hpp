@@ -11,9 +11,7 @@ class PrayerCalculator {
 public:
     static PrayerTimesMap calculatePrayerTimes(
         int year, int month, int day,
-        double latitude, double longitude,
-        CalculationMethod method = CalculationMethod::MoonsightingCommittee,
-        Madhab madhab = Madhab::Shafi
+        const PreferenceSettings& prefs
     );
 
     // Maps the CalculationMethod variable from string reading

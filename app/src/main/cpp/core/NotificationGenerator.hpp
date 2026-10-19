@@ -13,10 +13,7 @@ class NotificationGenerator {
 public:
     static std::vector<NotificationIntent> generateSchedule(
         int64_t nowUnixTimestampSec,
-        double latitude, double longitude,
-        int offsetMinutes,
-        CalculationMethod method,
-        Madhab madhab,
+        const PreferenceSettings& prefs,
         Database& db
     );
 };

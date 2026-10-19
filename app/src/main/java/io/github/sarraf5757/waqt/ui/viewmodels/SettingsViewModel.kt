@@ -23,6 +23,9 @@ class SettingsViewModel(application: Application, private val waqtBridge: io.git
     private val _prefs = MutableStateFlow<NativeModels.PreferenceSettings?>(null)
     val prefs: StateFlow<NativeModels.PreferenceSettings?> = _prefs.asStateFlow()
 
+    private val _endOptionPreviews = MutableStateFlow<NativeModels.EndOptionPreviews?>(null)
+    val endOptionPreviews: StateFlow<NativeModels.EndOptionPreviews?> = _endOptionPreviews.asStateFlow()
+
     init {
         loadPreferences()
     }
@@ -34,6 +37,9 @@ class SettingsViewModel(application: Application, private val waqtBridge: io.git
         viewModelScope.launch {
             val settings = waqtBridge.getPreferences()
             _prefs.value = settings
+            
+            val previews = waqtBridge.getEndOptionPreviews()
+            _endOptionPreviews.value = previews
         }
     }
 
@@ -54,6 +60,35 @@ class SettingsViewModel(application: Application, private val waqtBridge: io.git
         if (finalOffset > 120) finalOffset = 120
         
         waqtBridge.updatePreference("endTimeOffset", finalOffset.toString())
+        loadPreferences()
+        NotificationScheduler.scheduleNotifications(getApplication())
+    }
+
+    /**
+     * Updates Maghrib end calculation mode and reschedules notifications
+     */
+    fun updateMaghribEndMode(mode: String) {
+        waqtBridge.updatePreference("maghribEndMode", mode)
+        loadPreferences()
+        NotificationScheduler.scheduleNotifications(getApplication())
+    }
+
+    /**
+     * Updates custom minute duration for fixed Maghrib end and reschedules notifications
+     */
+    fun updateMaghribEndCustomMinutes(minutesStr: String) {
+        val numericOnly = minutesStr.replace(Regex("[^0-9]"), "")
+        val parsedInt = numericOnly.toIntOrNull() ?: 90
+        waqtBridge.updatePreference("maghribEndCustomMinutes", parsedInt.toString())
+        loadPreferences()
+        NotificationScheduler.scheduleNotifications(getApplication())
+    }
+
+    /**
+     * Updates Isha end calculation mode and reschedules notifications
+     */
+    fun updateIshaEndMode(mode: String) {
+        waqtBridge.updatePreference("ishaEndMode", mode)
         loadPreferences()
         NotificationScheduler.scheduleNotifications(getApplication())
     }

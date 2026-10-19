@@ -47,7 +47,20 @@ class NativeModels {
         val longitude: Double,
         val hasLocation: Boolean,
         val historyMajorView: String,
-        val historyGranularity: String
+        val historyGranularity: String,
+        val maghribEndMode: String,
+        val maghribEndCustomAngle: Double,
+        val maghribEndCustomMinutes: Int,
+        val ishaEndMode: String
+    )
+
+    /**
+     * Preview strings for dropdown options
+     */
+    @Immutable
+    data class EndOptionPreviews(
+        val maghribOptions: List<String>,
+        val ishaOptions: List<String>
     )
 
     /**

@@ -10,13 +10,11 @@ namespace waqt {
 
 std::vector<NotificationIntent> NotificationGenerator::generateSchedule(
     int64_t nowUnixTimestampSec,
-    double latitude, double longitude,
-    int offsetMinutes,
-    CalculationMethod method,
-    Madhab madhab,
+    const PreferenceSettings& prefs,
     Database& db
 ) {
     std::vector<NotificationIntent> schedule;
+    int offsetMinutes = prefs.endTimeOffset;
 
     for (int dayOffset = 0; dayOffset < 10; ++dayOffset) {
         int64_t targetTimeSec = nowUnixTimestampSec + (static_cast<int64_t>(dayOffset) * 86400LL);
@@ -30,7 +28,7 @@ std::vector<NotificationIntent> NotificationGenerator::generateSchedule(
         int month = localTm->tm_mon + 1;
         int day = localTm->tm_mday;
 
-        PrayerTimesMap prayerMap = PrayerCalculator::calculatePrayerTimes(year, month, day, latitude, longitude, method, madhab);
+        PrayerTimesMap prayerMap = PrayerCalculator::calculatePrayerTimes(year, month, day, prefs);
         std::string dateKey = FajrShiftDate::getDateKey(targetTimeSec);
 
         // Iterate through all prayers using the centralized naming standard

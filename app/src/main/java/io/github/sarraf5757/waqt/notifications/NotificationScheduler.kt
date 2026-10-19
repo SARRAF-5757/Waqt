@@ -76,8 +76,12 @@ object NotificationScheduler {
 
             val triggerMillis = intentItem.triggerTimestampSec * 1000L
 
-            // Try to set exact alarm, fall back to normal if blocked by system
-            alarmManager.setExactAndAllowWhileIdle(AlarmManager.RTC_WAKEUP, triggerMillis, pendingIntent)
+            // Try to set exact alarm, fall back to normal if blocked by system or missing permission
+            if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.S && !alarmManager.canScheduleExactAlarms()) {
+                alarmManager.setAndAllowWhileIdle(AlarmManager.RTC_WAKEUP, triggerMillis, pendingIntent)
+            } else {
+                alarmManager.setExactAndAllowWhileIdle(AlarmManager.RTC_WAKEUP, triggerMillis, pendingIntent)
+            }
         }
 
         // Save the number of scheduled alarms for the next cycle

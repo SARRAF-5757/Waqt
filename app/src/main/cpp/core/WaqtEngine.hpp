@@ -83,6 +83,11 @@ public:
      * Generates a sorted list of upcoming prayer and end-time warning notifications
      */
     std::vector<NotificationIntent> getNotificationSchedule(int64_t nowUnixTimestampSec);
+
+    /**
+     * Calculates and returns the specific timestamps for dropdown options
+     */
+    EndOptionPreviews getEndOptionPreviews(int64_t nowUnixTimestampSec);
 };
 
 } // namespace waqt
