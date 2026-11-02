@@ -235,7 +235,7 @@ fun HomeScreenContent(
     }
 }
 
-@Preview(showBackground = true)
+@Preview(showBackground = true, uiMode = android.content.res.Configuration.UI_MODE_NIGHT_YES)
 @Composable
 fun HomeScreenPreview() {
     val samplePrayers = listOf(
@@ -248,17 +248,19 @@ fun HomeScreenPreview() {
     val mockState = NativeModels.HomeState("2024-01-01", samplePrayers, showStartTime = true, showEndTime = true)
     
     WaqtTheme {
-        HomeScreenContent(
-            homeState = mockState,
-            dateLabel = "Today",
-            canNavigatePrevious = true,
-            canNavigateNext = false,
-            contentPadding = PaddingValues(16.dp),
-            onPreviousDay = {},
-            onNextDay = {},
-            onTogglePrayer = {},
-            onMarkAsOnTime = {}
-        )
+        Surface(color = MaterialTheme.colorScheme.background) {
+            HomeScreenContent(
+                homeState = mockState,
+                dateLabel = "Today",
+                canNavigatePrevious = true,
+                canNavigateNext = false,
+                contentPadding = PaddingValues(16.dp),
+                onPreviousDay = {},
+                onNextDay = {},
+                onTogglePrayer = {},
+                onMarkAsOnTime = {}
+            )
+        }
     }
 }
 

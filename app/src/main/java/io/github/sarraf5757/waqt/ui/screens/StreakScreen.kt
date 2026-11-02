@@ -617,30 +617,34 @@ fun BarChartCanvas(statsData: NativeModels.HistoryStatsData) {
     }
 }
 
-@Preview(showBackground = true)
+@Preview(showBackground = true, uiMode = android.content.res.Configuration.UI_MODE_NIGHT_YES)
 @Composable
 fun StreakScreenPreview() {
     io.github.sarraf5757.waqt.ui.theme.WaqtTheme {
-        StreakScreenContent(
-            majorView = MajorView.MATRIX,
-            granularity = Granularity.MONTHLY,
-            dateLabel = "September 2024",
-            streakData = NativeModels.StreakGridData(
-                totalDays = 30,
-                streaks = listOf(
-                    NativeModels.PrayerStreak("Fajr", BooleanArray(30) { it % 2 == 0 }, BooleanArray(30) { it % 3 == 0 }),
-                    NativeModels.PrayerStreak("Dhuhr", BooleanArray(30) { true }, BooleanArray(30) { true })
-                )
-            ),
-            statsData = null,
-            isLoading = false,
-            baseDate = LocalDate.now(),
-            canNavigateNext = false,
-            contentPadding = PaddingValues(16.dp),
-            onSetMajorView = {},
-            onSetGranularity = {},
-            onPrevious = {},
-            onNext = {}
-        )
+        androidx.compose.material3.Surface(
+            color = MaterialTheme.colorScheme.background
+        ) {
+            StreakScreenContent(
+                majorView = MajorView.MATRIX,
+                granularity = Granularity.MONTHLY,
+                dateLabel = "September 2024",
+                streakData = NativeModels.StreakGridData(
+                    totalDays = 30,
+                    streaks = listOf(
+                        NativeModels.PrayerStreak("Fajr", BooleanArray(30) { it % 2 == 0 }, BooleanArray(30) { it % 3 == 0 }),
+                        NativeModels.PrayerStreak("Dhuhr", BooleanArray(30) { true }, BooleanArray(30) { true })
+                    )
+                ),
+                statsData = null,
+                isLoading = false,
+                baseDate = LocalDate.now(),
+                canNavigateNext = false,
+                contentPadding = PaddingValues(16.dp),
+                onSetMajorView = {},
+                onSetGranularity = {},
+                onPrevious = {},
+                onNext = {}
+            )
+        }
     }
 }

@@ -587,7 +587,7 @@ fun DropdownSettingItem(
     )
 }
 
-@Preview(showBackground = true)
+@Preview(showBackground = true, uiMode = android.content.res.Configuration.UI_MODE_NIGHT_YES)
 @Composable
 fun SettingsScreenPreview() {
     val mockSettings = NativeModels.PreferenceSettings(
@@ -614,20 +614,22 @@ fun SettingsScreenPreview() {
     )
 
     WaqtTheme {
-        SettingsScreenContent(
-            settings = mockSettings,
-            previews = mockPreviews,
-            contentPadding = PaddingValues(16.dp),
-            onUpdateEndTimeOffset = {},
-            onUpdateCalculationMethod = {},
-            onUpdateMadhab = {},
-            onUpdateMaghribEndMode = {},
-            onUpdateMaghribEndCustomMinutes = {},
-            onUpdateIshaEndMode = {},
-            onUpdateShowStartTime = {},
-            onUpdateShowEndTime = {},
-            onUpdateThemeColor = {},
-            onDeleteAllHistory = {}
-        )
+        androidx.compose.material3.Surface(color = MaterialTheme.colorScheme.background) {
+            SettingsScreenContent(
+                settings = mockSettings,
+                previews = mockPreviews,
+                contentPadding = PaddingValues(16.dp),
+                onUpdateEndTimeOffset = {},
+                onUpdateCalculationMethod = {},
+                onUpdateMadhab = {},
+                onUpdateMaghribEndMode = {},
+                onUpdateMaghribEndCustomMinutes = {},
+                onUpdateIshaEndMode = {},
+                onUpdateShowStartTime = {},
+                onUpdateShowEndTime = {},
+                onUpdateThemeColor = {},
+                onDeleteAllHistory = {}
+            )
+        }
     }
 }
