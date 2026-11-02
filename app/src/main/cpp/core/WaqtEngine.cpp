@@ -5,6 +5,7 @@
 #include "FajrShiftDate.hpp"
 #include "NotificationGenerator.hpp"
 #include <ctime>
+#include <cstdio>
 
 namespace waqt {
 
@@ -100,16 +101,28 @@ static std::string formatTime(int64_t timestamp) {
 }
 
 /**
- * Generates a ready-to-display state for the Home UI
+ * Generates a ready-to-display state for the Home UI for today or a day offset
  */
-UIHomeState WaqtEngine::getUIHomeState(int64_t nowUnixTimestampSec) {
-    PrayerTimesMap times = getTodayPrayerTimes(nowUnixTimestampSec);
-    std::string todayKey = FajrShiftDate::getDateKey(nowUnixTimestampSec);
-    DayPrayerStatus status = m_database.getStatusesForDate(todayKey);
+UIHomeState WaqtEngine::getUIHomeState(int64_t nowUnixTimestampSec, int dayOffset) {
+    // Refresh today's times to synchronize Fajr cutoff globally
+    getTodayPrayerTimes(nowUnixTimestampSec);
+
+    // Compute target timestamp and date key shifted by dayOffset days
+    int64_t targetTimeSec = FajrShiftDate::addDays(nowUnixTimestampSec, dayOffset);
+    std::string targetDateKey = FajrShiftDate::getDateKey(targetTimeSec);
+
     PreferenceSettings prefs = m_database.getPreferences();
+    PrayerTimesMap times{};
+    if (prefs.hasLocation) {
+        int year = 1970, month = 1, day = 1;
+        std::sscanf(targetDateKey.c_str(), "%d-%d-%d", &year, &month, &day);
+        times = PrayerCalculator::calculatePrayerTimes(year, month, day, prefs);
+    }
+
+    DayPrayerStatus status = m_database.getStatusesForDate(targetDateKey);
 
     UIHomeState uiState;
-    uiState.dateKey = status.dateKey;
+    uiState.dateKey = targetDateKey;
     uiState.showStartTime = prefs.showStartTime;
     uiState.showEndTime = prefs.showEndTime;
 

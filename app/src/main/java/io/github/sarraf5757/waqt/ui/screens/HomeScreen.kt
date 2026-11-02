@@ -13,20 +13,17 @@ import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
-import androidx.compose.foundation.layout.Spacer
-import androidx.compose.foundation.layout.WindowInsets
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
-import androidx.compose.foundation.layout.statusBars
-import androidx.compose.foundation.layout.windowInsetsPadding
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.automirrored.filled.ArrowBack
+import androidx.compose.material.icons.automirrored.filled.ArrowForward
 import androidx.compose.material.icons.filled.FiberManualRecord
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Card
@@ -34,6 +31,7 @@ import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.Checkbox
 import androidx.compose.material3.CheckboxDefaults
 import androidx.compose.material3.Icon
+import androidx.compose.material3.IconButton
 import androidx.compose.material3.LocalContentColor
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Surface
@@ -52,11 +50,11 @@ import androidx.compose.ui.graphics.ColorFilter
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import io.github.sarraf5757.waqt.R
 import io.github.sarraf5757.waqt.bridge.NativeModels
-import androidx.compose.ui.tooling.preview.Preview
 import io.github.sarraf5757.waqt.ui.theme.RobotoMonoFontFamily
 import io.github.sarraf5757.waqt.ui.theme.WaqtTheme
 import io.github.sarraf5757.waqt.ui.viewmodels.HomeViewModel
@@ -67,10 +65,24 @@ import io.github.sarraf5757.waqt.ui.viewmodels.HomeViewModel
 @Composable
 fun HomeScreen(viewModel: HomeViewModel, contentPadding: PaddingValues) {
     val homeState by viewModel.homeState.collectAsState()   /** Re-run this function whenever the C++ state changes */
-    
+    val dayOffset by viewModel.dayOffset.collectAsState()
+    val canNavigatePrevious by viewModel.canNavigatePrevious.collectAsState()
+    val canNavigateNext by viewModel.canNavigateNext.collectAsState()
+
+    val dateLabel = when (dayOffset) {
+        0 -> stringResource(R.string.day_today)
+        -1 -> stringResource(R.string.day_yesterday)
+        else -> ""
+    }
+
     HomeScreenContent(
         homeState = homeState,
+        dateLabel = dateLabel,
+        canNavigatePrevious = canNavigatePrevious,
+        canNavigateNext = canNavigateNext,
         contentPadding = contentPadding,
+        onPreviousDay = { viewModel.previousDay() },
+        onNextDay = { viewModel.nextDay() },
         onTogglePrayer = { viewModel.togglePrayer(it) },
         onMarkAsOnTime = { viewModel.markAsOnTime(it) }
     )
@@ -79,7 +91,12 @@ fun HomeScreen(viewModel: HomeViewModel, contentPadding: PaddingValues) {
 @Composable
 fun HomeScreenContent(
     homeState: NativeModels.HomeState?,
+    dateLabel: String,
+    canNavigatePrevious: Boolean,
+    canNavigateNext: Boolean,
     contentPadding: PaddingValues,
+    onPreviousDay: () -> Unit,
+    onNextDay: () -> Unit,
     onTogglePrayer: (String) -> Unit,
     onMarkAsOnTime: (String) -> Unit
 ) {
@@ -104,18 +121,50 @@ fun HomeScreenContent(
             .verticalScroll(rememberScrollState())
             .padding(contentPadding)
             .padding(horizontal = 20.dp),
-        verticalArrangement = Arrangement.spacedBy(18.dp),
+        verticalArrangement = Arrangement.spacedBy(20.dp),
         horizontalAlignment = Alignment.CenterHorizontally
     ) {
         // Brand logo
         Image(
             painter = painterResource(id = logoRes),
             contentDescription = stringResource(R.string.waqt_logo_desc),
-            modifier = Modifier.size(270.dp).windowInsetsPadding(WindowInsets.statusBars),
+            modifier = Modifier.size(255.dp).padding(15.dp),
             colorFilter = ColorFilter.tint(MaterialTheme.colorScheme.primary)
         )
 
-        Spacer(modifier = Modifier.height(2.dp))
+
+        // Navigation Arrows and Date Label
+        Row(
+            modifier = Modifier.fillMaxWidth(),
+            verticalAlignment = Alignment.CenterVertically,
+            horizontalArrangement = Arrangement.SpaceBetween
+        ) {
+            IconButton(
+                onClick = onPreviousDay,
+                enabled = canNavigatePrevious
+            ) {
+                Icon(
+                    imageVector = Icons.AutoMirrored.Filled.ArrowBack,
+                    contentDescription = stringResource(R.string.nav_previous_day)
+                )
+            }
+
+            Text(
+                text = dateLabel,
+                style = MaterialTheme.typography.titleMedium.copy(fontWeight = FontWeight.Bold),
+                color = MaterialTheme.colorScheme.onSurface
+            )
+
+            IconButton(
+                onClick = onNextDay,
+                enabled = canNavigateNext
+            ) {
+                Icon(
+                    imageVector = Icons.AutoMirrored.Filled.ArrowForward,
+                    contentDescription = stringResource(R.string.nav_next_day)
+                )
+            }
+        }
 
         // Render each prayer card
         for (prayer in prayers) {
@@ -201,7 +250,12 @@ fun HomeScreenPreview() {
     WaqtTheme {
         HomeScreenContent(
             homeState = mockState,
+            dateLabel = "Today",
+            canNavigatePrevious = true,
+            canNavigateNext = false,
             contentPadding = PaddingValues(16.dp),
+            onPreviousDay = {},
+            onNextDay = {},
             onTogglePrayer = {},
             onMarkAsOnTime = {}
         )

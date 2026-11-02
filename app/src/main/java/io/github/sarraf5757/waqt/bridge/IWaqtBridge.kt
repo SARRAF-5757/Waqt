@@ -11,7 +11,7 @@ interface IWaqtBridge {
 
     fun initialize(context: Context): Boolean
     fun updateLocation(latitude: Double, longitude: Double)
-    fun getHomeState(): NativeModels.HomeState?
+    fun getHomeState(dayOffset: Int = 0): NativeModels.HomeState?
     fun togglePrayer(dateKey: String, prayerId: String, completed: Boolean, isOnTime: Boolean): Boolean
     fun getPreferences(): NativeModels.PreferenceSettings?
     fun updatePreference(key: String, value: String)

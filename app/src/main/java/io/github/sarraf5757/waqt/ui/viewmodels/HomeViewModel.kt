@@ -10,8 +10,11 @@ import androidx.lifecycle.AndroidViewModel
 import androidx.lifecycle.viewModelScope
 
 import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.flow.map
+import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
 
 import io.github.sarraf5757.waqt.bridge.NativeModels
@@ -26,6 +29,15 @@ class HomeViewModel(application: Application, private val waqtBridge: io.github.
     private val _homeState = MutableStateFlow<NativeModels.HomeState?>(null)
     val homeState: StateFlow<NativeModels.HomeState?> = _homeState.asStateFlow()
 
+    private val _dayOffset = MutableStateFlow(0)
+    val dayOffset: StateFlow<Int> = _dayOffset.asStateFlow()
+
+    val canNavigatePrevious: StateFlow<Boolean> = _dayOffset.map { it > -1 }
+        .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), true)
+
+    val canNavigateNext: StateFlow<Boolean> = _dayOffset.map { it < 0 }
+        .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), false)
+
     init {
         loadHomeState()
         // Sync with preference changes from Settings screen
@@ -34,14 +46,40 @@ class HomeViewModel(application: Application, private val waqtBridge: io.github.
                 loadHomeState()
             }
         }
+        // Sync with history updates
+        viewModelScope.launch {
+            waqtBridge.historyUpdates.collect {
+                loadHomeState()
+            }
+        }
+    }
+
+    /**
+     * Navigates 1 day back to view or edit yesterday's prayer records
+     */
+    fun previousDay() {
+        if (_dayOffset.value > -1) {
+            _dayOffset.value -= 1
+            loadHomeState()
+        }
+    }
+
+    /**
+     * Navigates forward back to the present day
+     */
+    fun nextDay() {
+        if (_dayOffset.value < 0) {
+            _dayOffset.value += 1
+            loadHomeState()
+        }
     }
 
     /**
      * Triggers a JNI call to the C++ core to fetch the latest display data
      */
-    fun loadHomeState() {
+    fun loadHomeState(offset: Int = _dayOffset.value) {
         viewModelScope.launch {
-            _homeState.value = waqtBridge.getHomeState()
+            _homeState.value = waqtBridge.getHomeState(offset)
         }
     }
 
@@ -85,7 +123,7 @@ class HomeViewModel(application: Application, private val waqtBridge: io.github.
             waqtBridge.togglePrayer(dateKey, prayerId, newCompletedStatus, onTimeResult)
             
             // Refresh the local state from C++
-            val newState = waqtBridge.getHomeState()
+            val newState = waqtBridge.getHomeState(_dayOffset.value)
             _homeState.value = newState
             
             // Update scheduled system alarms
@@ -109,7 +147,7 @@ class HomeViewModel(application: Application, private val waqtBridge: io.github.
             waqtBridge.togglePrayer(dateKey, prayerId, true, true)
             
             // Refresh UI
-            val newState = waqtBridge.getHomeState()
+            val newState = waqtBridge.getHomeState(_dayOffset.value)
             _homeState.value = newState
         }
     }

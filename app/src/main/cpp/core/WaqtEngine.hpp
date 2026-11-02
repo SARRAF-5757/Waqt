@@ -55,9 +55,9 @@ public:
     DayPrayerStatus getTodayStatuses(int64_t nowUnixTimestampSec);
 
     /**
-     * Generates a ready-to-display state for the Home UI
+     * Generates a ready-to-display state for the Home UI for today or a day offset
      */
-    UIHomeState getUIHomeState(int64_t nowUnixTimestampSec);
+    UIHomeState getUIHomeState(int64_t nowUnixTimestampSec, int dayOffset = 0);
 
     /**
      * Toggles a prayer's completion status in the history database

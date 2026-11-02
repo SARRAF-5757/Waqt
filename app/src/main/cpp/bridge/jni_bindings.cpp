@@ -128,8 +128,8 @@ Java_io_github_sarraf5757_waqt_bridge_WaqtNativeBridge_nativeUpdateLocation(JNIE
  * Reconstructs a Kotlin 'HomeState' data class using C++ data
  */
 JNIEXPORT jobject JNICALL
-Java_io_github_sarraf5757_waqt_bridge_WaqtNativeBridge_nativeGetHomeState(JNIEnv* env, jobject /*thiz*/, jlong nowSec) {
-    auto uiState = waqt::WaqtEngine::getInstance().getUIHomeState(nowSec);
+Java_io_github_sarraf5757_waqt_bridge_WaqtNativeBridge_nativeGetHomeState(JNIEnv* env, jobject /*thiz*/, jlong nowSec, jint dayOffset) {
+    auto uiState = waqt::WaqtEngine::getInstance().getUIHomeState(nowSec, dayOffset);
 
     // Create an ArrayList of objects to pass back to Kotlin
     jobject prayersList = createArrayList(env, static_cast<jint>(uiState.prayers.size()));

@@ -52,9 +52,9 @@ object WaqtNativeBridge : IWaqtBridge {
     /**
      * Calls C++, which formats all the time and prayer strings into a ready-to-display object
      */
-    override fun getHomeState(): NativeModels.HomeState? {
+    override fun getHomeState(dayOffset: Int): NativeModels.HomeState? {
         val nowSec = System.currentTimeMillis() / 1000
-        return nativeGetHomeState(nowSec)
+        return nativeGetHomeState(nowSec, dayOffset)
     }
 
     /**
@@ -112,7 +112,7 @@ object WaqtNativeBridge : IWaqtBridge {
      */
     private external fun nativeInitialize(dbPath: String): Boolean
     private external fun nativeUpdateLocation(latitude: Double, longitude: Double)
-    private external fun nativeGetHomeState(nowSec: Long): NativeModels.HomeState?
+    private external fun nativeGetHomeState(nowSec: Long, dayOffset: Int): NativeModels.HomeState?
     private external fun nativeTogglePrayer(dateKey: String, prayerId: String, completed: Boolean, isOnTime: Boolean): Boolean
     private external fun nativeGetPreferences(): NativeModels.PreferenceSettings?
     private external fun nativeUpdatePreference(key: String, value: String)
