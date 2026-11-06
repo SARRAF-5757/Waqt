@@ -27,6 +27,20 @@
     <string name="start_time">Start Time</string>
     <string name="end_time">End Time</string>
     <string name="material_you">Material You</string>
+
+    <!-- Backup and Restore -->
+    <string name="section_backup_restore">Backup &amp; Restore</string>
+    <string name="export_backup_btn">EXPORT BACKUP</string>
+    <string name="restore_backup_btn">RESTORE BACKUP</string>
+    <string name="restore_confirm_title">Restore Prayer History</string>
+    <string name="restore_confirm_message">This backup contains %1$d prayer records.\n\nRestoring will destructively replace all current prayer history with the records in this file. This action cannot be undone.</string>
+    <string name="restore">Restore</string>
+    <string name="export_success">Exported %1$d prayer records</string>
+    <string name="export_empty">No prayer records to export</string>
+    <string name="export_failed">Failed to export backup</string>
+    <string name="restore_success">Restored %1$d prayer records</string>
+    <string name="restore_failed_invalid">Invalid or corrupted backup file</string>
+
     <string name="section_danger_zone">Danger Zone</string>
     <string name="delete_all_records_btn">DELETE ALL RECORDS</string>
     <string name="delete_all_records_dialog_title">Delete all records</string>

@@ -107,6 +107,29 @@ object WaqtNativeBridge : IWaqtBridge {
     }
 
     /**
+     * Retrieves all prayer history records from the C++ database
+     */
+    override fun getAllHistory(): List<NativeModels.PrayerHistoryRecord> {
+        return nativeGetAllHistory() ?: emptyList()
+    }
+
+    /**
+     * Replaces all prayer history records in the C++ database with the imported batch
+     */
+    override fun replaceAllHistory(records: List<NativeModels.PrayerHistoryRecord>): Boolean {
+        val count = records.size
+        val dateKeys = Array(count) { records[it].dateKey }
+        val prayerIds = Array(count) { records[it].prayerId }
+        val completed = BooleanArray(count) { records[it].completed }
+        val isOnTime = BooleanArray(count) { records[it].isOnTime }
+        val success = nativeReplaceAllHistory(dateKeys, prayerIds, completed, isOnTime)
+        if (success) {
+            historyUpdates.tryEmit(Unit)
+        }
+        return success
+    }
+
+    /**
      * NATIVE EXTERNAL DECLARATIONS - in bridge/jni_bindings.cpp
      * [The 'external' keyword tells the Kotlin compiler that the implementation is in the shared library]
      */
@@ -121,4 +144,11 @@ object WaqtNativeBridge : IWaqtBridge {
     private external fun nativeGetRangeStats(startDate: String, endDate: String): NativeModels.HistoryStatsData?
     private external fun nativeGetNotificationSchedule(nowSec: Long): List<NativeModels.NotificationIntent>?
     private external fun nativeGetEndOptionPreviews(nowSec: Long): NativeModels.EndOptionPreviews?
+    private external fun nativeGetAllHistory(): List<NativeModels.PrayerHistoryRecord>?
+    private external fun nativeReplaceAllHistory(
+        dateKeys: Array<String>,
+        prayerIds: Array<String>,
+        completed: BooleanArray,
+        isOnTime: BooleanArray
+    ): Boolean
 }

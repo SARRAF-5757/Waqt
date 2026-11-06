@@ -206,6 +206,20 @@ void WaqtEngine::deleteAllHistory() {
 }
 
 /**
+ * Retrieves all stored prayer history records for backup
+ */
+std::vector<PrayerHistoryRecord> WaqtEngine::getAllHistory() {
+    return m_database.getAllHistory();
+}
+
+/**
+ * Destructively replaces all prayer history records with an imported batch
+ */
+bool WaqtEngine::replaceAllHistory(const std::vector<PrayerHistoryRecord>& records) {
+    return m_database.replaceAllHistory(records);
+}
+
+/**
  * Generates a sorted list of upcoming prayer and end-time warning notifications
  */
 std::vector<NotificationIntent> WaqtEngine::getNotificationSchedule(int64_t nowUnixTimestampSec) {

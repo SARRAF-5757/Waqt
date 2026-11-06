@@ -5,6 +5,9 @@
 package io.github.sarraf5757.waqt.ui.screens
 
 import android.os.Build
+import android.widget.Toast
+import androidx.activity.compose.rememberLauncherForActivityResult
+import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.foundation.background
 import androidx.compose.foundation.isSystemInDarkTheme
 import androidx.compose.foundation.layout.Arrangement
@@ -49,6 +52,7 @@ import androidx.compose.material3.TextFieldDefaults
 import androidx.compose.material3.dynamicDarkColorScheme
 import androidx.compose.material3.dynamicLightColorScheme
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
@@ -74,15 +78,42 @@ import io.github.sarraf5757.waqt.ui.viewmodels.SettingsViewModel
 
 
 /**
- * Renders Settings screen layout with interactive controls and delete dialog
+ * Renders Settings screen layout with interactive controls, backup/restore, and delete dialog
  */
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun SettingsScreen(viewModel: SettingsViewModel, contentPadding: PaddingValues) {
     val prefs by viewModel.prefs.collectAsState()
     val previews by viewModel.endOptionPreviews.collectAsState()
-    val settings = prefs ?: return
+    val userMessage by viewModel.userMessage.collectAsState()
+    val pendingRestorePayload by viewModel.pendingRestorePayload.collectAsState()
+    val context = LocalContext.current
 
+    val exportLauncher = rememberLauncherForActivityResult(
+        contract = ActivityResultContracts.CreateDocument("application/json")
+    ) { uri ->
+        if (uri != null) {
+            viewModel.exportBackup(uri)
+        }
+    }
+
+    val importLauncher = rememberLauncherForActivityResult(
+        contract = ActivityResultContracts.OpenDocument()
+    ) { uri ->
+        if (uri != null) {
+            viewModel.prepareRestore(uri)
+        }
+    }
+
+    LaunchedEffect(userMessage) {
+        val msg = userMessage
+        if (msg != null) {
+            Toast.makeText(context, msg, Toast.LENGTH_SHORT).show()
+            viewModel.clearUserMessage()
+        }
+    }
+
+    val settings = prefs ?: return
 
     SettingsScreenContent(
         settings = settings,
@@ -97,8 +128,36 @@ fun SettingsScreen(viewModel: SettingsViewModel, contentPadding: PaddingValues) 
         onUpdateShowStartTime = { viewModel.updateShowStartTime(it) },
         onUpdateShowEndTime = { viewModel.updateShowEndTime(it) },
         onUpdateThemeColor = { viewModel.updateThemeColor(it) },
-        onDeleteAllHistory = { viewModel.deleteAllHistory() }
+        onDeleteAllHistory = { viewModel.deleteAllHistory() },
+        onExportBackup = {
+            val todayStr = java.time.LocalDate.now().toString()
+            exportLauncher.launch("waqt_backup_$todayStr.json")
+        },
+        onRestoreBackup = {
+            importLauncher.launch(arrayOf("application/json", "*/*"))
+        }
     )
+
+    val payloadToRestore = pendingRestorePayload
+    if (payloadToRestore != null) {
+        AlertDialog(
+            onDismissRequest = { viewModel.dismissRestoreDialog() },
+            title = { Text(stringResource(R.string.restore_confirm_title)) },
+            text = { Text(stringResource(R.string.restore_confirm_message, payloadToRestore.totalRecords)) },
+            confirmButton = {
+                TextButton(
+                    onClick = { viewModel.confirmRestore(payloadToRestore) }
+                ) {
+                    Text(stringResource(R.string.restore), color = MaterialTheme.colorScheme.error)
+                }
+            },
+            dismissButton = {
+                TextButton(onClick = { viewModel.dismissRestoreDialog() }) {
+                    Text(stringResource(R.string.cancel))
+                }
+            }
+        )
+    }
 }
 
 /**
@@ -119,7 +178,9 @@ fun SettingsScreenContent(
     onUpdateShowStartTime: (Boolean) -> Unit,
     onUpdateShowEndTime: (Boolean) -> Unit,
     onUpdateThemeColor: (String) -> Unit,
-    onDeleteAllHistory: () -> Unit
+    onDeleteAllHistory: () -> Unit,
+    onExportBackup: () -> Unit,
+    onRestoreBackup: () -> Unit
 ) {
     var showDeleteDialog by remember { mutableStateOf(false) }
     val context = LocalContext.current
@@ -462,6 +523,48 @@ fun SettingsScreenContent(
 
         Spacer(modifier = Modifier.height(32.dp))
 
+        // Section: Backup & Restore
+        SectionHeader(text = stringResource(R.string.section_backup_restore))
+        Spacer(modifier = Modifier.height(8.dp))
+
+        Button(
+            onClick = onExportBackup,
+            modifier = Modifier
+                .fillMaxWidth()
+                .height(56.dp),
+            shape = RoundedCornerShape(30.dp),
+            colors = ButtonDefaults.buttonColors(
+                containerColor = MaterialTheme.colorScheme.secondaryContainer,
+                contentColor = MaterialTheme.colorScheme.onSecondaryContainer
+            )
+        ) {
+            Text(
+                text = stringResource(R.string.export_backup_btn),
+                style = MaterialTheme.typography.bodyMedium.copy(fontSize = 16.sp, fontWeight = FontWeight.Bold)
+            )
+        }
+
+        Spacer(modifier = Modifier.height(12.dp))
+
+        Button(
+            onClick = onRestoreBackup,
+            modifier = Modifier
+                .fillMaxWidth()
+                .height(56.dp),
+            shape = RoundedCornerShape(30.dp),
+            colors = ButtonDefaults.buttonColors(
+                containerColor = MaterialTheme.colorScheme.tertiaryContainer,
+                contentColor = MaterialTheme.colorScheme.onTertiaryContainer
+            )
+        ) {
+            Text(
+                text = stringResource(R.string.restore_backup_btn),
+                style = MaterialTheme.typography.bodyMedium.copy(fontSize = 16.sp, fontWeight = FontWeight.Bold)
+            )
+        }
+
+        Spacer(modifier = Modifier.height(32.dp))
+
         // Section: Danger Zone
         SectionHeader(text = stringResource(R.string.section_danger_zone))
         Spacer(modifier = Modifier.height(8.dp))
@@ -628,7 +731,9 @@ fun SettingsScreenPreview() {
                 onUpdateShowStartTime = {},
                 onUpdateShowEndTime = {},
                 onUpdateThemeColor = {},
-                onDeleteAllHistory = {}
+                onDeleteAllHistory = {},
+                onExportBackup = {},
+                onRestoreBackup = {}
             )
         }
     }

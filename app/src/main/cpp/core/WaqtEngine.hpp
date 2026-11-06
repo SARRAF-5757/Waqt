@@ -80,6 +80,16 @@ public:
     void deleteAllHistory();
 
     /**
+     * Retrieves all stored prayer history records for backup
+     */
+    std::vector<PrayerHistoryRecord> getAllHistory();
+
+    /**
+     * Destructively replaces all prayer history records with an imported batch
+     */
+    bool replaceAllHistory(const std::vector<PrayerHistoryRecord>& records);
+
+    /**
      * Generates a sorted list of upcoming prayer and end-time warning notifications
      */
     std::vector<NotificationIntent> getNotificationSchedule(int64_t nowUnixTimestampSec);

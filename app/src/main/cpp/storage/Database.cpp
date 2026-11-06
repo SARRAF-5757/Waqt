@@ -383,4 +383,83 @@ void Database::deleteAllHistory() {
         sqlite3_free(errMsgs);
 }
 
+/**
+ * Retrieves all prayer history records ordered by date and prayer ID
+ */
+std::vector<PrayerHistoryRecord> Database::getAllHistory() {
+    std::vector<PrayerHistoryRecord> records;
+    if (!m_db)
+        return records;
+
+    const char* sql = "SELECT date_key, prayer_id, completed, is_on_time FROM history ORDER BY date_key ASC, prayer_id ASC;";
+    sqlite3_stmt* stmt = nullptr;
+    if (sqlite3_prepare_v2(m_db, sql, -1, &stmt, nullptr) == SQLITE_OK) {
+        while (sqlite3_step(stmt) == SQLITE_ROW) {
+            PrayerHistoryRecord rec;
+            const unsigned char* dKey = sqlite3_column_text(stmt, 0);
+            const unsigned char* pId = sqlite3_column_text(stmt, 1);
+            if (dKey && pId) {
+                rec.dateKey = reinterpret_cast<const char*>(dKey);
+                rec.prayerId = reinterpret_cast<const char*>(pId);
+                rec.completed = (sqlite3_column_int(stmt, 2) != 0);
+                rec.isOnTime = (sqlite3_column_int(stmt, 3) != 0);
+                records.push_back(rec);
+            }
+        }
+    }
+    if (stmt)
+        sqlite3_finalize(stmt);
+    return records;
+}
+
+/**
+ * Atomically clears existing history and imports a new batch of prayer records
+ */
+bool Database::replaceAllHistory(const std::vector<PrayerHistoryRecord>& records) {
+    if (!m_db)
+        return false;
+
+    char* errMsg = nullptr;
+    if (sqlite3_exec(m_db, "BEGIN TRANSACTION;", nullptr, nullptr, &errMsg) != SQLITE_OK) {
+        if (errMsg) sqlite3_free(errMsg);
+        return false;
+    }
+
+    if (sqlite3_exec(m_db, "DELETE FROM history;", nullptr, nullptr, &errMsg) != SQLITE_OK) {
+        if (errMsg) sqlite3_free(errMsg);
+        sqlite3_exec(m_db, "ROLLBACK;", nullptr, nullptr, nullptr);
+        return false;
+    }
+
+    const char* sql = "INSERT OR REPLACE INTO history (date_key, prayer_id, completed, is_on_time) VALUES (?, ?, ?, ?);";
+    sqlite3_stmt* stmt = nullptr;
+    bool success = true;
+
+    if (sqlite3_prepare_v2(m_db, sql, -1, &stmt, nullptr) == SQLITE_OK) {
+        for (const auto& rec : records) {
+            sqlite3_bind_text(stmt, 1, rec.dateKey.c_str(), -1, SQLITE_TRANSIENT);
+            sqlite3_bind_text(stmt, 2, rec.prayerId.c_str(), -1, SQLITE_TRANSIENT);
+            sqlite3_bind_int(stmt, 3, rec.completed ? 1 : 0);
+            sqlite3_bind_int(stmt, 4, rec.isOnTime ? 1 : 0);
+
+            if (sqlite3_step(stmt) != SQLITE_DONE) {
+                success = false;
+                break;
+            }
+            sqlite3_reset(stmt);
+        }
+        sqlite3_finalize(stmt);
+    } else {
+        success = false;
+    }
+
+    if (success) {
+        sqlite3_exec(m_db, "COMMIT;", nullptr, nullptr, nullptr);
+    } else {
+        sqlite3_exec(m_db, "ROLLBACK;", nullptr, nullptr, nullptr);
+    }
+
+    return success;
+}
+
 } // namespace waqt

@@ -79,6 +79,16 @@ public:
      * Wipes all records from the database
      */
     void deleteAllHistory();
+
+    /**
+     * Retrieves all prayer history records ordered by date and prayer ID
+     */
+    std::vector<PrayerHistoryRecord> getAllHistory();
+
+    /**
+     * Atomically clears existing history and imports a new batch of prayer records
+     */
+    bool replaceAllHistory(const std::vector<PrayerHistoryRecord>& records);
 };
 
 } // namespace waqt

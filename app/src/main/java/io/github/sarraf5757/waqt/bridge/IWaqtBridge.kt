@@ -20,4 +20,6 @@ interface IWaqtBridge {
     fun getRangeStats(startDate: String, endDate: String): NativeModels.HistoryStatsData?
     fun getNotificationSchedule(): List<NativeModels.NotificationIntent>
     fun getEndOptionPreviews(): NativeModels.EndOptionPreviews?
+    fun getAllHistory(): List<NativeModels.PrayerHistoryRecord>
+    fun replaceAllHistory(records: List<NativeModels.PrayerHistoryRecord>): Boolean
 }

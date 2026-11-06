@@ -93,9 +93,9 @@ Makefile
 *.pch
 
 # Test Executables & Temporary Binary Runners
-/app/src/test
 test_waqt_cpp
 a.out
 *.exe
 *.out
 /graphify-out
+app/release/*

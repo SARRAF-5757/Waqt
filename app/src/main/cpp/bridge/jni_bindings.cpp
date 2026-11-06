@@ -26,6 +26,8 @@ struct {
     jmethodID notificationIntentCons;
     jclass endOptionPreviewsClass;
     jmethodID endOptionPreviewsCons;
+    jclass prayerHistoryRecordClass;
+    jmethodID prayerHistoryRecordCons;
     jclass arrayListClass;
     jmethodID arrayListCons;
     jmethodID arrayListAdd;
@@ -95,6 +97,10 @@ JNIEXPORT jint JNICALL JNI_OnLoad(JavaVM* vm, void* reserved) {
     cacheClass("io/github/sarraf5757/waqt/bridge/NativeModels$EndOptionPreviews",
                g_cache.endOptionPreviewsClass, g_cache.endOptionPreviewsCons,
                "(Ljava/util/List;Ljava/util/List;)V");
+
+    cacheClass("io/github/sarraf5757/waqt/bridge/NativeModels$PrayerHistoryRecord",
+               g_cache.prayerHistoryRecordClass, g_cache.prayerHistoryRecordCons,
+               "(Ljava/lang/String;Ljava/lang/String;ZZ)V");
 
     return JNI_VERSION_1_6;
 }
@@ -397,6 +403,93 @@ Java_io_github_sarraf5757_waqt_bridge_WaqtNativeBridge_nativeGetEndOptionPreview
     env->DeleteLocalRef(ishaList);
 
     return result;
+}
+
+/**
+ * Retrieves all prayer completion history records for backup export
+ */
+JNIEXPORT jobject JNICALL
+Java_io_github_sarraf5757_waqt_bridge_WaqtNativeBridge_nativeGetAllHistory(JNIEnv* env, jobject /*thiz*/) {
+    auto records = waqt::WaqtEngine::getInstance().getAllHistory();
+    jobject resultList = createArrayList(env, static_cast<jint>(records.size()));
+
+    for (const auto& rec : records) {
+        jstring dateKeyStr = env->NewStringUTF(rec.dateKey.c_str());
+        jstring prayerIdStr = env->NewStringUTF(rec.prayerId.c_str());
+
+        jobject item = env->NewObject(
+            g_cache.prayerHistoryRecordClass,
+            g_cache.prayerHistoryRecordCons,
+            dateKeyStr,
+            prayerIdStr,
+            rec.completed ? JNI_TRUE : JNI_FALSE,
+            rec.isOnTime ? JNI_TRUE : JNI_FALSE
+        );
+
+        addToArrayList(env, resultList, item);
+
+        env->DeleteLocalRef(dateKeyStr);
+        env->DeleteLocalRef(prayerIdStr);
+        env->DeleteLocalRef(item);
+    }
+
+    return resultList;
+}
+
+/**
+ * Destructively clears existing records and restores a batch of prayer records from backup
+ */
+JNIEXPORT jboolean JNICALL
+Java_io_github_sarraf5757_waqt_bridge_WaqtNativeBridge_nativeReplaceAllHistory(
+    JNIEnv* env, jobject /*thiz*/,
+    jobjectArray dateKeys,
+    jobjectArray prayerIds,
+    jbooleanArray completed,
+    jbooleanArray isOnTime
+) {
+    if (!dateKeys || !prayerIds || !completed || !isOnTime) {
+        return JNI_FALSE;
+    }
+
+    jsize count = env->GetArrayLength(dateKeys);
+    if (env->GetArrayLength(prayerIds) != count ||
+        env->GetArrayLength(completed) != count ||
+        env->GetArrayLength(isOnTime) != count) {
+        return JNI_FALSE;
+    }
+
+    jboolean* compBools = env->GetBooleanArrayElements(completed, nullptr);
+    jboolean* onTimeBools = env->GetBooleanArrayElements(isOnTime, nullptr);
+
+    std::vector<waqt::PrayerHistoryRecord> records;
+    records.reserve(count);
+
+    for (jsize i = 0; i < count; ++i) {
+        auto dKeyObj = static_cast<jstring>(env->GetObjectArrayElement(dateKeys, i));
+        auto pIdObj = static_cast<jstring>(env->GetObjectArrayElement(prayerIds, i));
+
+        const char* dKeyC = dKeyObj ? env->GetStringUTFChars(dKeyObj, nullptr) : "";
+        const char* pIdC = pIdObj ? env->GetStringUTFChars(pIdObj, nullptr) : "";
+
+        waqt::PrayerHistoryRecord rec;
+        rec.dateKey = dKeyC ? dKeyC : "";
+        rec.prayerId = pIdC ? pIdC : "";
+        rec.completed = (compBools[i] == JNI_TRUE);
+        rec.isOnTime = (onTimeBools[i] == JNI_TRUE);
+
+        records.push_back(rec);
+
+        if (dKeyObj && dKeyC) env->ReleaseStringUTFChars(dKeyObj, dKeyC);
+        if (pIdObj && pIdC) env->ReleaseStringUTFChars(pIdObj, pIdC);
+        if (dKeyObj) env->DeleteLocalRef(dKeyObj);
+        if (pIdObj) env->DeleteLocalRef(pIdObj);
+    }
+
+    if (compBools) env->ReleaseBooleanArrayElements(completed, compBools, JNI_ABORT);
+    if (onTimeBools) env->ReleaseBooleanArrayElements(isOnTime, onTimeBools, JNI_ABORT);
+
+    bool success = waqt::WaqtEngine::getInstance().replaceAllHistory(records);
+    return success ? JNI_TRUE : JNI_FALSE;
 }
 
 } // extern "C"

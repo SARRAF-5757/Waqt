@@ -5,15 +5,21 @@
 package io.github.sarraf5757.waqt.ui.viewmodels
 
 import android.app.Application
+import android.net.Uri
 
 import androidx.lifecycle.AndroidViewModel
 import androidx.lifecycle.viewModelScope
 
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
+import kotlinx.serialization.encodeToString
+import kotlinx.serialization.json.Json
 
+import io.github.sarraf5757.waqt.R
 import io.github.sarraf5757.waqt.bridge.NativeModels
 import io.github.sarraf5757.waqt.bridge.WaqtNativeBridge
 import io.github.sarraf5757.waqt.notifications.NotificationScheduler
@@ -25,6 +31,12 @@ class SettingsViewModel(application: Application, private val waqtBridge: io.git
 
     private val _endOptionPreviews = MutableStateFlow<NativeModels.EndOptionPreviews?>(null)
     val endOptionPreviews: StateFlow<NativeModels.EndOptionPreviews?> = _endOptionPreviews.asStateFlow()
+
+    private val _pendingRestorePayload = MutableStateFlow<NativeModels.HistoryBackupPayload?>(null)
+    val pendingRestorePayload: StateFlow<NativeModels.HistoryBackupPayload?> = _pendingRestorePayload.asStateFlow()
+
+    private val _userMessage = MutableStateFlow<String?>(null)
+    val userMessage: StateFlow<String?> = _userMessage.asStateFlow()
 
     init {
         loadPreferences()
@@ -153,5 +165,112 @@ class SettingsViewModel(application: Application, private val waqtBridge: io.git
             waqtBridge.deleteAllHistory()
             NotificationScheduler.scheduleNotifications(getApplication())
         }
+    }
+
+    /**
+     * Exports prayer history records to the specified destination URI as JSON
+     */
+    fun exportBackup(uri: Uri) {
+        viewModelScope.launch {
+            try {
+                val records = withContext(Dispatchers.IO) {
+                    waqtBridge.getAllHistory()
+                }
+
+                if (records.isEmpty()) {
+                    _userMessage.value = getApplication<Application>().getString(R.string.export_empty)
+                    return@launch
+                }
+
+                val payload = NativeModels.HistoryBackupPayload(
+                    history = records,
+                    totalRecords = records.size
+                )
+
+                val json = Json { prettyPrint = true }
+                val jsonString = json.encodeToString(payload)
+
+                withContext(Dispatchers.IO) {
+                    val outputStream = getApplication<Application>().contentResolver.openOutputStream(uri)
+                        ?: throw IllegalArgumentException("Cannot open output stream")
+                    outputStream.bufferedWriter().use { it.write(jsonString) }
+                }
+
+                _userMessage.value = getApplication<Application>().getString(R.string.export_success, records.size)
+            } catch (e: Exception) {
+                _userMessage.value = getApplication<Application>().getString(R.string.export_failed)
+            }
+        }
+    }
+
+    /**
+     * Reads and parses a backup file, showing confirmation dialog if valid
+     */
+    fun prepareRestore(uri: Uri) {
+        viewModelScope.launch {
+            try {
+                val jsonString = withContext(Dispatchers.IO) {
+                    val inputStream = getApplication<Application>().contentResolver.openInputStream(uri)
+                        ?: throw IllegalArgumentException("Cannot open input stream")
+                    inputStream.bufferedReader().use { it.readText() }
+                }
+
+                val json = Json { ignoreUnknownKeys = true }
+                val payload = json.decodeFromString<NativeModels.HistoryBackupPayload>(jsonString)
+
+                val validPrayers = setOf("Fajr", "Dhuhr", "Asr", "Maghrib", "Isha")
+                val validRecords = payload.history.filter { record ->
+                    val isValidDate = try {
+                        java.time.LocalDate.parse(record.dateKey)
+                        true
+                    } catch (_: Exception) {
+                        false
+                    }
+                    isValidDate && validPrayers.contains(record.prayerId)
+                }
+
+                if (validRecords.isEmpty() && payload.history.isNotEmpty()) {
+                    _userMessage.value = getApplication<Application>().getString(R.string.restore_failed_invalid)
+                    return@launch
+                }
+
+                val validatedPayload = payload.copy(history = validRecords, totalRecords = validRecords.size)
+                _pendingRestorePayload.value = validatedPayload
+            } catch (e: Exception) {
+                _userMessage.value = getApplication<Application>().getString(R.string.restore_failed_invalid)
+            }
+        }
+    }
+
+    /**
+     * Confirms destructive restore of prayer history records from the parsed payload
+     */
+    fun confirmRestore(payload: NativeModels.HistoryBackupPayload) {
+        viewModelScope.launch {
+            val success = withContext(Dispatchers.IO) {
+                waqtBridge.replaceAllHistory(payload.history)
+            }
+            _pendingRestorePayload.value = null
+            if (success) {
+                NotificationScheduler.scheduleNotifications(getApplication())
+                _userMessage.value = getApplication<Application>().getString(R.string.restore_success, payload.history.size)
+            } else {
+                _userMessage.value = getApplication<Application>().getString(R.string.restore_failed_invalid)
+            }
+        }
+    }
+
+    /**
+     * Dismisses the restore confirmation dialog
+     */
+    fun dismissRestoreDialog() {
+        _pendingRestorePayload.value = null
+    }
+
+    /**
+     * Clears user feedback message after display
+     */
+    fun clearUserMessage() {
+        _userMessage.value = null
     }
 }

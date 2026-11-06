@@ -3,6 +3,7 @@
 package io.github.sarraf5757.waqt.bridge
 
 import androidx.compose.runtime.Immutable
+import kotlinx.serialization.Serializable
 
 class NativeModels {
 
@@ -111,5 +112,30 @@ class NativeModels {
     data class HistoryStatsData(
         val totalDays: Int,
         val stats: List<PrayerStats>
+    )
+
+    /**
+     * Single prayer completion history record
+     */
+    @Serializable
+    @Immutable
+    data class PrayerHistoryRecord(
+        val dateKey: String,
+        val prayerId: String,
+        val completed: Boolean,
+        val isOnTime: Boolean
+    )
+
+    /**
+     * Export/import backup payload containing prayer completion logs
+     */
+    @Serializable
+    @Immutable
+    data class HistoryBackupPayload(
+        val version: Int = 1,
+        val appVersion: String = "2.1.0",
+        val exportedAt: Long = System.currentTimeMillis(),
+        val totalRecords: Int = 0,
+        val history: List<PrayerHistoryRecord> = emptyList()
     )
 }

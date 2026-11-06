@@ -159,6 +159,16 @@ struct UIPrayerItem {
 };
 
 /**
+ * Individual prayer history record for export/import
+ */
+    struct PrayerHistoryRecord {
+        std::string dateKey;
+        std::string prayerId;
+        bool completed{false};
+        bool isOnTime{false};
+    };
+
+/**
  * Full state required for the Home Screen UI
  */
 struct UIHomeState {
