@@ -41,7 +41,7 @@ If you said yes to any of these questions, you might want to give Waqt a shot.
 - [ ] Ability to navigate back to & edit older dates in the home screen
 - [x] Custom reminder & "custom reminder offset until prayer time expires" option in settings
 - [ ] Haptics
-- [ ] Backup/Restore data functionality
+- [x] Backup/Restore data functionality
 - [ ] Ability to keep track of prayer data for as long or delete until a specific date
 - [x] Delete data button
 - [ ] Export history as spreadsheet file
@@ -52,3 +52,9 @@ If you said yes to any of these questions, you might want to give Waqt a shot.
 ### Personal Story
 
 The motivation behind this app comes from my own struggle with procrastination. In our busy lives, it's easy to not prioritize prayer. For me, I often find myself putting it off until suddenly I notice the next prayer is approaching—and then I either rush to pray at the last second or miss it entirely. While there are other apps that remind you at Adhan time, they don't help much if you can't pray right away. A second, well-timed reminder is rare in any other prayer-time apps. That's why I created _Waqt_. I am also a completionist, so the github-style graph and the in-app reward system give me a secondary incentive to keep getting up to pray even when my body doesn't want to.
+
+<br>
+
+## License
+
+This project is licensed under the GNU General Public License v3.0 — see the [LICENSE](LICENSE) file for details.

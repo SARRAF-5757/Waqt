@@ -55,7 +55,7 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import io.github.sarraf5757.waqt.R
 import io.github.sarraf5757.waqt.bridge.NativeModels
-import io.github.sarraf5757.waqt.ui.theme.RobotoMonoFontFamily
+import io.github.sarraf5757.waqt.ui.theme.MonospaceFontFamily
 import io.github.sarraf5757.waqt.ui.theme.WaqtTheme
 import io.github.sarraf5757.waqt.ui.viewmodels.HomeViewModel
 
@@ -345,7 +345,7 @@ fun PrayerCardRow(
                     Text(
                         text = stringResource(R.string.prayer_time_separator),
                         style = MaterialTheme.typography.labelSmall.copy(
-                            fontFamily = RobotoMonoFontFamily,
+                            fontFamily = MonospaceFontFamily,
                             fontWeight = FontWeight.ExtraBold,
                             fontSize = 14.sp
                         ),
@@ -372,7 +372,7 @@ fun TimePill(timeStr: String) {
         Text(
             text = timeStr,
             style = MaterialTheme.typography.labelSmall.copy(
-                fontFamily = RobotoMonoFontFamily,
+                fontFamily = MonospaceFontFamily,
                 fontWeight = FontWeight.Black,
                 fontSize = 14.sp
             ),
