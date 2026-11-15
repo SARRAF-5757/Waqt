@@ -27,6 +27,12 @@ If you said yes to any of these questions, you might want to give Waqt a shot.
   <img src="images/historyPage4.png" alt="History Page Light" width="20%" />
 </p>
 
+<p align="center">
+  <a href="https://apps.obtainium.imranr.dev/redirect?r=obtainium://app/%7B%22id%22%3A%22io.github.sarraf5757.waqt%22%2C%22url%22%3A%22https%3A%2F%2Fgithub.com%2Fsarraf5757%2FWaqt%22%2C%22author%22%3A%22sarraf5757%22%2C%22name%22%3A%22Waqt%22%7D">
+    <img src="images/badge_obtainium.png" alt="Get it on Obtainium" height="70">
+  </a>
+</p>
+
 ## Features Checklist
 
 - [x] Track daily prayer completion with a GitHub contribution graph style streak grid
