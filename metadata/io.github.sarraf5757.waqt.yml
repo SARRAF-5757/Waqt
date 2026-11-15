@@ -1,0 +1,39 @@
+Categories:
+  - Time
+License: GPL-3.0-only
+AuthorName: Sarraf
+SourceCode: https://github.com/sarraf5757/Waqt
+IssueTracker: https://github.com/sarraf5757/Waqt/issues
+Changelog: https://github.com/sarraf5757/Waqt/releases
+
+Summary: Minimalist offline prayer tracker with waqt countdowns and streak grids
+Description: |-
+  Waqt is a native, fully offline prayer tracking application to help you build a better relationship with your daily prayer.
+  Struggle with time? Waqt gives you a nudge at just the right time so you don't forget.
+  If gamification increases your success, Waqt is also perfect for you.
+
+  Features:
+  * Track daily prayer completion with a GitHub contribution graph style streak grid and many other visualization methods
+  * Waqt and location-based prayer notifications
+  * Get a reminder right before waqt expires
+  * Customizable calculation methods and madhab options
+  * Material You dynamic theming and custom color selection
+  * Backup and restore prayer history records
+  * Completely offline with no network permissions required
+
+RepoType: git
+Repo: https://github.com/sarraf5757/Waqt.git
+
+Builds:
+  - versionName: 2.3.1
+    versionCode: 1
+    commit: v2.3.1
+    subdir: app
+    gradle:
+      - yes
+    ndk: r26b
+
+AutoUpdateMode: Version
+UpdateCheckMode: Tags
+CurrentVersion: 2.3.1
+CurrentVersionCode: 1

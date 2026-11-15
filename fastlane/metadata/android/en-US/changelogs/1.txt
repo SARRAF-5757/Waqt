@@ -1,0 +1,5 @@
+- Native prayer tracking with GitHub-style streak grids & many more
+- Waqt countdowns and upcoming expiration warning reminders
+- Material You dynamic theming and accent colors
+- Backup and restore prayer logs
+- 100% offline with zero network permissions

@@ -1,0 +1,14 @@
+Waqt is a native, fully offline prayer tracking application to help you build a better relationship with your daily prayer.
+
+Struggle with time? Waqt gives you a nudge at just the right time so you don't forget.
+
+If gamification increases your success, Waqt is also perfect for you.
+
+Features:
+* Track daily prayer completion with a GitHub contribution graph style streak grid and many other visualization methods
+* Waqt and location-based prayer notifications
+* Get a reminder right before waqt expires
+* Customizable calculation methods and madhab options
+* Material You dynamic theming and custom color selection
+* Backup and restore prayer history records
+* Completely offline with no network permissions required
